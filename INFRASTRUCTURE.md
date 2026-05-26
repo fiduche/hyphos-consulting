@@ -76,16 +76,20 @@ Email for this domain runs on **Google Workspace**, not Cloudflare Email Routing
 
 The Cloudflare Email Routing flow will offer to "clean up incompatible records" — it wants to replace Google's MX with `route1/2/3.mx.cloudflare.net`. Doing this **breaks `dnewton@hyphosconsulting.com`** and any other Workspace email on this domain. Cancel out of that flow if you ever land on it.
 
-### Adding aliases
+### Public contact address
 
-If you want `hello@hyphosconsulting.com`, `sales@hyphosconsulting.com`, etc. — add as aliases on the existing user, not as new users:
+This site's contact links all point to **`info@hyphos.io`** — a real Google Workspace mailbox in the *other* Workspace (the `hyphos.io` one). One unified contact email across both marketing sites. See the `hyphos.io` repo's INFRASTRUCTURE.md for the email setup.
+
+### Adding aliases on this Workspace if you want them
+
+If you want `sales@hyphosconsulting.com`, `legal@hyphosconsulting.com`, etc. as additional addresses on `dnewton@hyphosconsulting.com`:
 
 1. admin.google.com → **Directory → Users**
 2. Click `dnewton@hyphosconsulting.com`
 3. **User information → Email aliases → Add an alias**
 4. Save
 
-Aliases on the same domain are free and unlimited.
+Aliases on the same domain are free and unlimited. Note: the public marketing site uses `info@hyphos.io` as the contact, so don't add a `hello@` or `info@` alias here unless you want a separate inbox for consulting-specific mail.
 
 ### Adding the consulting site's contact form
 
