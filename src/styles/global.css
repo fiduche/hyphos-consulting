@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Hyphos Consulting design tokens.
+ *
+ * Distinct from the Hyphos product site (hyphos.io), which is dark
+ * SaaS-coded indigo/cyan. The consulting brand reads as a serious advisory
+ * firm that also ships software — warm cream + deep ink, with a single
+ * accent (signal) tying the network/helix logo motif to interactive states.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+@theme {
+  /* Ink — text and dark surfaces */
+  --color-ink-950: #0b1220;
+  --color-ink-900: #111827;
+  --color-ink-800: #1f2937;
+  --color-ink-700: #374151;
+  --color-ink-600: #4b5563;
+  --color-ink-500: #6b7280;
+  --color-ink-400: #9ca3af;
+  --color-ink-300: #d1d5db;
+  --color-ink-200: #e5e7eb;
+  --color-ink-100: #f3f4f6;
+
+  /* Cream — page backgrounds, warm neutrals */
+  --color-cream-50:  #faf8f4;
+  --color-cream-100: #f4f0e8;
+  --color-cream-200: #ebe4d4;
+  --color-cream-300: #ddd1b8;
+
+  /* Signal — the single accent, tying the helix/network mark to interaction */
+  --color-signal-50:  #eef6ff;
+  --color-signal-100: #d9ecff;
+  --color-signal-300: #76b4ff;
+  --color-signal-500: #1d6fe0;
+  --color-signal-600: #1657b8;
+  --color-signal-700: #134a99;
+
+  /* Warm — secondary accent for product cards / hover states */
+  --color-warm-500: #c08b4c;
+  --color-warm-600: #a7763d;
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-cream-50);
+  color: var(--color-ink-900);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Display headings get the serif. Subtle distinction — feels like a firm,
+   not a startup. */
+.display {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+/* Hairline rule used between sections — replaces heavy borders. */
+.rule {
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--color-ink-200), transparent);
+}
+
+/* Eyebrow label above section headlines. */
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-ink-500);
+  font-weight: 600;
+}
+
+/* Card — restrained, no glass effects. The consulting brand reads as
+   tactile paper, not chrome.
+   Declared inside Tailwind's `components` layer so any utility class on
+   top (e.g. `bg-ink-950`, `bg-signal-50/40`) wins automatically — utilities
+   live in a later cascade layer and always beat components. No !important
+   needed. */
+@layer components {
+  .card {
+    background-color: white;
+    border: 1px solid var(--color-ink-200);
+    border-radius: 12px;
+    transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+  }
+
+  .card:hover {
+    border-color: var(--color-ink-300);
+    box-shadow: 0 8px 24px -12px rgba(17, 24, 39, 0.12);
+    transform: translateY(-1px);
+  }
+}
+
+/* Helix network background — subtle decorative motif pulled from the
+   Hyphos mark. Used sparingly on hero sections. */
+.bg-mesh {
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(29, 111, 224, 0.06), transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(192, 139, 76, 0.05), transparent 40%);
+}
+
+.bg-hairline-grid {
+  background-image:
+    linear-gradient(rgba(17, 24, 39, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(17, 24, 39, 0.04) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+/* Primary button — used sparingly. Filled signal, ink hover. */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--color-ink-900);
+  color: white;
+  font-weight: 500;
+  font-size: 0.9rem;
+  border-radius: 9999px;
+  transition: background-color 180ms ease, transform 180ms ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-signal-600);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: transparent;
+  color: var(--color-ink-900);
+  font-weight: 500;
+  font-size: 0.9rem;
+  border-radius: 9999px;
+  border: 1px solid var(--color-ink-300);
+  transition: border-color 180ms ease, color 180ms ease;
+}
+
+.btn-secondary:hover {
+  border-color: var(--color-ink-900);
+}
+
+/* Inline link used inside prose */
+.link {
+  color: var(--color-signal-600);
+  text-decoration: underline;
+  text-decoration-color: var(--color-signal-300);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 180ms ease;
+}
+
+.link:hover {
+  text-decoration-color: var(--color-signal-600);
+}

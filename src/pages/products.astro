@@ -1,0 +1,575 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Mark from '../components/Mark.astro';
+---
+
+<BaseLayout
+  title="Products"
+  description="Foundation — an integrated business operating system we adapt to each industry. Hyphos — enterprise knowledge and apprenticeship. Two products from Hyphos Consulting."
+>
+
+  {/* Header */}
+  <section class="mx-auto max-w-5xl px-5 sm:px-8 pt-20 sm:pt-28 pb-12">
+    <div class="eyebrow mb-3">Our products</div>
+    <h1 class="display text-4xl sm:text-5xl leading-tight text-ink-900">
+      Two products. One way of thinking about software.
+    </h1>
+    <p class="mt-6 text-lg text-ink-600 max-w-3xl leading-relaxed">
+      <strong class="text-ink-900">Foundation</strong> — our integrated business operating system, adapted per industry to replace the patchwork most companies run on. <strong class="text-ink-900">Hyphos</strong> — the enterprise knowledge platform that captures expertise and accelerates apprenticeship at scale. We own and operate both.
+    </p>
+  </section>
+
+  <div class="rule"></div>
+
+  {/* ─── Foundation — the integrated business platform ─── */}
+  <section id="foundation" class="scroll-mt-24">
+    <div class="mx-auto max-w-6xl px-5 sm:px-8 pt-20 sm:pt-24 pb-8">
+      <div class="flex flex-wrap items-center gap-3 mb-5">
+        <span class="inline-block px-2.5 py-1 rounded-full bg-signal-50 text-signal-700 text-xs font-semibold">Foundation</span>
+        <span class="text-sm text-ink-500">Production-ready · adapted per vertical</span>
+      </div>
+
+      <h2 class="display text-4xl sm:text-5xl text-ink-900 leading-tight">
+        Foundation — the integrated business operating system.
+      </h2>
+      <p class="mt-3 text-lg text-ink-600 max-w-3xl">
+        Front-of-house, back-of-house, finance, marketing — sharing one database, one source of truth, one set of relationships. Shaped to fit your industry.
+      </p>
+
+      <div class="mt-10 max-w-3xl space-y-5 text-ink-700 leading-relaxed">
+        <p>
+          Most businesses run on a tangle of single-purpose subscriptions. A separate CRM. A scheduling tool. A marketing platform. A website nobody updates. Time tracking in a spreadsheet. QuickBooks living in its own world. The people in the middle absorb the cost of stitching it all together.
+        </p>
+        <p>
+          We've built and own the alternative: Foundation handles all of it, in one system, with one underlying database. Then we shape it to your industry — your specific workflows, integrations, regulatory constraints, and customer journeys. You get the speed of an off-the-shelf product with the fit of custom software.
+        </p>
+        <p class="text-ink-900">
+          <strong>The premise:</strong> automate the repeatable parts so your team's time goes back to the part you actually hired them for — the relationships, the judgment, the care.
+        </p>
+      </div>
+    </div>
+
+    {/* ─── Full module grid — everything Foundation does ─── */}
+    <div class="mx-auto max-w-6xl px-5 sm:px-8 pb-8">
+      <div class="rule mb-10"></div>
+      <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-8">
+        <div>
+          <div class="eyebrow mb-2">What Foundation does</div>
+          <h3 class="display text-2xl text-ink-900 leading-tight">Sixteen integrated modules. One database underneath.</h3>
+        </div>
+        <p class="text-sm text-ink-500 max-w-xs">Every module shares the same customer, the same calendar, the same financials. Nothing gets re-entered.</p>
+      </div>
+
+      {/* ─── Foundation architecture diagram ─── */}
+      <div class="mb-14 bg-cream-100/60 border border-ink-200/60 rounded-2xl px-6 sm:px-10 py-10 sm:py-14">
+        <div class="relative max-w-4xl mx-auto">
+
+          {/* Desktop connector layer */}
+          <svg
+            class="hidden lg:block absolute inset-0 w-full h-full pointer-events-none"
+            viewBox="0 0 800 480"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient id="link-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#1d6fe0" stop-opacity="0.5"/>
+                <stop offset="100%" stop-color="#1d6fe0" stop-opacity="0.5"/>
+              </linearGradient>
+            </defs>
+            {/* Lines from each corner pod toward the central hub */}
+            <path d="M 220 100 C 320 100, 360 220, 400 240" stroke="#1d6fe0" stroke-width="1.5" stroke-dasharray="3 4" fill="none" opacity="0.7"/>
+            <path d="M 580 100 C 480 100, 440 220, 400 240" stroke="#1d6fe0" stroke-width="1.5" stroke-dasharray="3 4" fill="none" opacity="0.7"/>
+            <path d="M 220 380 C 320 380, 360 260, 400 240" stroke="#1d6fe0" stroke-width="1.5" stroke-dasharray="3 4" fill="none" opacity="0.7"/>
+            <path d="M 580 380 C 480 380, 440 260, 400 240" stroke="#1d6fe0" stroke-width="1.5" stroke-dasharray="3 4" fill="none" opacity="0.7"/>
+          </svg>
+
+          {/* 2x2 pod grid */}
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 lg:gap-x-72 lg:gap-y-12 relative">
+
+            {/* Front of house pod */}
+            <div class="card p-5 bg-white">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-1.5 h-1.5 rounded-full bg-signal-500"></div>
+                <span class="text-xs font-semibold text-ink-900 uppercase tracking-wider">Front of house</span>
+              </div>
+              <div class="grid grid-cols-2 gap-1.5">
+                <div class="flex items-center gap-1.5 text-[11px] text-ink-600"><span class="w-1 h-1 rounded-full bg-signal-500"></span>Clients</div>
+                <div class="flex items-center gap-1.5 text-[11px] text-ink-600"><span class="w-1 h-1 rounded-full bg-signal-500"></span>Portal</div>
+                <div class="flex items-center gap-1.5 text-[11px] text-ink-600"><span class="w-1 h-1 rounded-full bg-signal-500"></span>Website</div>
+                <div class="flex items-center gap-1.5 text-[11px] text-ink-600"><span class="w-1 h-1 rounded-full bg-signal-500"></span>Comms</div>
+              </div>
+            </div>
+
+            {/* Back of house pod */}
+            <div class="card p-5 bg-white">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-1.5 h-1.5 rounded-full bg-warm-500"></div>
+                <span class="text-xs font-semibold text-ink-900 uppercase tracking-wider">Back of house</span>
+              </div>
+              <div class="grid grid-cols-2 gap-1.5">
+                <div class="flex items-center gap-1.5 text-[11px] text-ink-600"><span class="w-1 h-1 rounded-full bg-warm-500"></span>Time</div>
+                <div class="flex items-center gap-1.5 text-[11px] text-ink-600"><span class="w-1 h-1 rounded-full bg-warm-500"></span>Docs</div>
+                <div class="flex items-center gap-1.5 text-[11px] text-ink-600"><span class="w-1 h-1 rounded-full bg-warm-500"></span>Meetings</div>
+                <div class="flex items-center gap-1.5 text-[11px] text-ink-600"><span class="w-1 h-1 rounded-full bg-warm-500"></span>Schedule</div>
+              </div>
+            </div>
+
+            {/* Finance pod */}
+            <div class="card p-5 bg-white">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-1.5 h-1.5 rounded-full bg-ink-700"></div>
+                <span class="text-xs font-semibold text-ink-900 uppercase tracking-wider">Finance</span>
+              </div>
+              <div class="grid grid-cols-2 gap-1.5">
+                <div class="flex items-center gap-1.5 text-[11px] text-ink-600"><span class="w-1 h-1 rounded-full bg-ink-700"></span>Estimating</div>
+                <div class="flex items-center gap-1.5 text-[11px] text-ink-600"><span class="w-1 h-1 rounded-full bg-ink-700"></span>AP</div>
+                <div class="flex items-center gap-1.5 text-[11px] text-ink-600"><span class="w-1 h-1 rounded-full bg-ink-700"></span>QuickBooks</div>
+                <div class="flex items-center gap-1.5 text-[11px] text-ink-600"><span class="w-1 h-1 rounded-full bg-ink-700"></span>Reporting</div>
+              </div>
+            </div>
+
+            {/* Marketing pod */}
+            <div class="card p-5 bg-white">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-1.5 h-1.5 rounded-full bg-signal-500"></div>
+                <span class="text-xs font-semibold text-ink-900 uppercase tracking-wider">Marketing &amp; growth</span>
+              </div>
+              <div class="grid grid-cols-2 gap-1.5">
+                <div class="flex items-center gap-1.5 text-[11px] text-ink-600"><span class="w-1 h-1 rounded-full bg-signal-500"></span>SEO</div>
+                <div class="flex items-center gap-1.5 text-[11px] text-ink-600"><span class="w-1 h-1 rounded-full bg-signal-500"></span>Social</div>
+                <div class="flex items-center gap-1.5 text-[11px] text-ink-600"><span class="w-1 h-1 rounded-full bg-signal-500"></span>Campaigns</div>
+                <div class="flex items-center gap-1.5 text-[11px] text-ink-600"><span class="w-1 h-1 rounded-full bg-signal-500"></span>Analytics</div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Mobile-only down chevron between pods and hub */}
+          <div class="lg:hidden flex justify-center my-6 text-signal-500">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+          </div>
+
+          {/* Center hub — Foundation core. Absolutely positioned on desktop,
+              flow-positioned on mobile. Light featured card so the diagram
+              reads as a single warm tone, not a stark contrast moment. */}
+          <div class="lg:absolute lg:top-1/2 lg:left-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 flex justify-center">
+            <div class="relative w-full max-w-[220px] lg:max-w-[200px] aspect-square">
+              <div class="absolute inset-0 rounded-3xl bg-signal-500/15 blur-2xl"></div>
+              <div class="relative w-full h-full rounded-3xl bg-white p-5 flex flex-col items-center justify-center text-center border-2 border-signal-300/60 shadow-xl shadow-signal-500/10">
+                <Mark size={48} color="#0b1220" accent="#1d6fe0" />
+                <div class="mt-3 display text-base leading-tight text-ink-900">Foundation</div>
+                <div class="mt-1.5 text-[10px] uppercase tracking-widest text-signal-700">One shared database</div>
+                <div class="mt-2 text-[10px] text-ink-500 leading-relaxed">Customer · Calendar · Financials · Documents · Audit</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <p class="mt-10 lg:mt-12 text-center text-sm text-ink-500 max-w-2xl mx-auto leading-relaxed">
+          Every module reads from and writes to the same shared core. Add a customer once — they're a CRM record, a portal user, an invoicing contact, and a marketing audience member simultaneously.
+        </p>
+      </div>
+
+      {/* Front of house */}
+      <div class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="display text-base text-ink-900">Front of house</span>
+          <span class="flex-1 h-px bg-ink-200"></span>
+          <span class="text-xs text-ink-500 uppercase tracking-widest">Customer-facing</span>
+        </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="card p-5">
+            <div class="w-8 h-8 rounded-md bg-signal-50 text-signal-600 flex items-center justify-center mb-3">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+            </div>
+            <h4 class="text-sm font-semibold text-ink-900 mb-0.5">Clients &amp; CRM</h4>
+            <p class="text-xs text-ink-600 leading-relaxed">Profiles, history, relationships — the master record everything else references.</p>
+          </div>
+          <div class="card p-5">
+            <div class="w-8 h-8 rounded-md bg-signal-50 text-signal-600 flex items-center justify-center mb-3">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/></svg>
+            </div>
+            <h4 class="text-sm font-semibold text-ink-900 mb-0.5">Client portal</h4>
+            <p class="text-xs text-ink-600 leading-relaxed">Self-serve access for clients to documents, status, approvals, and history.</p>
+          </div>
+          <div class="card p-5">
+            <div class="w-8 h-8 rounded-md bg-signal-50 text-signal-600 flex items-center justify-center mb-3">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418"/></svg>
+            </div>
+            <h4 class="text-sm font-semibold text-ink-900 mb-0.5">Front-end website</h4>
+            <p class="text-xs text-ink-600 leading-relaxed">Your public site, managed inside Foundation — content, forms, and bookings live in the same database.</p>
+          </div>
+          <div class="card p-5">
+            <div class="w-8 h-8 rounded-md bg-signal-50 text-signal-600 flex items-center justify-center mb-3">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.686.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z"/></svg>
+            </div>
+            <h4 class="text-sm font-semibold text-ink-900 mb-0.5">Communications</h4>
+            <p class="text-xs text-ink-600 leading-relaxed">Email cadences, letters, anniversaries, nurture — brand-voice governed, never generic.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Back of house */}
+      <div class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="display text-base text-ink-900">Back of house</span>
+          <span class="flex-1 h-px bg-ink-200"></span>
+          <span class="text-xs text-ink-500 uppercase tracking-widest">Daily operations</span>
+        </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="card p-5">
+            <div class="w-8 h-8 rounded-md bg-warm-500/10 text-warm-600 flex items-center justify-center mb-3">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h4 class="text-sm font-semibold text-ink-900 mb-0.5">Time tracking</h4>
+            <p class="text-xs text-ink-600 leading-relaxed">Timesheets, billable hours, project allocation — flowing straight into invoicing.</p>
+          </div>
+          <div class="card p-5">
+            <div class="w-8 h-8 rounded-md bg-warm-500/10 text-warm-600 flex items-center justify-center mb-3">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+            </div>
+            <h4 class="text-sm font-semibold text-ink-900 mb-0.5">Documents &amp; templates</h4>
+            <p class="text-xs text-ink-600 leading-relaxed">Generate, route, and store every document — contracts, estimates, agreements — auto-filled from client data.</p>
+          </div>
+          <div class="card p-5">
+            <div class="w-8 h-8 rounded-md bg-warm-500/10 text-warm-600 flex items-center justify-center mb-3">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/></svg>
+            </div>
+            <h4 class="text-sm font-semibold text-ink-900 mb-0.5">Meeting capture</h4>
+            <p class="text-xs text-ink-600 leading-relaxed">Transcribe meetings, extract decisions and action items, link them to the right client and project.</p>
+          </div>
+          <div class="card p-5">
+            <div class="w-8 h-8 rounded-md bg-warm-500/10 text-warm-600 flex items-center justify-center mb-3">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
+            </div>
+            <h4 class="text-sm font-semibold text-ink-900 mb-0.5">Scheduling &amp; intake</h4>
+            <p class="text-xs text-ink-600 leading-relaxed">Bookings, intake forms, calendars — one source of truth across staff and clients.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Finance */}
+      <div class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="display text-base text-ink-900">Finance</span>
+          <span class="flex-1 h-px bg-ink-200"></span>
+          <span class="text-xs text-ink-500 uppercase tracking-widest">Money in and out</span>
+        </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="card p-5">
+            <div class="w-8 h-8 rounded-md bg-ink-100 text-ink-700 flex items-center justify-center mb-3">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15M9 12l3 3m0 0l3-3m-3 3V2.25"/></svg>
+            </div>
+            <h4 class="text-sm font-semibold text-ink-900 mb-0.5">Estimating &amp; pricing</h4>
+            <p class="text-xs text-ink-600 leading-relaxed">Build estimates from your live price book, send for approval, convert to invoices automatically.</p>
+          </div>
+          <div class="card p-5">
+            <div class="w-8 h-8 rounded-md bg-ink-100 text-ink-700 flex items-center justify-center mb-3">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z"/></svg>
+            </div>
+            <h4 class="text-sm font-semibold text-ink-900 mb-0.5">Accounts payable</h4>
+            <p class="text-xs text-ink-600 leading-relaxed">Automated invoice receipt &amp; processing — bills land via email or upload, AI extracts &amp; codes the line items, routes for approval, posts to QuickBooks, and queues for payment.</p>
+          </div>
+          <div class="card p-5">
+            <div class="w-8 h-8 rounded-md bg-ink-100 text-ink-700 flex items-center justify-center mb-3">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 8.25V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v8.25A2.25 2.25 0 006 16.5h2.25m8.25-8.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-7.5A2.25 2.25 0 018.25 18v-1.5m8.25-8.25h-6a2.25 2.25 0 00-2.25 2.25v6"/></svg>
+            </div>
+            <h4 class="text-sm font-semibold text-ink-900 mb-0.5">QuickBooks sync</h4>
+            <p class="text-xs text-ink-600 leading-relaxed">Two-way integration: invoices, payments, clients, and chart of accounts stay in sync — no exports.</p>
+          </div>
+          <div class="card p-5">
+            <div class="w-8 h-8 rounded-md bg-ink-100 text-ink-700 flex items-center justify-center mb-3">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+            </div>
+            <h4 class="text-sm font-semibold text-ink-900 mb-0.5">Reporting &amp; P&amp;L</h4>
+            <p class="text-xs text-ink-600 leading-relaxed">Real-time financials by project, client, or service line — drilling all the way to the source transaction.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Growth */}
+      <div class="mb-2">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="display text-base text-ink-900">Marketing &amp; growth</span>
+          <span class="flex-1 h-px bg-ink-200"></span>
+          <span class="text-xs text-ink-500 uppercase tracking-widest">Reaching customers</span>
+        </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="card p-5">
+            <div class="w-8 h-8 rounded-md bg-signal-50 text-signal-600 flex items-center justify-center mb-3">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+            </div>
+            <h4 class="text-sm font-semibold text-ink-900 mb-0.5">SEO &amp; visibility</h4>
+            <p class="text-xs text-ink-600 leading-relaxed">On-page SEO, Google Business Profile, schema, local listings — managed continuously, not as a one-off project.</p>
+          </div>
+          <div class="card p-5">
+            <div class="w-8 h-8 rounded-md bg-signal-50 text-signal-600 flex items-center justify-center mb-3">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/></svg>
+            </div>
+            <h4 class="text-sm font-semibold text-ink-900 mb-0.5">Social &amp; content</h4>
+            <p class="text-xs text-ink-600 leading-relaxed">Schedule, cross-post, archive — Facebook, Instagram, LinkedIn — with brand-voice guardrails on every post.</p>
+          </div>
+          <div class="card p-5">
+            <div class="w-8 h-8 rounded-md bg-signal-50 text-signal-600 flex items-center justify-center mb-3">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"/></svg>
+            </div>
+            <h4 class="text-sm font-semibold text-ink-900 mb-0.5">Marketing campaigns</h4>
+            <p class="text-xs text-ink-600 leading-relaxed">Build, launch, and validate campaigns end-to-end — with AI helping write, not replacing the strategy.</p>
+          </div>
+          <div class="card p-5">
+            <div class="w-8 h-8 rounded-md bg-signal-50 text-signal-600 flex items-center justify-center mb-3">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"/></svg>
+            </div>
+            <h4 class="text-sm font-semibold text-ink-900 mb-0.5">Analytics &amp; ROI</h4>
+            <p class="text-xs text-ink-600 leading-relaxed">Real campaign ROI vs. control periods. GA4, Search Console, Meta Insights, and call tracking — in one view.</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="mt-10 text-sm text-ink-500 max-w-3xl">
+        Not every business needs every module. We turn on what your industry uses, configure each one to your workflows, and add the integrations that matter to you (QuickBooks, your industry-specific tools, anything with an API).
+      </p>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  {/* ─── Two patterns: replace or augment ─── */}
+  <section class="mx-auto max-w-6xl px-5 sm:px-8 py-20 sm:py-24">
+    <div class="max-w-2xl mb-10">
+      <div class="eyebrow mb-3">How it adapts</div>
+      <h2 class="display text-3xl sm:text-4xl text-ink-900 leading-tight">
+        Two patterns, one platform.
+      </h2>
+      <p class="mt-4 text-ink-600 leading-relaxed">
+        Some industries are running on duct tape — they need a single integrated system to replace the patchwork. Others are locked into a mandatory vendor that does the regulated parts well and the operational parts badly. We do both.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-5">
+      <a href="#replace" class="card p-7 block group relative overflow-hidden bg-signal-50/35 border-signal-300/35">
+        <div class="absolute top-0 left-0 bottom-0 w-1 bg-signal-500"></div>
+        <div class="eyebrow mb-3 text-signal-700">Pattern 1 — Replace</div>
+        <h3 class="display text-xl text-ink-900 mb-3">Replace the patchwork with one integrated system.</h3>
+        <p class="text-sm text-ink-700 leading-relaxed mb-4">
+          For businesses running on 8–12 disconnected subscriptions. We bring Foundation — front office, back office, marketing, finance — and configure it to your industry. One database. One team to talk to. No more sync errors.
+        </p>
+        <p class="text-xs text-ink-600"><strong class="text-ink-800">Fits:</strong> relationship-driven businesses across professional services, trades, healthcare, and similar. First deployment live.</p>
+        <span class="text-sm font-medium text-signal-700 group-hover:text-signal-600 mt-3 inline-block">See Pattern 1 in practice →</span>
+      </a>
+
+      <a href="#augment" class="card p-7 block group relative overflow-hidden bg-warm-500/8 border-warm-500/30">
+        <div class="absolute top-0 left-0 bottom-0 w-1 bg-warm-500"></div>
+        <div class="eyebrow mb-3 text-warm-600">Pattern 2 — Augment</div>
+        <h3 class="display text-xl text-ink-900 mb-3">Wrap a mandatory industry vendor to fix what they won't.</h3>
+        <p class="text-sm text-ink-700 leading-relaxed mb-4">
+          Some industries require a specific vendor system. Those systems do the regulated parts well and the operational parts badly — and the vendor will never fix the bad parts. We connect to their data, automate the manual workflow around them, and bolt AI on top of the gaps.
+        </p>
+        <p class="text-xs text-ink-600"><strong class="text-ink-800">Fits:</strong> heavily regulated industries — insurance, healthcare, legal, financial services. First deployment in scoping.</p>
+        <span class="text-sm font-medium text-warm-600 group-hover:text-warm-500 mt-3 inline-block">See Pattern 2 in practice →</span>
+      </a>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  {/* ─── Pattern 1 in practice ─── */}
+  <section id="replace" class="scroll-mt-24">
+    <div class="mx-auto max-w-6xl px-5 sm:px-8 pt-20 sm:pt-24 pb-16">
+      <div class="flex flex-wrap items-center gap-3 mb-5">
+        <span class="inline-block px-2.5 py-1 rounded-full bg-signal-50 text-signal-700 text-xs font-semibold">Pattern 1 · in practice</span>
+        <span class="text-sm text-ink-500">First deployment live</span>
+      </div>
+
+      <h2 class="display text-4xl sm:text-5xl text-ink-900 leading-tight">
+        Replace the patchwork.
+      </h2>
+      <p class="mt-3 text-lg text-ink-600 max-w-3xl">
+        For relationship-driven businesses running on 8–12 disconnected subscriptions, with the people in the middle absorbing the coordination cost.
+      </p>
+
+      <div class="mt-10 grid lg:grid-cols-[1.2fr_1fr] gap-12">
+        <div class="space-y-5 text-ink-700 leading-relaxed">
+          <p>
+            The typical starting state: a CRM in one system, marketing in another, a website nobody updates, a calendar that doesn't sync, time entry in a spreadsheet, billing in QuickBooks, customer communications living in someone's inbox. Every change has to be made in three places — or it gets made in one and the others quietly drift.
+          </p>
+          <p>
+            We deploy Foundation configured to your business — your terminology, your workflows, your customer journey, the integrations you actually need. The result is one system where data flows automatically, every customer interaction is captured, and the staff time previously spent on coordination is freed up for the work that earns the relationship.
+          </p>
+          <p class="text-ink-900">
+            <strong>Where it fits well:</strong> professional services, small healthcare, specialty trades, family law &amp; estate planning, funeral services, property management, veterinary, and any business where customer relationships compound over years.
+          </p>
+        </div>
+
+        <div class="card p-6">
+          <div class="eyebrow mb-4">What gets configured per industry</div>
+          <ul class="text-sm text-ink-700 space-y-2.5">
+            <li>· The "customer" record — its terminology, lifecycle stages, and relationships</li>
+            <li>· Industry-specific document templates &amp; intake flows</li>
+            <li>· Communication cadences (anniversaries, milestones, nurture)</li>
+            <li>· Channels &amp; cross-posting (social, listings, partner networks)</li>
+            <li>· Reporting tied to your industry's KPIs and source attribution</li>
+            <li>· Brand-voice governance on every outgoing message</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Outcome strip — ranges, not specifics */}
+      <div class="mt-12 bg-cream-100 rounded-2xl px-6 sm:px-10 py-10">
+        <div class="grid md:grid-cols-3 gap-8 text-center md:text-left">
+          <div>
+            <div class="display text-3xl text-ink-900">$60K–$200K+ / yr</div>
+            <p class="text-sm text-ink-600 mt-1 leading-relaxed">Typical range of legacy subscription, agency, and ad-channel spend replaced by Foundation.</p>
+          </div>
+          <div>
+            <div class="display text-3xl text-ink-900">3–8 hrs / wk</div>
+            <p class="text-sm text-ink-600 mt-1 leading-relaxed">Typical time for one staff member to run the marketing &amp; operations stack — no specialist background required.</p>
+          </div>
+          <div>
+            <div class="display text-3xl text-ink-900">30 / 60 / 90</div>
+            <p class="text-sm text-ink-600 mt-1 leading-relaxed">Built-in measurement cycles compare every campaign and program against the period before you ran it. Real ROI, not vanity metrics.</p>
+          </div>
+        </div>
+        <p class="mt-6 text-xs text-ink-500 max-w-2xl">Ranges reflect what we see across the kinds of businesses Foundation fits. Your specifics depend on your industry, your size, and what you're running today — we estimate honestly during the discovery phase.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  {/* ─── Pattern 2 in practice ─── */}
+  <section id="augment" class="scroll-mt-24">
+    <div class="mx-auto max-w-6xl px-5 sm:px-8 pt-20 sm:pt-24 pb-16">
+      <div class="flex flex-wrap items-center gap-3 mb-5">
+        <span class="inline-block px-2.5 py-1 rounded-full bg-warm-500/15 text-warm-600 text-xs font-semibold">Pattern 2 · in practice</span>
+        <span class="text-sm text-ink-500">First deployment in scoping</span>
+      </div>
+
+      <h2 class="display text-4xl sm:text-5xl text-ink-900 leading-tight">
+        Augment the mandatory stack.
+      </h2>
+      <p class="mt-3 text-lg text-ink-600 max-w-3xl">
+        For businesses locked into a required vendor system — typically heavily regulated industries — where the vendor does the regulated parts well and the operational parts badly, and won't ever fix the bad parts.
+      </p>
+
+      <div class="mt-10 grid lg:grid-cols-[1fr_1fr] gap-8">
+        <div class="card p-7 bg-ink-100/60">
+          <div class="eyebrow mb-3">What the mandatory system typically does well</div>
+          <ul class="space-y-2 text-sm text-ink-700">
+            <li class="flex gap-2.5"><span class="text-ink-400">·</span> Regulator- or partner-mandated data structures</li>
+            <li class="flex gap-2.5"><span class="text-ink-400">·</span> The official book-of-record (policies, charts, matters, claims)</li>
+            <li class="flex gap-2.5"><span class="text-ink-400">·</span> Compliance reporting and audit trail</li>
+            <li class="flex gap-2.5"><span class="text-ink-400">·</span> Industry-specific integrations the vendor monopolizes</li>
+          </ul>
+        </div>
+
+        <div class="card p-7 bg-signal-50/40 border-signal-300/40">
+          <div class="eyebrow mb-3 text-signal-700">What we layer on top — automated</div>
+          <ul class="space-y-2 text-sm text-ink-800">
+            <li class="flex gap-2.5"><span class="text-signal-600">→</span> The customer-facing &amp; servicing workflows that actually flow</li>
+            <li class="flex gap-2.5"><span class="text-signal-600">→</span> Communications that don't require copy-paste between systems</li>
+            <li class="flex gap-2.5"><span class="text-signal-600">→</span> Document generation auto-populated from book-of-record data</li>
+            <li class="flex gap-2.5"><span class="text-signal-600">→</span> AI-assisted intake, triage, and prep work for skilled staff</li>
+            <li class="flex gap-2.5"><span class="text-signal-600">→</span> Marketing, website, and lead handling — fully integrated</li>
+            <li class="flex gap-2.5"><span class="text-signal-600">→</span> Reporting that crosses dimensions the mandatory system doesn't</li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="mt-10 text-ink-700 leading-relaxed max-w-3xl">
+        Mandatory vendors rarely fix the manual parts — fixing them isn't where their revenue comes from, and it isn't what their customers can switch away over. We connect to their system, automate the workflow around it with AI, and give your front-line staff their day back.
+      </p>
+
+      <p class="mt-3 text-ink-700 leading-relaxed max-w-3xl">
+        <strong class="text-ink-900">Where this fits:</strong> insurance brokerages &amp; agencies, healthcare practices, legal &amp; estate firms, financial services, accounting practices, and other industries where a required platform handles the regulated workflow but leaves the customer-facing and operational layer underbuilt.
+      </p>
+
+      <div class="mt-8 bg-cream-100 rounded-2xl px-6 sm:px-10 py-8">
+        <div class="grid md:grid-cols-3 gap-8 text-center md:text-left">
+          <div>
+            <div class="display text-2xl text-ink-900">8–20+ hrs / wk</div>
+            <p class="text-sm text-ink-600 mt-1 leading-relaxed">Typical staff time per producer reclaimed from the manual workflow around the mandatory system.</p>
+          </div>
+          <div>
+            <div class="display text-2xl text-ink-900">2–6 month</div>
+            <p class="text-sm text-ink-600 mt-1 leading-relaxed">Typical deployment window from discovery to live augmentation layer running in production.</p>
+          </div>
+          <div>
+            <div class="display text-2xl text-ink-900">$0 vendor risk</div>
+            <p class="text-sm text-ink-600 mt-1 leading-relaxed">The mandatory system stays the book-of-record. We add — never remove — so compliance and switching risk both stay where they are.</p>
+          </div>
+        </div>
+        <p class="mt-6 text-xs text-ink-500 max-w-2xl">Ranges reflect typical deployments. Specifics depend on the vendor system's APIs, your industry, and the scope of the augmentation. We size honestly during discovery.</p>
+      </div>
+
+      <div class="mt-10">
+        <a href="/contact?subject=Pattern%202%20augmentation" class="btn-primary">Talk to us about Pattern 2</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  {/* ─── Other verticals ─── */}
+  <section class="mx-auto max-w-5xl px-5 sm:px-8 py-20">
+    <div class="eyebrow mb-3">And after that</div>
+    <h2 class="display text-3xl sm:text-4xl text-ink-900 leading-tight max-w-3xl">
+      The same platform fits any business with relationships, operations, and money flowing through it.
+    </h2>
+    <p class="mt-5 text-ink-600 leading-relaxed max-w-3xl">
+      Specialty trades. Family law. Estate planning. Small healthcare. Veterinary. Property management. The pattern is the same: a relationship-driven business stuck running on a tangle of subscriptions, or stuck inside a mandatory vendor that won't fix the bad parts. If that describes your industry, Foundation can be shaped for you in months, not years.
+    </p>
+    <div class="mt-8 flex flex-col sm:flex-row gap-3">
+      <a href="/contact" class="btn-primary">See if your industry fits</a>
+      <a href="/services" class="btn-secondary">How we engage</a>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  {/* ─── Hyphos / hyphos.io ─── */}
+  <section id="hyphos" class="scroll-mt-24">
+    <div class="mx-auto max-w-6xl px-5 sm:px-8 pt-20 sm:pt-24 pb-16">
+      <div class="flex flex-wrap items-center gap-3 mb-5">
+        <span class="inline-block px-2.5 py-1 rounded-full bg-cream-200 text-warm-600 text-xs font-semibold">Enterprise · early access</span>
+        <span class="text-sm text-ink-500">hyphos.io</span>
+      </div>
+
+      <h2 class="display text-4xl sm:text-5xl text-ink-900 leading-tight">
+        Hyphos
+      </h2>
+      <p class="mt-3 text-lg text-ink-600">
+        Organizational knowledge, learning, and apprenticeship — on a persistent enterprise graph.
+      </p>
+
+      <div class="mt-10 grid lg:grid-cols-[1.2fr_1fr] gap-12">
+        <div class="space-y-5 text-ink-700 leading-relaxed">
+          <p>
+            Individual AI tools — Claude, ChatGPT, Cursor — make individual people more productive. But they don't know anything about your organization. They reset every session. They can't connect what your project manager discussed on Monday with what your engineer committed to on Wednesday with what your contract actually says.
+          </p>
+          <p>
+            Hyphos is what happens when you give AI a persistent, structured, enterprise-grade memory — one that compounds across every person, meeting, document, and project. Decisions, commitments, risks, and the tacit expertise of your most experienced people all live in one knowledge graph. New employees come up to speed against the actual record of how the work has been done.
+          </p>
+          <p class="text-ink-900">
+            <strong>Where individual AI tools forget, Hyphos remembers.</strong> Across people, projects, and time — at enterprise scale.
+          </p>
+        </div>
+
+        <div class="card p-6">
+          <div class="eyebrow mb-3">Built for</div>
+          <ul class="text-sm text-ink-700 space-y-2.5">
+            <li>· Construction &amp; capital projects</li>
+            <li>· Engineering &amp; infrastructure firms</li>
+            <li>· Professional services with long-running client engagements</li>
+            <li>· Consulting firms running multi-project portfolios</li>
+            <li>· Any organization where the cost of forgetting is measured in millions</li>
+          </ul>
+          <a href="https://hyphos.io" class="link text-sm mt-5 inline-block">Visit hyphos.io →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>

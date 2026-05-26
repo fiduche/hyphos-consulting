@@ -1,0 +1,464 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Mark from '../components/Mark.astro';
+---
+
+<BaseLayout title="Hyphos Consulting">
+
+  {/* ─── Hero ─── */}
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 bg-mesh pointer-events-none"></div>
+    <div class="absolute inset-0 bg-hairline-grid opacity-60 pointer-events-none"></div>
+
+    <div class="relative mx-auto max-w-5xl px-5 sm:px-8 pt-20 sm:pt-28 pb-20 sm:pb-28">
+      <div class="max-w-3xl">
+        <div class="flex items-center gap-2 mb-6">
+          <span class="eyebrow">Hyphos Consulting</span>
+          <span class="h-px w-10 bg-ink-300"></span>
+        </div>
+
+        <h1 class="display text-4xl sm:text-5xl lg:text-6xl leading-[1.05] text-ink-900">
+          Your people should be focused on people, <span class="text-signal-600">not running business processes and software.</span>
+        </h1>
+
+        <p class="mt-7 text-lg sm:text-xl text-ink-700 max-w-2xl leading-relaxed">
+          Hyphos Consulting integrates and automates the systems you already use — existing software, your customer-facing website, your back-office management tools — into one connected stack that runs your operations. So your team stops manually entering data and moving between systems, and focuses on the work that adds the most value.
+        </p>
+
+        <div class="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs uppercase tracking-widest text-ink-500">
+          <span>Existing systems (QuickBooks)</span>
+          <span class="w-1 h-1 rounded-full bg-ink-300"></span>
+          <span>Front-end website</span>
+          <span class="w-1 h-1 rounded-full bg-ink-300"></span>
+          <span>Back-office systems</span>
+          <span class="w-1 h-1 rounded-full bg-ink-300"></span>
+          <span>AI &amp; automation</span>
+        </div>
+
+        <div class="mt-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <a href="/contact" class="btn-primary">
+            Start a conversation
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+          </a>
+          <a href="/products" class="btn-secondary">See what we've built</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  {/* ─── Diagram — how it works in one picture ─── */}
+  <section class="bg-cream-100/60 border-y border-ink-200/40">
+    <div class="mx-auto max-w-6xl px-5 sm:px-8 py-20 sm:py-24">
+      <div class="max-w-2xl mb-12">
+        <div class="eyebrow mb-3">How it fits together</div>
+        <h2 class="display text-3xl sm:text-4xl text-ink-900 leading-tight">
+          One integration layer. Everything talks. Your team gets their time back.
+        </h2>
+      </div>
+
+      {/* Three-stage diagram: sources → Hyphos layer → outcomes. SVG handles
+          the connector arrows on desktop; on mobile the layout stacks
+          vertically and the arrows are replaced with small chevron rules. */}
+      <div class="relative">
+        {/* Desktop connector layer — absolute SVG sitting behind the cards. */}
+        <svg
+          class="hidden lg:block absolute inset-0 w-full h-full pointer-events-none"
+          viewBox="0 0 1000 360"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <defs>
+            <marker id="arrow-end" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#1d6fe0" />
+            </marker>
+          </defs>
+          {/* Left side: 4 source cards → hub */}
+          <path d="M 270 50  C 350 50, 380 180, 450 180" stroke="#1d6fe0" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow-end)" opacity="0.75"/>
+          <path d="M 270 130 C 350 130, 380 180, 450 180" stroke="#1d6fe0" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow-end)" opacity="0.75"/>
+          <path d="M 270 230 C 350 230, 380 180, 450 180" stroke="#1d6fe0" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow-end)" opacity="0.75"/>
+          <path d="M 270 310 C 350 310, 380 180, 450 180" stroke="#1d6fe0" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow-end)" opacity="0.75"/>
+          {/* Right side: hub → 4 outcome cards */}
+          <path d="M 600 180 C 670 180, 690 50, 760 50"   stroke="#0b1220" stroke-width="1.5" fill="none" marker-end="url(#arrow-end)" opacity="0.55"/>
+          <path d="M 600 180 C 670 180, 690 130, 760 130" stroke="#0b1220" stroke-width="1.5" fill="none" marker-end="url(#arrow-end)" opacity="0.55"/>
+          <path d="M 600 180 C 670 180, 690 230, 760 230" stroke="#0b1220" stroke-width="1.5" fill="none" marker-end="url(#arrow-end)" opacity="0.55"/>
+          <path d="M 600 180 C 670 180, 690 310, 760 310" stroke="#0b1220" stroke-width="1.5" fill="none" marker-end="url(#arrow-end)" opacity="0.55"/>
+        </svg>
+
+        <div class="grid lg:grid-cols-[1fr_auto_1fr] gap-8 lg:gap-12 items-center relative">
+
+          {/* ─── Column 1 — Sources you already use ─── */}
+          <div>
+            <div class="eyebrow mb-3 text-ink-500">What you have today</div>
+            <ul class="space-y-2.5">
+              <li class="card p-3.5 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-md bg-ink-100 flex items-center justify-center text-ink-700 shrink-0">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25"/></svg>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold text-ink-900 leading-tight">Existing systems</div>
+                  <div class="text-xs text-ink-500">QuickBooks, ERPs, CRMs</div>
+                </div>
+              </li>
+              <li class="card p-3.5 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-md bg-ink-100 flex items-center justify-center text-ink-700 shrink-0">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418"/></svg>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold text-ink-900 leading-tight">Front-end website</div>
+                  <div class="text-xs text-ink-500">Customer-facing presence</div>
+                </div>
+              </li>
+              <li class="card p-3.5 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-md bg-ink-100 flex items-center justify-center text-ink-700 shrink-0">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008zm-3 6h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008z"/></svg>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold text-ink-900 leading-tight">Back-office systems</div>
+                  <div class="text-xs text-ink-500">Scheduling, ops, inventory</div>
+                </div>
+              </li>
+              <li class="card p-3.5 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-md bg-ink-100 flex items-center justify-center text-ink-700 shrink-0">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/></svg>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold text-ink-900 leading-tight">Manual work today</div>
+                  <div class="text-xs text-ink-500">Spreadsheets, copy-paste, email</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          {/* Mobile-only down chevron */}
+          <div class="lg:hidden flex justify-center text-signal-500">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+          </div>
+
+          {/* ─── Column 2 — Integration &amp; automation layer ─── */}
+          <div class="flex justify-center">
+            <div class="relative w-full max-w-[260px] aspect-square">
+              {/* Soft glow */}
+              <div class="absolute inset-0 rounded-3xl bg-signal-500/15 blur-2xl"></div>
+              <div class="absolute inset-0 rounded-3xl bg-warm-500/8 blur-3xl"></div>
+
+              <div class="relative w-full h-full rounded-3xl bg-white p-6 flex flex-col items-center justify-center text-center border-2 border-signal-300/60 shadow-xl shadow-signal-500/10">
+                <Mark size={64} color="#0b1220" accent="#1d6fe0" />
+                <div class="mt-5 display text-lg leading-tight text-ink-900">Integration<br/>&amp; automation</div>
+                <div class="mt-3 text-[10px] uppercase tracking-widest text-signal-700">Data flow · Workflow · AI</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile-only down chevron */}
+          <div class="lg:hidden flex justify-center text-signal-500">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+          </div>
+
+          {/* ─── Column 3 — What your team gets back ─── */}
+          <div>
+            <div class="eyebrow mb-3 text-ink-500">What your team gets back</div>
+            <ul class="space-y-2.5">
+              <li class="card p-3.5 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-md bg-signal-100 flex items-center justify-center text-signal-700 shrink-0">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold text-ink-900 leading-tight">Time with customers</div>
+                  <div class="text-xs text-ink-600">Relationships, not data entry</div>
+                </div>
+              </li>
+              <li class="card p-3.5 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-md bg-signal-100 flex items-center justify-center text-signal-700 shrink-0">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold text-ink-900 leading-tight">Judgment &amp; expertise</div>
+                  <div class="text-xs text-ink-600">The work only people can do</div>
+                </div>
+              </li>
+              <li class="card p-3.5 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-md bg-signal-100 flex items-center justify-center text-signal-700 shrink-0">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"/></svg>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold text-ink-900 leading-tight">Growth &amp; strategy</div>
+                  <div class="text-xs text-ink-600">Working on the business</div>
+                </div>
+              </li>
+              <li class="card p-3.5 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-md bg-signal-100 flex items-center justify-center text-signal-700 shrink-0">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
+                </div>
+                <div>
+                  <div class="text-sm font-semibold text-ink-900 leading-tight">Clarity in real time</div>
+                  <div class="text-xs text-ink-600">One source of truth, always current</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+
+      <p class="mt-12 text-center text-sm text-ink-500 max-w-2xl mx-auto leading-relaxed">
+        We don't replace your existing tools unless we have to — we connect them. The integration layer is where the data flows, the automations run, and the AI does the repeatable thinking. Your team focuses on the work that adds the most value.
+      </p>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  {/* ─── What we do — three offerings ─── */}
+  <section class="mx-auto max-w-6xl px-5 sm:px-8 py-20 sm:py-24">
+    <div class="max-w-2xl mb-14">
+      <div class="eyebrow mb-3">What we do</div>
+      <h2 class="display text-3xl sm:text-4xl text-ink-900 leading-tight">
+        Three ways we automate the busywork out of your business.
+      </h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-5">
+      <div class="card p-7">
+        <div class="w-9 h-9 rounded-lg bg-signal-50 flex items-center justify-center text-signal-600 mb-5">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+        </div>
+        <h3 class="display text-xl text-ink-900 mb-2">Integrate &amp; automate what you have</h3>
+        <p class="text-sm text-ink-600 leading-relaxed mb-4">
+          QuickBooks, your customer-facing website, your back-office management software, your CRM — connected end-to-end so data flows automatically. No more duplicate entry, no more nightly exports, no more "I thought you updated the other system."
+        </p>
+        <a href="/services#build" class="link text-sm">How we integrate →</a>
+      </div>
+
+      <div class="card p-7">
+        <div class="w-9 h-9 rounded-lg bg-signal-50 flex items-center justify-center text-signal-600 mb-5">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124-.072.044-.146.087-.22.128-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87-.074-.04-.147-.083-.22-.127-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <h3 class="display text-xl text-ink-900 mb-2">Deploy Foundation for your industry</h3>
+        <p class="text-sm text-ink-600 leading-relaxed mb-4">
+          When the patchwork can't be saved, we replace it. Foundation — our integrated business platform with sixteen modules sharing one database — gets shaped to your workflows, your terminology, and the integrations you actually need.
+        </p>
+        <a href="/products#foundation" class="link text-sm">See Foundation →</a>
+      </div>
+
+      <div class="card p-7 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-signal-50 rounded-full blur-2xl opacity-60 pointer-events-none"></div>
+        <div class="relative">
+          <div class="w-9 h-9 rounded-lg bg-ink-900 flex items-center justify-center text-cream-50 mb-5">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>
+          </div>
+          <div class="flex items-center gap-2 mb-2">
+            <h3 class="display text-xl text-ink-900">Enterprise knowledge &amp; learning</h3>
+          </div>
+          <span class="inline-block text-[10px] uppercase tracking-widest text-warm-600 mb-3">Powered by Hyphos.io</span>
+          <p class="text-sm text-ink-600 leading-relaxed mb-4">
+            Capture what your most experienced people know — meetings, documents, decisions, tacit expertise — into an organizational knowledge graph the whole company can learn from. Modern apprenticeship at scale.
+          </p>
+          <a href="/products#symphony" class="link text-sm">Explore Hyphos.io →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  {/* ─── Premise — the people thread ─── */}
+  <section class="relative">
+    <div class="mx-auto max-w-5xl px-5 sm:px-8 py-24 sm:py-28">
+      <div class="max-w-3xl">
+        <div class="eyebrow mb-4">Our premise</div>
+        <p class="display text-2xl sm:text-3xl text-ink-900 leading-snug">
+          Most "modernization" projects make the software better and the people&nbsp;tired. We think it should be the other way around.
+        </p>
+        <div class="mt-10 grid sm:grid-cols-2 gap-x-12 gap-y-7 text-ink-700">
+          <p class="leading-relaxed">
+            The default playbook is to pile on more tools, more dashboards, more notifications. Each one promises a 5% efficiency gain. None of them talk to each other. The people in the middle absorb the integration cost — in evenings, in tab-switching, in copy-paste.
+          </p>
+          <p class="leading-relaxed">
+            We do the opposite. We build the integrated layer so the manual coordination disappears. Software handles the part that's repeatable. People keep the part that's relational — the conversations, the judgment calls, the care.
+          </p>
+          <p class="leading-relaxed">
+            That's the through-line. Whether we're deploying <a href="/products#foundation" class="link">Foundation</a> to a new industry, building <a href="/products#hyphos" class="link">Hyphos</a> for enterprise knowledge, or building software for a client (<a href="/work" class="link">Wander</a>) — the question is always the same: <em>what's the human doing here, and is the software helping or in the way?</em>
+          </p>
+          <p class="leading-relaxed text-ink-800">
+            <strong class="text-ink-900">Efficiency is not the goal.</strong> Human flourishing is the goal. The efficiency falls out as a side effect.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  {/* ─── Software landscape — three eras narrative ─── */}
+  {/* Kept dark deliberately — this is the editorial setpiece of the page.
+      Softened from ink-950 → ink-900 and warmed with a subtle gold blur
+      so it doesn't read as a void next to the cream sections above and
+      below. */}
+  <section class="relative bg-ink-900 text-cream-50 overflow-hidden">
+    <div class="absolute inset-0 bg-grid pointer-events-none opacity-20"></div>
+    <div class="absolute top-0 left-1/3 w-[500px] h-[500px] bg-signal-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-warm-500/6 rounded-full blur-[140px] pointer-events-none"></div>
+
+    <div class="relative mx-auto max-w-6xl px-5 sm:px-8 py-20 sm:py-28">
+      <div class="max-w-3xl mb-14">
+        <div class="eyebrow mb-3 text-cream-200/60">Why this works now</div>
+        <h2 class="display text-3xl sm:text-4xl text-cream-50 leading-tight">
+          The third era of business software.
+        </h2>
+        <p class="mt-5 text-lg text-cream-100/80 leading-relaxed">
+          Every business has lived through the same story. Custom software that didn't last. Off-the-shelf software that didn't fit. AI changes the trade-off — and that's the opening we build into.
+        </p>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-5">
+
+        {/* Era 1 — Custom */}
+        <div class="relative rounded-2xl border border-cream-50/10 bg-cream-50/[0.03] p-7">
+          <div class="flex items-center gap-3 mb-5">
+            <span class="display text-3xl text-cream-50/40">01</span>
+            <span class="text-[10px] uppercase tracking-widest text-cream-200/50">1990s — 2000s</span>
+          </div>
+          <h3 class="display text-xl text-cream-50 mb-3">Custom software</h3>
+          <p class="text-sm text-cream-100/70 leading-relaxed mb-4">
+            The business hired a developer (or three). They built something that actually fit the business — workflows, vocabulary, edge cases, all of it.
+          </p>
+          <p class="text-sm text-cream-100/70 leading-relaxed mb-4">
+            Then the developer left. Documentation went stale. The next person couldn't maintain it. Frameworks aged out. Eventually nobody could safely touch it — so nobody did.
+          </p>
+          <div class="mt-5 pt-4 border-t border-cream-50/8">
+            <div class="text-[10px] uppercase tracking-widest text-cream-200/50 mb-1">What rotted</div>
+            <p class="text-xs text-cream-100/60 leading-relaxed">Knowledge stayed in the developer's head, not in the system. When they left, the system started dying.</p>
+          </div>
+        </div>
+
+        {/* Era 2 — OOTB */}
+        <div class="relative rounded-2xl border border-cream-50/10 bg-cream-50/[0.03] p-7">
+          <div class="flex items-center gap-3 mb-5">
+            <span class="display text-3xl text-cream-50/40">02</span>
+            <span class="text-[10px] uppercase tracking-widest text-cream-200/50">2010s — today</span>
+          </div>
+          <h3 class="display text-xl text-cream-50 mb-3">Off-the-shelf SaaS</h3>
+          <p class="text-sm text-cream-100/70 leading-relaxed mb-4">
+            To escape the maintenance trap, businesses bought standard tools — a CRM, a marketing platform, a scheduling app, a billing system. Safer. Supported. Always up to date.
+          </p>
+          <p class="text-sm text-cream-100/70 leading-relaxed mb-4">
+            But none of it fit. So people built side spreadsheets. They copy-pasted between tabs. They invented private workarounds. The manual labor didn't disappear — it just moved into the gaps.
+          </p>
+          <div class="mt-5 pt-4 border-t border-cream-50/8">
+            <div class="text-[10px] uppercase tracking-widest text-cream-200/50 mb-1">What broke</div>
+            <p class="text-xs text-cream-100/60 leading-relaxed">The software stopped failing. The people running it absorbed the misfit — in evenings, in attention, in burnout.</p>
+          </div>
+        </div>
+
+        {/* Era 3 — AI-native custom (now) */}
+        <div class="relative rounded-2xl border border-signal-300/30 bg-signal-500/[0.06] p-7">
+          <div class="absolute -top-px left-7 right-7 h-px bg-gradient-to-r from-transparent via-signal-300/50 to-transparent"></div>
+          <div class="flex items-center gap-3 mb-5">
+            <span class="display text-3xl text-signal-300">03</span>
+            <span class="text-[10px] uppercase tracking-widest text-signal-300/80">Now</span>
+          </div>
+          <h3 class="display text-xl text-cream-50 mb-3">AI-native custom</h3>
+          <p class="text-sm text-cream-100/80 leading-relaxed mb-4">
+            AI changes the maintenance math. Custom software is now legible, documented, and modifiable in ways it never was. Standard business processes can be configured to actually fit the business — without the rot.
+          </p>
+          <p class="text-sm text-cream-100/80 leading-relaxed mb-4">
+            That's what Foundation is. Standard modules, deeply configured to your industry. AI in the middle handling the repeatable work. People focused on the work that needs people.
+          </p>
+          <div class="mt-5 pt-4 border-t border-signal-300/20">
+            <div class="text-[10px] uppercase tracking-widest text-signal-300/70 mb-1">What changes</div>
+            <p class="text-xs text-cream-100/75 leading-relaxed">You get the <em>fit</em> of custom and the <em>safety</em> of standard. The trade-off that defined the last twenty years is gone.</p>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Closing — what we do with this */}
+      <div class="mt-14 max-w-3xl">
+        <div class="rule bg-gradient-to-r from-transparent via-cream-50/15 to-transparent mb-10"></div>
+        <p class="text-lg text-cream-100/85 leading-relaxed">
+          We've built the pieces — Foundation for integrated operations, the mobile and web patterns from our client work, and <a href="https://hyphos.io" class="underline decoration-signal-300/40 underline-offset-4 hover:text-cream-50">Hyphos</a> for enterprise knowledge and apprenticeship.
+        </p>
+        <p class="mt-4 text-lg text-cream-100/85 leading-relaxed">
+          Now we use those pieces — in any combination your business needs — to build the software that makes the business measurably more efficient, and lets your people do the work only people can do.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  {/* ─── Products row ─── */}
+  <section class="mx-auto max-w-6xl px-5 sm:px-8 py-20 sm:py-24">
+    <div class="max-w-2xl mb-12">
+      <div class="eyebrow mb-3">What we've built</div>
+      <h2 class="display text-3xl sm:text-4xl text-ink-900 leading-tight">
+        Software shipping today.
+      </h2>
+      <p class="mt-4 text-ink-600 leading-relaxed">
+        Two products we own and a portfolio of client work — every one of them a reference for how we think integrated, people-focused software should work.
+      </p>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-5">
+      {/* Foundation */}
+      <a href="/products#foundation" class="card p-7 block group">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="inline-block px-2 py-0.5 rounded-full bg-signal-50 text-signal-700 text-xs font-medium">Foundation</span>
+          <span class="text-xs text-ink-500">Live · multi-vertical</span>
+        </div>
+        <h3 class="display text-2xl text-ink-900 mb-2">Foundation</h3>
+        <p class="text-sm uppercase tracking-widest text-ink-500 mb-4">Integrated business operating system</p>
+        <p class="text-sm text-ink-700 leading-relaxed mb-5">
+          Sixteen integrated modules — front office, back office, finance, marketing — sharing one database. We own the full platform and adapt it per industry, shaped to fit anything relationship-driven. First deployment live; additional industries in scoping.
+        </p>
+        <span class="text-sm font-medium text-signal-600 group-hover:text-signal-700">Explore Foundation →</span>
+      </a>
+
+      {/* Hyphos / hyphos.io */}
+      <a href="/products#hyphos" class="card p-7 block group">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="inline-block px-2 py-0.5 rounded-full bg-cream-200 text-warm-600 text-xs font-medium">Enterprise · early access</span>
+        </div>
+        <h3 class="display text-2xl text-ink-900 mb-2">Hyphos</h3>
+        <p class="text-sm uppercase tracking-widest text-ink-500 mb-4">Knowledge &amp; apprenticeship</p>
+        <p class="text-sm text-ink-700 leading-relaxed mb-5">
+          Enterprise knowledge, learning, and apprenticeship on a persistent graph. Every meeting and document becomes structured intelligence; new employees come up to speed against the actual record of how the work gets done.
+        </p>
+        <span class="text-sm font-medium text-signal-600 group-hover:text-signal-700">Visit hyphos.io →</span>
+      </a>
+
+      {/* Wander / client work */}
+      <a href="/work" class="card p-7 block group">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="inline-block px-2 py-0.5 rounded-full bg-ink-100 text-ink-700 text-xs font-medium">Client work</span>
+          <span class="text-xs text-ink-500">In TestFlight</span>
+        </div>
+        <h3 class="display text-2xl text-ink-900 mb-2">Wander</h3>
+        <p class="text-sm uppercase tracking-widest text-ink-500 mb-4">Mobile · Parks &amp; trails</p>
+        <p class="text-sm text-ink-700 leading-relaxed mb-5">
+          A field guide for families — finding the right park, playground, or trail without a fifteen-minute planning session. Designed, built, and shipped end-to-end for our client. iOS first, Android next.
+        </p>
+        <span class="text-sm font-medium text-signal-600 group-hover:text-signal-700">See the project →</span>
+      </a>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  {/* ─── Closing CTA ─── */}
+  <section class="mx-auto max-w-4xl px-5 sm:px-8 py-24 sm:py-28 text-center">
+    <h2 class="display text-3xl sm:text-4xl text-ink-900 leading-tight">
+      If you're tired of stitching tools together, let's talk.
+    </h2>
+    <p class="mt-5 text-lg text-ink-600 leading-relaxed max-w-2xl mx-auto">
+      We don't run discovery decks for months. We sit with your team, look at the actual work, and tell you whether we can help — and whether you should hire us, build internally, or do neither.
+    </p>
+    <div class="mt-10 flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="/contact" class="btn-primary">Start a conversation</a>
+      <a href="/services" class="btn-secondary">See how we engage</a>
+    </div>
+  </section>
+
+</BaseLayout>

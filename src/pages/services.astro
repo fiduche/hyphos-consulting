@@ -1,0 +1,126 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Services"
+  description="How Hyphos Consulting engages — discovery, integrated build, AI advisory, and product engineering for clients."
+>
+
+  {/* Hero band */}
+  <section class="bg-cream-100 border-b border-ink-200/60">
+    <div class="mx-auto max-w-5xl px-5 sm:px-8 pt-20 sm:pt-28 pb-16">
+      <div class="eyebrow mb-4">Services</div>
+      <h1 class="display text-4xl sm:text-5xl leading-tight text-ink-900">
+        We engage in three shapes — depending on what the work needs to be.
+      </h1>
+      <p class="mt-6 text-lg text-ink-700 max-w-3xl leading-relaxed">
+        Most consultancies sell hours. We sell outcomes — the systems, integrations, and software that actually ship. Below is how we structure each kind of engagement, what's included, and what to expect.
+      </p>
+    </div>
+  </section>
+
+  {/* Advisory */}
+  <section id="advisory" class="mx-auto max-w-5xl px-5 sm:px-8 py-20 sm:py-24 scroll-mt-24">
+    <div class="grid md:grid-cols-[200px_1fr] gap-8 md:gap-12">
+      <div>
+        <div class="eyebrow mb-2">01</div>
+        <h2 class="display text-2xl text-ink-900">Advisory</h2>
+      </div>
+      <div class="space-y-5 text-ink-700 leading-relaxed">
+        <p>
+          Before we build anything we look at what your organization actually does — not what the org chart says, not what the SOPs say, not what the vendor demos say. We sit with the people doing the work, watch the hand-offs, and map where time and accuracy are being lost.
+        </p>
+        <p>
+          You leave with a written assessment that identifies where AI and integration will earn back the most time, where they won't, and what you should leave alone. If the right answer is "don't hire us," we'll tell you. We've turned away as much work as we've taken.
+        </p>
+        <ul class="space-y-2 text-sm pt-2">
+          <li class="flex gap-3"><span class="text-signal-600">→</span> Operational discovery with your front-line teams</li>
+          <li class="flex gap-3"><span class="text-signal-600">→</span> System &amp; data inventory — what you have, what's actually used</li>
+          <li class="flex gap-3"><span class="text-signal-600">→</span> Prioritized roadmap with cost / time-back estimates</li>
+          <li class="flex gap-3"><span class="text-signal-600">→</span> Honest go / no-go recommendation</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule mx-5 sm:mx-8"></div>
+
+  {/* Build */}
+  <section id="build" class="mx-auto max-w-5xl px-5 sm:px-8 py-20 sm:py-24 scroll-mt-24">
+    <div class="grid md:grid-cols-[200px_1fr] gap-8 md:gap-12">
+      <div>
+        <div class="eyebrow mb-2">02</div>
+        <h2 class="display text-2xl text-ink-900">Integrated build</h2>
+      </div>
+      <div class="space-y-5 text-ink-700 leading-relaxed">
+        <p>
+          When you need an integrated business system — not three subscriptions stitched together with Zapier — we design and ship it. Single database, single source of truth, customer-facing and internal interfaces, AI woven in where it earns its keep, every workflow mapped to the actual work.
+        </p>
+        <p>
+          You own the system at the end. No per-seat licensing for software your team built with us. No vendor lock-in. The architecture, the codebase, the data — yours.
+        </p>
+        <div class="grid sm:grid-cols-2 gap-5 pt-3">
+          <div class="card p-5">
+            <h3 class="text-sm font-semibold text-ink-900 mb-1.5">What's included</h3>
+            <ul class="text-sm text-ink-600 space-y-1.5">
+              <li>· Product design + UX</li>
+              <li>· Full-stack engineering</li>
+              <li>· AI integration (Claude / GPT / on-prem)</li>
+              <li>· Data migration from legacy</li>
+              <li>· Training + change management</li>
+            </ul>
+          </div>
+          <div class="card p-5">
+            <h3 class="text-sm font-semibold text-ink-900 mb-1.5">How we work</h3>
+            <ul class="text-sm text-ink-600 space-y-1.5">
+              <li>· Two-week shippable increments</li>
+              <li>· One named lead — not a rotating bench</li>
+              <li>· Live in front of your team weekly</li>
+              <li>· Hand-off documentation that's actually used</li>
+              <li>· Post-launch support included</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule mx-5 sm:mx-8"></div>
+
+  {/* Product engineering for clients */}
+  <section id="product" class="mx-auto max-w-5xl px-5 sm:px-8 py-20 sm:py-24 scroll-mt-24">
+    <div class="grid md:grid-cols-[200px_1fr] gap-8 md:gap-12">
+      <div>
+        <div class="eyebrow mb-2">03</div>
+        <h2 class="display text-2xl text-ink-900">Product engineering</h2>
+      </div>
+      <div class="space-y-5 text-ink-700 leading-relaxed">
+        <p>
+          When a client has their own software vision — a web app, a mobile product, an internal tool — we ship it for them. Same team and same standards we hold our own products to. We design, build, deploy, and hand over.
+        </p>
+        <p>
+          Recent: <a href="/work" class="link">Wander</a>, a mobile companion for finding parks, playgrounds, and trails. Designed and built end-to-end; currently in TestFlight beta. Backend, iOS app, marketing site, and data pipeline — one team.
+        </p>
+        <ul class="space-y-2 text-sm pt-2">
+          <li class="flex gap-3"><span class="text-signal-600">→</span> Web &amp; mobile product builds (TypeScript, React / React Native, Astro, Python)</li>
+          <li class="flex gap-3"><span class="text-signal-600">→</span> AI-native applications with Claude, OpenAI, or open-weight models</li>
+          <li class="flex gap-3"><span class="text-signal-600">→</span> Internal tools, dashboards, and admin systems</li>
+          <li class="flex gap-3"><span class="text-signal-600">→</span> Cloudflare / AWS / on-prem deployment</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {/* CTA strip */}
+  <section class="bg-cream-100 mt-10">
+    <div class="mx-auto max-w-4xl px-5 sm:px-8 py-16 text-center">
+      <p class="display text-2xl sm:text-3xl text-ink-900 leading-snug">
+        Not sure which shape fits? Start with a conversation.
+      </p>
+      <p class="mt-4 text-ink-600">We'll point you toward the right one — even if that's not us.</p>
+      <a href="/contact" class="btn-primary mt-7">Start a conversation</a>
+    </div>
+  </section>
+
+</BaseLayout>

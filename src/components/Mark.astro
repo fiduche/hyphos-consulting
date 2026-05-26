@@ -1,0 +1,55 @@
+---
+/**
+ * Hyphos mark — four nodes, fully interconnected.
+ *
+ * Reads instantly as "systems talking to each other": a diamond of four
+ * nodes with every node connected to every other (a K4 complete graph).
+ * One node in the accent colour gives the eye a focal point and ties to
+ * the brand signal colour.
+ *
+ * Geometry lives on a 64×64 grid so it stays crisp at favicon scale.
+ */
+interface Props {
+  /** Pixel size of the square mark. */
+  size?: number;
+  /** Stroke + node colour. Defaults to currentColor so it inherits text colour. */
+  color?: string;
+  /** Accent colour for the highlighted node; falls back to color. */
+  accent?: string;
+  /** Accessible label. Leave blank for purely decorative use. */
+  label?: string;
+}
+
+const { size = 32, color = 'currentColor', accent, label } = Astro.props;
+const nodeAccent = accent ?? color;
+---
+
+<svg
+  width={size}
+  height={size}
+  viewBox="0 0 64 64"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+  role={label ? 'img' : 'presentation'}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+>
+  {/* Connecting lines — every node to every other (K4 complete graph).
+      Outline of the diamond, then the inner X. */}
+  <g stroke={color} stroke-width="1.75" stroke-linecap="round" opacity="0.85">
+    {/* Diamond outline */}
+    <line x1="32" y1="10" x2="54" y2="32" />
+    <line x1="54" y1="32" x2="32" y2="54" />
+    <line x1="32" y1="54" x2="10" y2="32" />
+    <line x1="10" y1="32" x2="32" y2="10" />
+    {/* Inner cross */}
+    <line x1="32" y1="10" x2="32" y2="54" />
+    <line x1="10" y1="32" x2="54" y2="32" />
+  </g>
+
+  {/* Nodes — three in primary, one (top) in accent for a focal point. */}
+  <circle cx="32" cy="10" r="4.5" fill={nodeAccent} />
+  <circle cx="54" cy="32" r="4.5" fill={color} />
+  <circle cx="32" cy="54" r="4.5" fill={color} />
+  <circle cx="10" cy="32" r="4.5" fill={color} />
+</svg>

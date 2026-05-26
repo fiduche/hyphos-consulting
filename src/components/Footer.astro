@@ -1,0 +1,45 @@
+---
+import Mark from './Mark.astro';
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-24 border-t border-ink-200/60 bg-cream-100">
+  <div class="mx-auto max-w-6xl px-5 sm:px-8 py-14">
+    <div class="grid md:grid-cols-4 gap-10">
+      <div class="md:col-span-2">
+        <div class="flex items-center gap-2.5 mb-4">
+          <Mark size={26} color="#0b1220" accent="#1d6fe0" />
+          <span class="display text-base tracking-tight text-ink-900">Hyphos Consulting</span>
+        </div>
+        <p class="text-sm text-ink-600 leading-relaxed max-w-sm">
+          People-focused, business-aligned software. We design and build the systems that remove the manual work — so your team can focus on the work that actually matters.
+        </p>
+      </div>
+
+      <div>
+        <h3 class="eyebrow mb-4">Explore</h3>
+        <ul class="space-y-2.5 text-sm text-ink-600">
+          <li><a href="/services" class="hover:text-ink-900">Services</a></li>
+          <li><a href="/products" class="hover:text-ink-900">Products</a></li>
+          <li><a href="/work" class="hover:text-ink-900">Work</a></li>
+          <li><a href="/about" class="hover:text-ink-900">About</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="eyebrow mb-4">Connect</h3>
+        <ul class="space-y-2.5 text-sm text-ink-600">
+          <li><a href="/contact" class="hover:text-ink-900">Contact</a></li>
+          <li><a href="mailto:hello@hyphosconsulting.com" class="hover:text-ink-900">hello@hyphosconsulting.com</a></li>
+          <li><a href="https://hyphos.io" class="hover:text-ink-900">hyphos.io →</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="rule mt-12 mb-6"></div>
+    <div class="flex flex-col sm:flex-row sm:justify-between gap-3 text-xs text-ink-500">
+      <div>© {year} Hyphos Consulting. All rights reserved.</div>
+      <div class="italic">Efficiency is not the goal. Human flourishing is the goal.</div>
+    </div>
+  </div>
+</footer>

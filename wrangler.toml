@@ -1,0 +1,19 @@
+# Cloudflare Workers config for hyphosconsulting.com.
+#
+# Astro static output (`output: 'static'`) — all pages prerender to HTML in
+# `dist/` at build time. The worker is a 5-line passthrough to the ASSETS
+# binding (./src/worker.js); Workers requires a main script even when
+# serving only static files.
+
+name = "hyphos-consulting-website"
+main = "./src/worker.js"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+# Domain (hyphosconsulting.com / www.hyphosconsulting.com) is configured in
+# the Cloudflare dashboard: Workers & Pages → hyphos-consulting-website →
+# Settings → Domains & Routes.

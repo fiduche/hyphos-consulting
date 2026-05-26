@@ -1,0 +1,330 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Work"
+  description="Selected client work from Hyphos Consulting — Cornerstone Funeral Home (integrated business software), Wander (mobile parks & trails companion), and more."
+>
+
+  {/* Header */}
+  <section class="mx-auto max-w-5xl px-5 sm:px-8 pt-20 sm:pt-28 pb-12">
+    <div class="eyebrow mb-3">Selected work</div>
+    <h1 class="display text-4xl sm:text-5xl leading-tight text-ink-900">
+      Software we've shipped for clients.
+    </h1>
+    <p class="mt-6 text-lg text-ink-600 max-w-3xl leading-relaxed">
+      A small portfolio, by design. We take on a few client engagements a year so we can stay close to the work. Two we can talk about publicly are below — a full integrated software build for a relationship-driven small business, and a mobile product for a family-tech client.
+    </p>
+
+    <div class="mt-10 flex flex-wrap gap-3 text-sm">
+      <a href="#cornerstone" class="px-3 py-1.5 rounded-full bg-ink-100 text-ink-700 hover:bg-ink-200 transition">↓ Cornerstone Funeral Home</a>
+      <a href="#wander" class="px-3 py-1.5 rounded-full bg-ink-100 text-ink-700 hover:bg-ink-200 transition">↓ Wander</a>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  {/* ─── Cornerstone Funeral Home — full integrated build ─── */}
+  <section id="cornerstone" class="scroll-mt-24">
+    <div class="mx-auto max-w-5xl px-5 sm:px-8 py-20 sm:py-24">
+
+      <div class="flex flex-wrap items-center gap-3 mb-5">
+        <span class="inline-block px-2.5 py-1 rounded-full bg-signal-50 text-signal-700 text-xs font-semibold">Integrated business software · web</span>
+        <span class="text-sm text-ink-500">In production</span>
+      </div>
+
+      <h2 class="display text-4xl sm:text-5xl text-ink-900 leading-tight">
+        Cornerstone Funeral Home
+      </h2>
+      <p class="mt-3 text-lg text-ink-600 max-w-3xl">
+        A full integrated business platform — built and shipped for a relationship-driven small business that had outgrown the standard industry stack.
+      </p>
+      <p class="mt-4">
+        <a href="https://cornerstonefuneralhome.com" class="link text-sm" target="_blank" rel="noopener">
+          Visit cornerstonefuneralhome.com →
+        </a>
+      </p>
+
+      <div class="mt-12 grid lg:grid-cols-[1fr_1.4fr] gap-10">
+        <div class="space-y-7">
+          <div>
+            <div class="eyebrow mb-2">Client brief</div>
+            <p class="text-ink-700 leading-relaxed">
+              Replace the day-to-day reality — a stagnant website nobody could update, Yellow Pages and newspaper spend that nobody could measure, social posts done by hand, family communications living in inboxes, scheduling and intake on paper — with one integrated system the staff could actually run. Respect the dignity of what a funeral home does; nothing generic, nothing that felt like SaaS.
+            </p>
+          </div>
+
+          <div>
+            <div class="eyebrow mb-2">What we shipped</div>
+            <ul class="text-sm text-ink-700 space-y-2 leading-relaxed">
+              <li>· Family &amp; client CRM with at-need / preneed lifecycle</li>
+              <li>· Client portal — documents, status, approvals</li>
+              <li>· Full custom front-end website + content management</li>
+              <li>· Document generation &amp; template system</li>
+              <li>· Estimating, pricing, and automated accounts payable</li>
+              <li>· QuickBooks two-way sync</li>
+              <li>· Time tracking integrated to billing</li>
+              <li>· Marketing automation with brand-voice governance</li>
+              <li>· Email cadences — grief support, anniversary, preneed nurture</li>
+              <li>· Obituary publishing &amp; auto cross-posting to Meta</li>
+              <li>· Community Partners Network (Support the Family) flywheel</li>
+              <li>· SEO, Google Business Profile, local listings</li>
+              <li>· Campaign analytics with 30 / 60 / 90 day report cards</li>
+              <li>· Meeting capture + AI-extracted actions</li>
+              <li>· Daily community engagement workflows</li>
+              <li>· One database underneath all of it</li>
+            </ul>
+          </div>
+
+          <div>
+            <div class="eyebrow mb-2">Status</div>
+            <p class="text-ink-700 leading-relaxed">
+              In production. Sixteen integrated modules running on a single database. The marketing &amp; ops stack runs end-to-end on a handful of hours per week from one designated staff member — no marketing specialist required.
+            </p>
+          </div>
+        </div>
+
+        {/* Dark sidebar — outcomes, then "what we learned" */}
+        <div class="space-y-6">
+          <div class="card p-7 bg-cream-100 border-warm-500/30">
+            <div class="eyebrow text-warm-600 mb-4">What changed for them</div>
+            <div class="grid grid-cols-2 gap-5">
+              <div>
+                <div class="display text-2xl text-ink-900">Single system</div>
+                <p class="text-xs text-ink-600 mt-1 leading-relaxed">Replaced the manual processes, paper trails, and stagnant website that the team was working around.</p>
+              </div>
+              <div>
+                <div class="display text-2xl text-ink-900">~$98k / yr</div>
+                <p class="text-xs text-ink-600 mt-1 leading-relaxed">Annual marketing &amp; ops spend reclaimed for staff time and growth.</p>
+              </div>
+              <div>
+                <div class="display text-2xl text-ink-900">4–5 hrs / wk</div>
+                <p class="text-xs text-ink-600 mt-1 leading-relaxed">For one staff member to run the full marketing stack.</p>
+              </div>
+              <div>
+                <div class="display text-2xl text-ink-900">Brand-voice governed</div>
+                <p class="text-xs text-ink-600 mt-1 leading-relaxed">Every AI-assisted message respects how the firm actually talks to families.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-7">
+            <div class="eyebrow mb-3 text-signal-600">What we like about it</div>
+            <p class="text-ink-700 leading-relaxed">
+              A funeral home is the kind of business where the relationship is the product. Software's only job is to take the busywork off the staff so they can be present with families. That constraint shaped every design decision — no notifications fighting for attention, no engagement loops, no dashboards that don't earn their place.
+            </p>
+            <p class="mt-4 text-ink-700 leading-relaxed">
+              The integrated build for Cornerstone is also what became <a href="/products#foundation" class="link">Foundation</a> — the platform we now adapt for other industries. The thinking that worked for a funeral home carries through to any business where customer relationships compound over years.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Screenshot — staff portal ─── */}
+      {/* One screenshot of the staff portal dashboard. The rest of the
+          modules (CRM, marketing, finance, analytics, comms) are proprietary
+          to the client and aren't pictured. The public-facing website lives
+          at cornerstonefuneralhome.com — linked from the page header. */}
+      <div class="mt-14 pt-10 border-t border-ink-200">
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
+          <div>
+            <div class="eyebrow mb-2">A look at the system</div>
+            <h3 class="display text-2xl text-ink-900 leading-tight">Staff portal — the inside</h3>
+          </div>
+          <p class="text-sm text-ink-500 max-w-sm">
+            The public-facing site lives at <a href="https://cornerstonefuneralhome.com" target="_blank" rel="noopener" class="link">cornerstonefuneralhome.com</a>. The internal modules — CRM, marketing, finance, analytics — are proprietary to the client and aren't shown.
+          </p>
+        </div>
+
+        <figure class="card overflow-hidden p-0">
+          {/* Dark-on-dark backing so the staff-portal screenshot reads as a
+              framed app capture. `object-contain` keeps the whole UI visible
+              regardless of source aspect ratio — no edges clipped when the
+              source gets re-edited. */}
+          <div class="w-full bg-ink-950 flex items-center justify-center p-4 sm:p-6">
+            <img
+              src="/work/cornerstone/staff-portal.png"
+              alt="Cornerstone staff portal dashboard — calendar view"
+              class="w-full h-auto object-contain rounded-md shadow-lg shadow-ink-900/30"
+              loading="lazy"
+            />
+          </div>
+          <figcaption class="px-5 py-4 border-t border-ink-200 flex items-center justify-between gap-3">
+            <span class="text-sm text-ink-800 font-medium">Staff portal — dashboard / calendar view</span>
+            <span class="text-xs text-ink-500">One module of sixteen</span>
+          </figcaption>
+        </figure>
+      </div>
+
+      {/* Tech stack strip */}
+      <div class="mt-12 pt-8 border-t border-ink-200">
+        <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs uppercase tracking-widest text-ink-500">
+          <span class="font-semibold text-ink-700">Stack</span>
+          <span>Python · FastAPI</span>
+          <span class="w-1 h-1 rounded-full bg-ink-300"></span>
+          <span>Postgres</span>
+          <span class="w-1 h-1 rounded-full bg-ink-300"></span>
+          <span>React · Astro</span>
+          <span class="w-1 h-1 rounded-full bg-ink-300"></span>
+          <span>Anthropic Claude · OpenAI</span>
+          <span class="w-1 h-1 rounded-full bg-ink-300"></span>
+          <span>QuickBooks API</span>
+          <span class="w-1 h-1 rounded-full bg-ink-300"></span>
+          <span>Meta Graph API</span>
+          <span class="w-1 h-1 rounded-full bg-ink-300"></span>
+          <span>GA4 · Search Console</span>
+          <span class="w-1 h-1 rounded-full bg-ink-300"></span>
+          <span>Cloudflare</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  {/* ─── Wander case study ─── */}
+  <section id="wander" class="scroll-mt-24">
+    <div class="mx-auto max-w-5xl px-5 sm:px-8 py-20 sm:py-24">
+      <div class="flex flex-wrap items-center gap-3 mb-5">
+        <span class="inline-block px-2.5 py-1 rounded-full bg-ink-100 text-ink-700 text-xs font-semibold">Mobile · iOS</span>
+        <span class="text-sm text-ink-500">In TestFlight beta</span>
+      </div>
+
+      <h2 class="display text-4xl sm:text-5xl text-ink-900 leading-tight">
+        Wander
+      </h2>
+      <p class="mt-3 text-lg text-ink-600">
+        A field guide for families — discovering parks, playgrounds, trails, and outdoor spots near you.
+      </p>
+
+      <div class="mt-12 grid lg:grid-cols-[1fr_1.4fr] gap-10">
+        <div class="space-y-7">
+          <div>
+            <div class="eyebrow mb-2">Client brief</div>
+            <p class="text-ink-700 leading-relaxed">
+              Build a mobile app that takes a family from "we should do something" to actually out the door — without a fifteen-minute planning session. Trustworthy data, real reviews, the small details (washrooms, shade, fencing, accessibility) that matter when you arrive.
+            </p>
+          </div>
+
+          <div>
+            <div class="eyebrow mb-2">What we shipped</div>
+            <ul class="text-sm text-ink-700 space-y-2 leading-relaxed">
+              <li>· Native iOS app (Swift) with offline-first map tiles</li>
+              <li>· Backend, data pipeline &amp; admin (Python + Postgres + Redis)</li>
+              <li>· Map discovery service ingesting curated park data across cities</li>
+              <li>· Family-friendly review &amp; photo system with moderation</li>
+              <li>· Marketing site (Astro + Cloudflare) at wanderapp.ca</li>
+              <li>· TestFlight rollout, App Store assets, brand work end-to-end</li>
+            </ul>
+          </div>
+
+          <div>
+            <div class="eyebrow mb-2">Status</div>
+            <p class="text-ink-700 leading-relaxed">
+              Currently in TestFlight beta with a growing family-tester cohort. Android build planned. Ongoing partnership for product, engineering and growth.
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <div class="card p-8 bg-cream-100 border-warm-500/30">
+            <div class="eyebrow text-warm-600 mb-4">What we like about it</div>
+            <p class="text-ink-800 leading-relaxed">
+              Wander is a small product with a generous heart. It exists to get families outside — not to maximize session length. We built it the same way: every screen earns its place; every tap is justified; nothing about it is engineered to keep you in the app.
+            </p>
+            <p class="mt-5 text-ink-800 leading-relaxed">
+              That restraint is hard to keep when you're shipping. It only happens if it's a deliberate design choice from day one. That's the kind of constraint we like working under.
+            </p>
+            <div class="rule mt-8 mb-6"></div>
+            <a href="https://wanderapp.ca" class="link text-sm">Visit wanderapp.ca →</a>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Wander screenshot gallery ─── */}
+      {/* Three iOS portrait screenshots (1179×2556 native). Tiles use the
+          phone aspect ratio so the captures sit naturally inside soft
+          warm-tinted "device" frames. */}
+      <div class="mt-14 pt-10 border-t border-ink-200">
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
+          <div>
+            <div class="eyebrow mb-2">A look inside the app</div>
+            <h3 class="display text-2xl text-ink-900 leading-tight">Wander on iOS</h3>
+          </div>
+          <p class="text-sm text-ink-500 max-w-sm">
+            Currently in TestFlight beta. The TestFlight invite is open — drop us a line and we'll add you.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <figure class="card overflow-hidden p-0 bg-cream-100">
+            <div class="aspect-[9/19.5] w-full overflow-hidden flex items-center justify-center p-4 sm:p-6">
+              <img
+                src="/work/wander/wander-1.png"
+                alt="Wander iOS app screenshot"
+                class="h-full w-auto object-contain rounded-2xl shadow-lg shadow-ink-900/10"
+                loading="lazy"
+              />
+            </div>
+          </figure>
+
+          <figure class="card overflow-hidden p-0 bg-cream-100">
+            <div class="aspect-[9/19.5] w-full overflow-hidden flex items-center justify-center p-4 sm:p-6">
+              <img
+                src="/work/wander/wander-2.png"
+                alt="Wander iOS app screenshot"
+                class="h-full w-auto object-contain rounded-2xl shadow-lg shadow-ink-900/10"
+                loading="lazy"
+              />
+            </div>
+          </figure>
+
+          <figure class="card overflow-hidden p-0 bg-cream-100">
+            <div class="aspect-[9/19.5] w-full overflow-hidden flex items-center justify-center p-4 sm:p-6">
+              <img
+                src="/work/wander/wander-3.png"
+                alt="Wander iOS app screenshot"
+                class="h-full w-auto object-contain rounded-2xl shadow-lg shadow-ink-900/10"
+                loading="lazy"
+              />
+            </div>
+          </figure>
+        </div>
+      </div>
+
+      {/* Tech stack strip */}
+      <div class="mt-12 pt-8 border-t border-ink-200">
+        <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs uppercase tracking-widest text-ink-500">
+          <span class="font-semibold text-ink-700">Stack</span>
+          <span>Swift · SwiftUI</span>
+          <span class="w-1 h-1 rounded-full bg-ink-300"></span>
+          <span>Python · FastAPI</span>
+          <span class="w-1 h-1 rounded-full bg-ink-300"></span>
+          <span>Postgres · PostGIS</span>
+          <span class="w-1 h-1 rounded-full bg-ink-300"></span>
+          <span>Redis</span>
+          <span class="w-1 h-1 rounded-full bg-ink-300"></span>
+          <span>Astro</span>
+          <span class="w-1 h-1 rounded-full bg-ink-300"></span>
+          <span>Cloudflare Workers</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule"></div>
+
+  {/* ─── Other engagements teaser ─── */}
+  <section class="mx-auto max-w-4xl px-5 sm:px-8 py-20 text-center">
+    <div class="eyebrow mb-3">Other engagements</div>
+    <h2 class="display text-2xl sm:text-3xl text-ink-900 leading-snug">
+      Most of our work doesn't have a public face.
+    </h2>
+    <p class="mt-5 text-ink-600 leading-relaxed max-w-2xl mx-auto">
+      Internal systems, back-office integrations, AI tooling for ops teams — the kind of software that doesn't get a launch post. If you'd like to hear about engagements relevant to your situation, ask.
+    </p>
+    <a href="/contact" class="btn-secondary mt-7">Ask about relevant work</a>
+  </section>
+
+</BaseLayout>
