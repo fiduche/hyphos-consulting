@@ -100,6 +100,45 @@ Currently the site's `/contact` page uses a Formspree placeholder. To wire it to
 
 ---
 
+## Golf tournament entry form (`/golf`)
+
+Entry capture for the Springs Men's Golf Classic — D'Arcy Ranch, **Sept 18 2026**. Reached by QR code at the sponsored hole, so it is filled in on a phone, outdoors, possibly on one bar of signal.
+
+The site stays fully static. The worker gained two routes; everything else still falls through to `ASSETS`.
+
+| Route | Access | Purpose |
+|---|---|---|
+| `POST /api/golf/entry` | Public | Writes one row to D1. Honeypot + length caps + email sanity check. |
+| `GET /api/golf/entries` | Secret-gated | CSV export of all entries. |
+
+### One-time setup
+
+```bash
+npx wrangler d1 create hyphos-golf          # paste the database_id into wrangler.toml
+npx wrangler d1 execute hyphos-golf --remote --file=./schema.sql
+npx wrangler secret put GOLF_EXPORT_KEY     # any long random string
+```
+
+Then push to `main` as usual. `wrangler.toml` ships with `database_id = "PASTE_DATABASE_ID_HERE"` — **the deploy will fail until that's replaced.**
+
+### Getting the entries out
+
+```bash
+npx wrangler d1 execute hyphos-golf --remote --command "SELECT * FROM golf_entries ORDER BY created_at"
+```
+
+Or, in a browser, `https://hyphosconsulting.com/api/golf/entries?key=<GOLF_EXPORT_KEY>` for a CSV download. The key travels in the query string, so treat it as event-scoped — rotate or unset it after Sept 18.
+
+### Notes
+
+- **Duplicate submits collapse.** A unique index on `lower(email)` plus an upsert means a double-tapped button on flaky signal updates the row rather than creating a second one. Checkbox opt-ins only ever ratchet up, so a retry can't silently un-tick something.
+- **Offline entries are queued, not lost.** If the POST fails, the page stores the entry in `localStorage` and retries on next load and on the browser's `online` event. The golfer sees a success state either way — there is nothing for them to redo.
+- **`starred`** is set by hand after the event, for whoever named a specific problem out loud at the hole. Those get the personal follow-up rather than the bulk email.
+- **Paper cards remain the real backup.** The queue handles bad signal; it does not handle a dead phone battery or someone who won't scan a QR.
+- **After the event**, unset `GOLF_EXPORT_KEY` and consider removing the POST route — an open write endpoint has no reason to stay live once the tournament is over.
+
+---
+
 ## Common gotchas
 
 ### "The site is down for me"

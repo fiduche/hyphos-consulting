@@ -14,6 +14,17 @@ compatibility_flags = ["nodejs_compat"]
 directory = "./dist"
 binding = "ASSETS"
 
+# D1 — entry storage for the golf tournament form at /golf. The worker handles
+# POST /api/golf/entry and GET /api/golf/entries; everything else still falls
+# through to ASSETS. See schema.sql and INFRASTRUCTURE.md.
+#
+# Create once:  npx wrangler d1 create hyphos-golf
+# then paste the returned database_id below.
+[[d1_databases]]
+binding = "DB"
+database_name = "hyphos-golf"
+database_id = "9c111649-8d37-40b5-b538-fa7127a09af7"
+
 # Domain (hyphosconsulting.com / www.hyphosconsulting.com) is configured in
 # the Cloudflare dashboard: Workers & Pages → hyphos-consulting-website →
 # Settings → Domains & Routes.

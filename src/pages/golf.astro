@@ -1,0 +1,323 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+/**
+ * Entry form for the Springs Men's Golf Classic — D'Arcy Ranch, Sept 18 2026.
+ *
+ * Reached by QR code at the sponsored hole, so it is filled in on a phone,
+ * outdoors, in sunlight, possibly on one bar of signal, by someone who wants
+ * to get back in a cart. Everything below follows from that: large targets,
+ * correct mobile keyboards, autofill enabled, and a localStorage queue so a
+ * dropped request is retried rather than lost.
+ */
+
+const checkboxes = [
+  {
+    name: 'want_list',
+    label: 'Send me the 10 ways small businesses are actually using AI right now',
+  },
+  {
+    name: 'want_talk',
+    label: "I'd like to talk about my company specifically",
+  },
+  {
+    name: 'knows_someone',
+    label: 'I know someone who should hear about this',
+  },
+  {
+    name: 'want_tidal',
+    label: "I'd also like Tidal Insurance to take a look at my coverage",
+  },
+];
+---
+
+<BaseLayout
+  title="Enter to win"
+  description="Enter the Hyphos hole contest at the Springs Men's Golf Classic, D'Arcy Ranch, September 18 2026."
+>
+  <section class="mx-auto max-w-2xl px-5 sm:px-8 pt-8 sm:pt-20 pb-6">
+    <div class="eyebrow mb-3">Springs Men's Golf Classic · D'Arcy Ranch</div>
+    <h1 class="display text-4xl sm:text-5xl leading-tight text-ink-900">
+      Enter to win.
+    </h1>
+    <p class="mt-4 text-lg text-ink-600 leading-relaxed">
+      One entry each. Winner announced at dinner. Takes about twenty seconds.
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-2xl px-5 sm:px-8 pb-24">
+    <form id="entry-form" class="card p-6 sm:p-8" novalidate>
+      <div class="space-y-6">
+        <div>
+          <label class="block text-sm font-semibold text-ink-900 mb-2" for="name">
+            Name
+          </label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            required
+            autocomplete="name"
+            enterkeyhint="next"
+            class="w-full rounded-lg border border-ink-300 bg-white px-4 py-3.5 text-base text-ink-900 outline-none transition focus:border-signal-500 focus:ring-2 focus:ring-signal-100"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-ink-900 mb-2" for="company_role">
+            Company &amp; role
+          </label>
+          <input
+            id="company_role"
+            name="company_role"
+            type="text"
+            required
+            autocomplete="organization"
+            enterkeyhint="next"
+            placeholder="Miller Plumbing — owner"
+            class="w-full rounded-lg border border-ink-300 bg-white px-4 py-3.5 text-base text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-signal-500 focus:ring-2 focus:ring-signal-100"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-ink-900 mb-2" for="email">
+            Email
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            inputmode="email"
+            autocomplete="email"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+            enterkeyhint="next"
+            class="w-full rounded-lg border border-ink-300 bg-white px-4 py-3.5 text-base text-ink-900 outline-none transition focus:border-signal-500 focus:ring-2 focus:ring-signal-100"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-ink-900 mb-2" for="cell">
+            Cell <span class="font-normal text-ink-400">— optional</span>
+          </label>
+          <input
+            id="cell"
+            name="cell"
+            type="tel"
+            inputmode="tel"
+            autocomplete="tel"
+            enterkeyhint="next"
+            class="w-full rounded-lg border border-ink-300 bg-white px-4 py-3.5 text-base text-ink-900 outline-none transition focus:border-signal-500 focus:ring-2 focus:ring-signal-100"
+          />
+        </div>
+
+        <div class="rule"></div>
+
+        <div>
+          <label class="block text-sm font-semibold text-ink-900 mb-1" for="wish">
+            Bonus entry
+          </label>
+          <p class="text-sm text-ink-600 mb-3">
+            What's the one task at work you wish just did itself?
+          </p>
+          <textarea
+            id="wish"
+            name="wish"
+            rows="3"
+            enterkeyhint="done"
+            placeholder="Chasing invoices. It's killing me."
+            class="w-full rounded-lg border border-ink-300 bg-white px-4 py-3.5 text-base text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-signal-500 focus:ring-2 focus:ring-signal-100 resize-y"
+          ></textarea>
+        </div>
+
+        <div class="space-y-1">
+          {checkboxes.map((box) => (
+            <label
+              class="flex items-start gap-3 py-2.5 cursor-pointer select-none"
+              for={box.name}
+            >
+              <input
+                id={box.name}
+                name={box.name}
+                type="checkbox"
+                class="mt-0.5 h-5 w-5 flex-none rounded border-ink-300 text-signal-600 accent-signal-600 cursor-pointer"
+              />
+              <span class="text-[15px] leading-snug text-ink-700">{box.label}</span>
+            </label>
+          ))}
+        </div>
+
+        {/* Honeypot — hidden from people, irresistible to bots. */}
+        <div class="hidden" aria-hidden="true">
+          <label for="website">Website</label>
+          <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <p id="entry-error" class="hidden text-sm text-warm-600 font-medium" role="alert"></p>
+
+        <button id="entry-submit" type="submit" class="btn-primary w-full justify-center text-base py-4">
+          <span data-label>Enter the draw</span>
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+        </button>
+
+        <p class="text-xs text-ink-500 leading-relaxed">
+          We'll only send what you asked for above. No list, no forwarding, unsubscribe any time.
+        </p>
+      </div>
+    </form>
+
+    <div id="entry-success" class="card p-8 hidden text-center">
+      <div class="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-signal-50">
+        <svg class="h-6 w-6 text-signal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <h2 class="display text-2xl text-ink-900">You're in.</h2>
+      <p id="entry-success-note" class="mt-3 text-ink-600 leading-relaxed">
+        Winner announced at dinner. If you asked for the list, it lands in your inbox tonight.
+      </p>
+      <p class="mt-6 text-sm text-ink-500">
+        Daniel Newton · Hyphos Consulting · <a href="/work" class="link">see what we build</a>
+      </p>
+    </div>
+  </section>
+
+  <script>
+    const QUEUE_KEY = 'hyphos-golf-queue';
+    const ENDPOINT = '/api/golf/entry';
+
+    const form = document.getElementById('entry-form') as HTMLFormElement | null;
+    const success = document.getElementById('entry-success');
+    const successNote = document.getElementById('entry-success-note');
+    const errorEl = document.getElementById('entry-error');
+    const submit = document.getElementById('entry-submit') as HTMLButtonElement | null;
+
+    if (!form || !success || !successNote || !errorEl || !submit) {
+      throw new Error('Entry form markup is missing an expected element.');
+    }
+
+    const label = submit.querySelector('[data-label]') as HTMLElement;
+
+    const readQueue = (): unknown[] => {
+      try {
+        return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
+      } catch {
+        return [];
+      }
+    };
+
+    const writeQueue = (items: unknown[]) => {
+      try {
+        localStorage.setItem(QUEUE_KEY, JSON.stringify(items));
+      } catch {
+        /* Private browsing or full storage — nothing useful to do here. */
+      }
+    };
+
+    const post = (payload: unknown) =>
+      fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+    /**
+     * Drain anything saved while the course had no signal. Runs on load and
+     * whenever the browser reports it is back online.
+     */
+    const flushQueue = async () => {
+      const queue = readQueue();
+      if (queue.length === 0) return;
+
+      const remaining: unknown[] = [];
+      for (const item of queue) {
+        try {
+          const response = await post(item);
+          // 4xx means this entry will never succeed — drop it rather than
+          // retrying forever. Only network errors and 5xx are worth keeping.
+          if (!response.ok && response.status >= 500) remaining.push(item);
+        } catch {
+          remaining.push(item);
+        }
+      }
+      writeQueue(remaining);
+    };
+
+    const showError = (message: string) => {
+      errorEl.textContent = message;
+      errorEl.classList.remove('hidden');
+    };
+
+    const showSuccess = (queued: boolean) => {
+      if (queued) {
+        successNote.textContent =
+          "Saved on your phone — signal is patchy out here, so we'll send it automatically the moment you're back in range. Nothing more for you to do.";
+      }
+      form.classList.add('hidden');
+      success.classList.remove('hidden');
+      success.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      errorEl.classList.add('hidden');
+
+      const data = new FormData(form);
+      const payload = {
+        name: String(data.get('name') || '').trim(),
+        company_role: String(data.get('company_role') || '').trim(),
+        email: String(data.get('email') || '').trim(),
+        cell: String(data.get('cell') || '').trim(),
+        wish: String(data.get('wish') || '').trim(),
+        want_list: data.get('want_list') === 'on',
+        want_talk: data.get('want_talk') === 'on',
+        knows_someone: data.get('knows_someone') === 'on',
+        want_tidal: data.get('want_tidal') === 'on',
+        website: String(data.get('website') || ''),
+      };
+
+      if (!payload.name) return showError('Name is required.');
+      if (!payload.company_role) return showError('Company and role are required.');
+      if (!/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(payload.email)) {
+        return showError('That email address looks off — mind checking it?');
+      }
+
+      submit.disabled = true;
+      label.textContent = 'Entering…';
+
+      try {
+        const response = await post(payload);
+
+        if (response.ok) {
+          showSuccess(false);
+          return;
+        }
+
+        if (response.status >= 500) {
+          // Server-side problem — hold it and retry rather than losing it.
+          writeQueue([...readQueue(), payload]);
+          showSuccess(true);
+          return;
+        }
+
+        const body = await response.json().catch(() => ({}));
+        showError(body.error || 'Something went wrong. Try once more?');
+      } catch {
+        // Almost always no signal. Queue it and reassure them it's handled.
+        writeQueue([...readQueue(), payload]);
+        showSuccess(true);
+        return;
+      } finally {
+        submit.disabled = false;
+        label.textContent = 'Enter the draw';
+      }
+    });
+
+    flushQueue();
+    window.addEventListener('online', flushQueue);
+  </script>
+</BaseLayout>

@@ -6,3 +6,6 @@ dist/
 *.log
 .env
 .env.local
+
+# macOS metadata should never reach the deployed asset bundle.
+public/**/.DS_Store
