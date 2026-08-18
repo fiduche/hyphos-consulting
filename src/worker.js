@@ -30,8 +30,14 @@ form field.
 
 Someone has written what task at work they wish would do itself. Their answer is
 usually two or three words, which isn't enough to act on. React to what they
-wrote in a few words, then ask ONE question that gets a specific answer: how
-often it happens, how long it takes, who does it, or what makes it maddening.
+wrote in a few words, then ask ONE question that makes them describe the thing:
+what actually happens, when it lands on them, what goes wrong, what it costs
+them.
+
+You are after a sentence in their own words, not a statistic. "Fifteen a month"
+tells you nothing. "Every one is a fresh spreadsheet and I do them after the
+kids are down" is a conversation. A question that can be answered with a number
+will be, and then you have a number.
 
 Tone: warm and a bit funny, like a friendly jab between two people who just met
 on a golf course. Commiserate with them rather than tease them. Never sarcastic,
@@ -39,6 +45,11 @@ never at their expense, and keep it clean, this is a church event.
 
 Rules:
 - A short reaction, then one question. Under 25 words total.
+- The question must need a sentence to answer. Never ask for a number, a
+  frequency, or a length of time. Never ask anything answerable with yes or no.
+  Never offer two options to choose between, they will just pick one.
+- Anchor it to a moment where you can. "The last one" beats "usually", because
+  people can picture the last one.
 - Talk like a person. Contractions are good.
 - Never pitch, never suggest a fix, never mention software or AI.
 - At most one exclamation mark. If nothing funny comes to mind, just be warm.
@@ -48,10 +59,10 @@ Rules:
 - No preamble, no quotes, no sign-off. Output only the line.
 
 Examples:
-"everything" -> "Everything? Oh no. Okay, what's the one that bugs you most?"
-"invoicing" -> "Invoicing, the eternal enemy. How many a month are we talking?"
-"scheduling" -> "Oof. Is that scheduling people, or scheduling jobs?"
-"paperwork" -> "Nobody has ever said paperwork with joy. How many hours a week?"`;
+"everything" -> "Everything? Right. Which one ruins the day when it lands on you?"
+"invoicing" -> "Invoicing, the eternal enemy. Walk me through what doing them actually looks like."
+"scheduling" -> "Oof. What happens on your end when one job moves?"
+"paperwork" -> "Nobody has ever said paperwork with joy. What's the last one that took way too long?"`;
 
 const MAX = {
   first_name: 80, last_name: 80, company: 140, role: 120,
@@ -375,6 +386,9 @@ async function handleSummary(request, env) {
   // list. A vocabulary invented in advance mislabels anything it didn't
   // anticipate, and the label is what gets read out loud.
   let groups = null;
+  // Answer number -> the same answer tidied for a screen. Empty is fine
+  // everywhere: the raw text is always the fallback.
+  let tidied = {};
 
   // Serve the cached grouping unless the answer set actually changed. Displays
   // poll; the grouping only moves when someone new enters.
@@ -385,7 +399,16 @@ async function handleSummary(request, env) {
   } catch { cached = null; }
 
   if (cached && cached.entry_count === answered.length) {
-    try { groups = JSON.parse(cached.payload); } catch { groups = null; }
+    try {
+      const payload = JSON.parse(cached.payload);
+      // Rows written before tidying existed stored the groups array bare.
+      if (Array.isArray(payload)) {
+        groups = payload;
+      } else {
+        groups = payload.groups || null;
+        tidied = payload.tidied || {};
+      }
+    } catch { groups = null; }
   }
 
   if (!groups && answered.length && env.ANTHROPIC_API_KEY) {
@@ -405,7 +428,13 @@ Group them by what the underlying problem actually is. Derive the groups from th
 
 Label each group in plain words that can be read out loud to a room, six words at most, no jargon. "chasing invoices" not "accounts receivable management".
 
-Every answer belongs to exactly one group. Use each number once.`,
+Every answer belongs to exactly one group. Use each number once.
+
+Also return a tidied version of every answer, for a screen at the event.
+
+Tidying means fixing capitalisation and obvious typos, dropping filler like "I guess" or "probably", and trimming to at most eight words. Keep their wording and their meaning. Do not rewrite it into your own phrasing, do not invent detail that is not there, do not sharpen a complaint into something stronger than they wrote, and never include a person's name or a company name. If an answer is already short and clean, return it unchanged. Never use an em dash.
+
+These get read by the person who wrote them, standing next to the screen.`,
           messages: [{ role: 'user', content: numbered }],
           output_config: {
             format: {
@@ -425,8 +454,20 @@ Every answer belongs to exactly one group. Use each number once.`,
                       additionalProperties: false,
                     },
                   },
+                  tidied: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        n: { type: 'integer' },
+                        text: { type: 'string' },
+                      },
+                      required: ['n', 'text'],
+                      additionalProperties: false,
+                    },
+                  },
                 },
-                required: ['groups'],
+                required: ['groups', 'tidied'],
                 additionalProperties: false,
               },
             },
@@ -455,11 +496,23 @@ Every answer belongs to exactly one group. Use each number once.`,
       const missed = answered.length - claimed.size;
       if (missed > 0) groups.push({ label: 'everything else', members: [], missed });
 
+      // Same treatment as the counts: only accept a tidied line that points at
+      // a real answer, and cap the length ourselves rather than trusting the
+      // eight-word instruction to hold.
+      tidied = {};
+      for (const t of parsed.tidied || []) {
+        const n = t?.n;
+        const text = String(t?.text || '').trim().replace(/\s+/g, ' ');
+        if (!Number.isInteger(n) || n < 1 || n > answered.length) continue;
+        if (!text || text.length > 90) continue;
+        tidied[n] = text;
+      }
+
       try {
         await env.DB.prepare(
           `INSERT INTO grouping_cache (id, computed_at, entry_count, payload) VALUES (1, ?1, ?2, ?3)
            ON CONFLICT(id) DO UPDATE SET computed_at = ?1, entry_count = ?2, payload = ?3`
-        ).bind(new Date().toISOString(), answered.length, JSON.stringify(groups)).run();
+        ).bind(new Date().toISOString(), answered.length, JSON.stringify({ groups, tidied })).run();
       } catch { /* Cache write failing must not fail the readout. */ }
     } catch {
       groups = null;
@@ -567,12 +620,22 @@ Every answer belongs to exactly one group. Use each number once.`,
   // then runs entirely offline. Same numbers, same order, same source.
   const format = url.searchParams.get('format');
 
+  // The most recent answers, tidied where a tidied version exists and raw
+  // otherwise, newest first. The board cycles through these rather than
+  // pinning one line: with entries trickling in over five hours, a single
+  // "just added" line is motionless for most of the day.
+  const recent = answered
+    .map((r, i) => tidied[i + 1] || (r.wish || '').trim())
+    .filter(Boolean)
+    .slice(-8)
+    .reverse();
+
   if (format === 'board') {
     return new Response(
       JSON.stringify({
         answered: answered.length,
         groups: (groups || []).filter((g) => g.members.length).map((g) => ({ label: g.label, count: g.members.length })),
-        latest: answered.length ? answered[answered.length - 1].wish : '',
+        recent,
       }),
       { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } }
     );

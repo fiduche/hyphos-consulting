@@ -35,7 +35,7 @@ import GolfQr from '../../components/GolfQr.astro';
       </section>
 
       <section id="latest">
-        <p class="kicker">Just added</p>
+        <p class="kicker">Recently added</p>
         <p id="latest-line">&nbsp;</p>
       </section>
     </div>
@@ -117,7 +117,12 @@ import GolfQr from '../../components/GolfQr.astro';
     #board.is-empty #latest { visibility: hidden; }
 
     #latest { border-top: 1px solid #1d2a3f; padding-top: 2.4vmin; }
-    #latest-line { font-size: min(1.9vw, 3.6vh); color: #c7d3e4; margin: 0; font-style: italic; }
+    #latest-line {
+      font-size: min(1.9vw, 3.6vh); color: #c7d3e4; margin: 0; font-style: italic;
+      transition: opacity .38s ease;
+    }
+    #latest-line.fading { opacity: 0; }
+    @media (prefers-reduced-motion: reduce) { #latest-line { transition: none; } }
 
     #dot {
       position: fixed; right: 1.6vmin; bottom: 1.6vmin; width: 10px; height: 10px;
@@ -149,7 +154,14 @@ import GolfQr from '../../components/GolfQr.astro';
         { label: 'rebuilding the schedule every week', count: 5 },
         { label: 'a form for every single job', count: 4 },
       ],
-      latest: 'quoting, every one is a fresh spreadsheet',
+      recent: [
+        'quoting, every one is a fresh spreadsheet',
+        'chasing the same four guys for payment',
+        'rebuilding the week after one cancellation',
+        'entering the same job into two systems',
+        'the intake form nobody fills in properly',
+        'writing invoices after the kids are down',
+      ],
       draw: [
         { name: 'Marc Dube', company: 'Dube Excavating' },
         { name: 'Jen Kwan', company: 'Foothills Dental' },
@@ -169,6 +181,7 @@ import GolfQr from '../../components/GolfQr.astro';
 
     const REFRESH_MS = 45000;
     let lastGood = 0;
+    let refreshTimer = null;
 
     const el = (id) => document.getElementById(id);
 
@@ -202,8 +215,41 @@ import GolfQr from '../../components/GolfQr.astro';
       return li;
     }
 
+    // The recent-answers line cycles on its own clock, independent of the 45s
+    // data refresh. Entries trickle in over five hours, so a line that only
+    // moves when someone enters is a line that is motionless most of the day.
+    const ROTATE_MS = 7000;
+    let recentLines = [];
+    let recentIdx = 0;
+
+    function showRecent() {
+      const line = el('latest-line');
+      if (!recentLines.length) { line.textContent = ' '; return; }
+      line.classList.add('fading');
+      setTimeout(() => {
+        line.textContent = `“${recentLines[recentIdx % recentLines.length]}”`;
+        line.classList.remove('fading');
+      }, 380);
+    }
+
+    function setRecent(lines) {
+      // Only restart the cycle when the answers actually changed. A refresh
+      // that returns the same list should not yank the line back to the top.
+      const same =
+        lines.length === recentLines.length && lines.every((l, i) => l === recentLines[i]);
+      if (same) return;
+      recentLines = lines;
+      recentIdx = 0;
+      showRecent();
+    }
+
+    setInterval(() => {
+      if (recentLines.length > 1) { recentIdx++; showRecent(); }
+    }, ROTATE_MS);
+
     function render(data) {
       el('count').textContent = String(data.answered || 0);
+      setRecent(data.recent || []);
 
       const top = (data.groups || []).slice(0, 5);
       // No groups means nothing to rank, whether that is nobody yet or nobody
@@ -217,9 +263,6 @@ import GolfQr from '../../components/GolfQr.astro';
       requestAnimationFrame(() =>
         bars.querySelectorAll('.fill').forEach((f) => (f.style.width = f.dataset.w + '%'))
       );
-
-      const recent = data.best?.[0];
-      el('latest-line').textContent = recent ? `“${recent.wish}”` : ' ';
     }
 
     async function tick() {
@@ -236,7 +279,7 @@ import GolfQr from '../../components/GolfQr.astro';
         render(DEMO);
         lastGood = Date.now();
         el('dot').classList.remove('stale');
-        setTimeout(tick, 4000);
+        refreshTimer = setTimeout(tick, 4000);
         return;
       }
       try {
@@ -250,8 +293,17 @@ import GolfQr from '../../components/GolfQr.astro';
         if (!lastGood) location.href = '/golf/enter';
       }
       el('dot').classList.toggle('stale', Date.now() - lastGood > REFRESH_MS * 3);
-      setTimeout(tick, REFRESH_MS);
+      refreshTimer = setTimeout(tick, REFRESH_MS);
     }
+
+    // Browsers throttle timers in a background tab, so a board that was tabbed
+    // away from comes back holding whatever it had when it lost focus. Catch
+    // up the moment it is on screen again rather than up to 45s later.
+    addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible') return;
+      clearTimeout(refreshTimer);
+      tick();
+    });
 
     // Start on the poster. If the fetch is slow or the hotspot is still coming
     // up, an empty invitation beats an empty scoreboard.
