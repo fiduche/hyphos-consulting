@@ -371,6 +371,7 @@ async function handleSummary(request, env) {
   // returns the same order. A raffle you can silently reroll until you like the
   // winner is not a raffle. Absences are handled by going down the list, not by
   // drawing again.
+  let drawOrder = [];
   if (rows.length) {
     let seed = 0;
     for (const row of rows) {
@@ -390,10 +391,11 @@ async function handleSummary(request, env) {
       [order[i], order[j]] = [order[j], order[i]];
     }
 
+    drawOrder = order.slice(0, 5);
     lines.push('');
     lines.push('RANDOM DRAW  (Tidal rangefinder)');
-    lines.push('  Read down the list. First person actually in the room wins.');
-    order.slice(0, 6).forEach((row, i) => {
+    lines.push('  Call name 1. Not in the room, call name 2, and so on down.');
+    drawOrder.forEach((row, i) => {
       lines.push(`  ${i + 1}. ${row.first_name} ${row.last_name}, ${row.company}`);
     });
   }
@@ -407,11 +409,24 @@ async function handleSummary(request, env) {
 
   if (shortlist.length) {
     lines.push('');
-    lines.push('BEST ANSWER  (Hyphos Pro V1s) — you pick, they must be present');
+    lines.push('BEST ANSWER  (Hyphos Pro V1s)');
+    lines.push('  Your pick, ranked by how much they wrote. Go down if not present.');
     shortlist.forEach((row, i) => {
       lines.push(`  ${i + 1}. ${row.first_name} ${row.last_name}, ${row.company}`);
       lines.push(`     "${row.wish}" -> ${row.wish_detail}`);
     });
+
+    // Same person can legitimately top both lists. Announcing one name twice in
+    // front of the room is avoidable, so say so before it happens.
+    const key = (r) => `${r.first_name} ${r.last_name}, ${r.company}`;
+    const drawKeys = new Set(drawOrder.map(key));
+    const clashes = shortlist.filter((r) => drawKeys.has(key(r))).map(key);
+    if (clashes.length) {
+      lines.push('');
+      lines.push('  HEADS UP: also in the draw list above:');
+      clashes.forEach((name) => lines.push(`    ${name}`));
+      lines.push('  Award the best answer first, then skip them in the draw.');
+    }
   }
 
   // Verbatims: the specific ones are the ones worth reading out. Longest
