@@ -1,0 +1,8 @@
+# The screens must never be edge-cached. A cached copy pins the HTML to an old
+# JS bundle, which is how a fixed code change can keep behaving like the old one.
+/golf/*
+  Cache-Control: no-store, must-revalidate
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/api/*
+  Cache-Control: no-store

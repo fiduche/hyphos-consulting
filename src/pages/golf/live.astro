@@ -133,6 +133,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       everyone: ['Marc Dube','Jen Kwan','Rob Fenn','Tara Nolan','Amrit Singh','Dale Ross','Sam Doyle','Pat Miller','Chris Bell','Lena Ortiz','Kyle Brenner','Nina Faust','Owen Reid','Maya Grant','Tom Vance'],
     };
     const DEMO_MODE = new URLSearchParams(location.search).has('demo');
+    if (DEMO_MODE) {
+      for (let i = DEMO.draw.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [DEMO.draw[i], DEMO.draw[j]] = [DEMO.draw[j], DEMO.draw[i]];
+      }
+    }
 
     const ORDER = ['title', 'groups', 'draw', 'closing'];
     let step = -1;
@@ -280,7 +286,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         reel.classList.add('spinning');
         reel.classList.remove('landed');
         reel.textContent = pool[Math.floor(Math.random() * pool.length)];
-        delay *= 1.088;
+        delay *= 1.152;
         setTimeout(tick, delay);
       };
       tick();
