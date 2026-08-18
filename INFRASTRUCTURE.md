@@ -129,6 +129,28 @@ npx wrangler d1 execute hyphos-golf --remote --command "SELECT * FROM golf_entri
 
 Or, in a browser, `https://hyphosconsulting.com/api/golf/entries?key=<GOLF_EXPORT_KEY>` for a CSV download. The key travels in the query string, so treat it as event-scoped, rotate or unset it after Sept 18.
 
+### The AI follow-up question
+
+`POST /api/golf/probe` sends the golfer's short bonus-entry answer to Claude
+Haiku and returns one sharper follow-up question. Set up with:
+
+```bash
+npx wrangler secret put ANTHROPIC_API_KEY
+```
+
+- **The key in use expires 2026-09-30, 23:00.** The tournament is Sept 18, so it
+  covers the event with twelve days to spare. After that date the probe silently
+  stops offering questions (it fails open, so the form keeps working) until a new
+  key is set. Nothing alerts you: if `/golf` is ever reused, check the key first.
+- **Fail-open by design.** A missing key, no signal, a slow model, a refusal, or
+  a reply that ignored the one-question instruction all return `{"question": null}`
+  and no question appears. The entry itself is never blocked by the API call.
+- **Spend is capped** at 250 calls per trailing hour, counted in `probe_log`. A
+  public endpoint calling a paid API needs a ceiling that doesn't depend on nobody
+  finding it. A full field costs roughly two cents.
+- **The prompt is a single string** (`PROBE_SYSTEM` in `src/worker.js`). The
+  worked examples set the tone more than the rules do, so tune those first.
+
 ### Notes
 
 - **Duplicate submits collapse.** A unique index on `lower(email)` plus an upsert means a double-tapped button on flaky signal updates the row rather than creating a second one. Checkbox opt-ins only ever ratchet up, so a retry can't silently un-tick something.
