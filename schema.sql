@@ -4,6 +4,7 @@
 -- Apply remotely:  npx wrangler d1 execute hyphos-golf --remote --file=./schema.sql
 
 DROP TABLE IF EXISTS golf_entries;
+DROP TABLE IF EXISTS probe_log;
 
 CREATE TABLE golf_entries (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -23,6 +24,13 @@ CREATE TABLE golf_entries (
   -- Answer to the AI-generated follow-up question. "Invoicing" is useless;
   -- "chasing 40 invoices a month, each one a phone call" is a conversation.
   wish_detail   TEXT,
+  -- The exact follow-up that was asked. Without it, wish_detail is an answer to
+  -- a question nobody recorded.
+  probe_question TEXT,
+  -- Fixed-vocabulary bucket for the wish, assigned in the same model call that
+  -- writes the question. Free text doesn't aggregate; this is what makes the
+  -- dinner readout countable.
+  category      TEXT,
 
   -- Consent is per purpose and per company. Nothing here is pre-ticked, and
   -- entering the draw on its own is NOT consent to be contacted about anything

@@ -226,6 +226,9 @@ const boxCls =
     const QUEUE_KEY = 'hyphos-golf-queue';
     const ENDPOINT = '/api/golf/entry';
     const TEXT_FIELDS = ['first_name', 'last_name', 'company', 'role', 'email', 'cell', 'wish', 'wish_detail'];
+    // Captured from the probe so the answer is stored with the question it answered.
+    let probeQuestionText = '';
+    let probeCategory = '';
     const CONSENT = [
       'want_list',
       'hyphos_company', 'hyphos_workplace', 'hyphos_referral',
@@ -333,6 +336,8 @@ const boxCls =
       for (const key of TEXT_FIELDS) payload[key] = String(data.get(key) || '').trim();
       for (const key of CONSENT) payload[key] = data.get(key) === 'on';
       payload.website = String(data.get('website') || '');
+      payload.probe_question = probeQuestionText;
+      payload.category = probeCategory;
 
       if (!payload.first_name) return showError('First name is required.');
       if (!payload.last_name) return showError('Last name is required.');
@@ -402,6 +407,8 @@ const boxCls =
         if (data.question && probeQuestion && probeBlock) {
           probeQuestion.textContent = data.question;
           probeBlock.classList.remove('hidden');
+          probeQuestionText = data.question;
+          probeCategory = data.category || '';
         }
       } catch {
         /* No signal or no key. The follow-up is a bonus, not a dependency. */

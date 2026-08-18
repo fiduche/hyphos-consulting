@@ -23,6 +23,23 @@ const PROBE_TIMEOUT_MS = 4500;
 const PROBE_HOURLY_CAP = 250;
 const PROBE_MIN_CHARS = 4;
 
+// Fixed vocabulary. The model must choose one, so answers tally instead of
+// sprawling. Labels are written to be read out at a dinner, not displayed.
+const CATEGORIES = {
+  invoicing_payments: 'chasing invoices and payments',
+  scheduling: 'scheduling and dispatch',
+  quoting_estimating: 'quotes and estimates',
+  paperwork_documents: 'paperwork and contracts',
+  bookkeeping_accounting: 'bookkeeping and reconciling',
+  payroll_hr: 'payroll and hiring',
+  email_communication: 'email and phone tag',
+  customer_service: 'answering the same customer questions',
+  inventory_ordering: 'inventory and ordering',
+  marketing_sales: 'marketing and following up on leads',
+  reporting_data: 'reports and data entry',
+  other: 'something else',
+};
+
 const PROBE_SYSTEM = `You are writing one short follow-up line for a contest form at a charity golf
 tournament. It should read like a friendly person leaning over to ask, not like a
 form field.
@@ -44,7 +61,9 @@ Rules:
 - Never use an em dash. Use a comma or a full stop instead.
 - Vary how you open. Don't lean on "Oh man" or "that's a beast"; several people
   will be filling this in near each other and comparing.
-- No preamble, no quotes, no sign-off. Output only the line.
+- No preamble, no quotes, no sign-off.
+
+Also pick the single category that best fits what they wrote.
 
 Examples:
 "everything" -> "Everything? Oh no. Okay, what's the one that bugs you most?"
@@ -108,6 +127,8 @@ async function handleEntry(request, env) {
     cell: normaliseCell(body.cell),
     wish: clean(body.wish, MAX.wish),
     wish_detail: clean(body.wish_detail, MAX.wish_detail),
+    probe_question: clean(body.probe_question, MAX.probe_question),
+    category: CATEGORIES[body.category] ? body.category : '',
   };
   for (const flag of CONSENT) entry[flag] = body[flag] ? 1 : 0;
 
@@ -120,9 +141,9 @@ async function handleEntry(request, env) {
   try {
     await env.DB.prepare(
       `INSERT INTO golf_entries
-         (created_at, first_name, last_name, company, role, email, cell, wish, wish_detail,
+         (created_at, first_name, last_name, company, role, email, cell, wish, wish_detail, probe_question, category,
           ${CONSENT.join(', ')})
-       VALUES (${Array.from({ length: 9 + CONSENT.length }, (_, i) => `?${i + 1}`).join(', ')})
+       VALUES (${Array.from({ length: 11 + CONSENT.length }, (_, i) => `?${i + 1}`).join(', ')})
        -- A resubmit should only ever add information, never remove it. Required
        -- fields overwrite; optional ones keep the existing value when the new
        -- submission left them blank, so a hurried second entry can't wipe a
@@ -136,12 +157,15 @@ async function handleEntry(request, env) {
          cell = CASE WHEN excluded.cell <> '' THEN excluded.cell ELSE golf_entries.cell END,
          wish = CASE WHEN excluded.wish <> '' THEN excluded.wish ELSE golf_entries.wish END,
          wish_detail = CASE WHEN excluded.wish_detail <> '' THEN excluded.wish_detail ELSE golf_entries.wish_detail END,
+         probe_question = CASE WHEN excluded.probe_question <> '' THEN excluded.probe_question ELSE golf_entries.probe_question END,
+         category = CASE WHEN excluded.category <> '' THEN excluded.category ELSE golf_entries.category END,
          ${CONSENT.map((c) => `${c} = MAX(golf_entries.${c}, excluded.${c})`).join(',\n         ')}`
     )
       .bind(
         new Date().toISOString(),
         entry.first_name, entry.last_name, entry.company, entry.role,
         entry.email, entry.cell, entry.wish, entry.wish_detail,
+        entry.probe_question, entry.category,
         ...CONSENT.map((flag) => entry[flag])
       )
       .run();
@@ -197,27 +221,52 @@ async function handleProbe(request, env) {
     const message = await client.messages.create(
       {
         model: PROBE_MODEL,
-        max_tokens: 100,
+        max_tokens: 200,
         system: PROBE_SYSTEM,
         messages: [{ role: 'user', content: wish }],
+        output_config: {
+          format: {
+            type: 'json_schema',
+            schema: {
+              type: 'object',
+              properties: {
+                question: { type: 'string' },
+                category: { type: 'string', enum: Object.keys(CATEGORIES) },
+              },
+              required: ['question', 'category'],
+              additionalProperties: false,
+            },
+          },
+        },
       },
       { timeout: PROBE_TIMEOUT_MS, maxRetries: 1 }
     );
 
     if (message.stop_reason === 'refusal') return quiet();
 
-    const question = message.content
+    const raw = message.content
       .filter((block) => block.type === 'text')
       .map((block) => block.text)
-      .join(' ')
+      .join('')
+      .trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return quiet();
+    }
+
+    const question = String(parsed.question || '')
       .trim()
       .replace(/^["'\u201c\u2018]|["'\u201d\u2019]$/g, '')
-      .slice(0, 200);
+      .slice(0, 300);
+    const category = CATEGORIES[parsed.category] ? parsed.category : 'other';
 
-    // A model that ignored the one-question instruction is worse than silence.
+    // A reply that ignored the one-question instruction is worse than silence.
     if (!question || !question.includes('?')) return quiet();
 
-    return json({ question });
+    return json({ question, category });
   } catch {
     return quiet();
   }
@@ -244,7 +293,7 @@ async function handleExport(request, env) {
   if (supplied !== expected) return json({ error: 'Not authorized.' }, 401);
 
   const { results } = await env.DB.prepare(
-    `SELECT created_at, first_name, last_name, company, role, email, cell, wish, wish_detail,
+    `SELECT created_at, first_name, last_name, company, role, email, cell, wish, wish_detail, probe_question, category,
             ${CONSENT.join(', ')}, starred
        FROM golf_entries
       ORDER BY created_at`
@@ -252,7 +301,7 @@ async function handleExport(request, env) {
 
   const columns = [
     'created_at', 'first_name', 'last_name', 'company', 'role', 'email', 'cell',
-    'wish', 'wish_detail', ...CONSENT, 'starred',
+    'wish', 'wish_detail', 'probe_question', 'category', ...CONSENT, 'starred',
   ];
 
   const csv = [
@@ -269,6 +318,86 @@ async function handleExport(request, env) {
   });
 }
 
+/**
+ * The dinner readout. Hit this on a phone at 5:45pm and it prints what to say:
+ * how many answered, the room's top time-wasters ranked, and a few verbatim
+ * lines worth reading out. Plain text on purpose, so it is legible at a table.
+ */
+async function handleSummary(request, env) {
+  if (!env.DB) return json({ error: 'Storage is not configured.' }, 503);
+
+  const expected = env.GOLF_EXPORT_KEY;
+  if (!expected) return json({ error: 'Export is not configured.' }, 503);
+
+  const url = new URL(request.url);
+  const supplied =
+    request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ??
+    url.searchParams.get('key') ??
+    '';
+  if (supplied !== expected) return json({ error: 'Not authorized.' }, 401);
+
+  const { results } = await env.DB.prepare(
+    `SELECT first_name, last_name, company, wish, wish_detail, category
+       FROM golf_entries ORDER BY created_at`
+  ).all();
+  const rows = results ?? [];
+
+  const answered = rows.filter((r) => (r.wish || '').trim());
+  const counts = new Map();
+  for (const row of answered) {
+    const key = CATEGORIES[row.category] ? row.category : 'unclassified';
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+
+  const lines = [];
+  lines.push(`ENTRIES: ${rows.length}`);
+  lines.push(`ANSWERED THE BONUS QUESTION: ${answered.length}`);
+  lines.push('');
+  lines.push('WHAT THE ROOM SAID');
+
+  if (ranked.length === 0) {
+    lines.push('  (nothing yet)');
+  } else {
+    for (const [key, n] of ranked) {
+      const label = key === 'unclassified' ? 'not categorised' : CATEGORIES[key];
+      // Read as "N of you said X" — the shape that works out loud.
+      lines.push(`  ${String(n).padStart(3)}  ${label}`);
+    }
+  }
+
+  // Verbatims: the specific ones are the ones worth reading out. Longest
+  // follow-up answers first, since those are the people who actually elaborated.
+  const verbatims = answered
+    .filter((r) => (r.wish_detail || '').trim().length > 12)
+    .sort((a, b) => (b.wish_detail || '').length - (a.wish_detail || '').length)
+    .slice(0, 8);
+
+  if (verbatims.length) {
+    lines.push('');
+    lines.push('WORTH READING OUT');
+    for (const row of verbatims) {
+      lines.push(`  "${row.wish}" -> ${row.wish_detail}`);
+      lines.push(`     (${row.first_name} ${row.last_name}, ${row.company})`);
+    }
+  }
+
+  const top = ranked.filter(([k]) => k !== 'unclassified').slice(0, 3);
+  if (top.length) {
+    lines.push('');
+    lines.push('THE LINE');
+    lines.push(
+      `  "I asked what you'd hand off if you could. ` +
+        top.map(([k, n]) => `${n} of you said ${CATEGORIES[k]}`).join(', ') +
+        `."`
+    );
+  }
+
+  return new Response(lines.join('\n') + '\n', {
+    headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' },
+  });
+}
+
 export default {
   async fetch(request, env) {
     const { pathname } = new URL(request.url);
@@ -282,6 +411,12 @@ export default {
     if (pathname === '/api/golf/probe') {
       return request.method === 'POST'
         ? handleProbe(request, env)
+        : json({ error: 'Method not allowed.' }, 405);
+    }
+
+    if (pathname === '/api/golf/summary') {
+      return request.method === 'GET'
+        ? handleSummary(request, env)
         : json({ error: 'Method not allowed.' }, 405);
     }
 
