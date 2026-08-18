@@ -12,7 +12,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
  */
 ---
 
-<BaseLayout title="Live board" minimal>
+<BaseLayout title="Live board"
+  noindex minimal>
   <main id="board">
     <header>
       <div>
@@ -80,7 +81,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   </style>
 
   <script>
-    const KEY = new URLSearchParams(location.search).get('key') || '';
     const REFRESH_MS = 45000;
     let lastGood = 0;
 
@@ -105,13 +105,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
     async function tick() {
       try {
-        const res = await fetch(`/api/golf/summary?key=${encodeURIComponent(KEY)}&format=json`, { cache: 'no-store' });
+        const res = await fetch('/api/golf/summary?format=board', { cache: 'no-store' });
         if (!res.ok) throw new Error(String(res.status));
         render(await res.json());
         lastGood = Date.now();
       } catch {
         // Hold the last good screen. A hotspot blip should be invisible to the
         // room; only the dot changes.
+        if (!lastGood) location.href = '/golf/enter';
       }
       el('dot').classList.toggle('stale', Date.now() - lastGood > REFRESH_MS * 3);
       setTimeout(tick, REFRESH_MS);

@@ -8,12 +8,16 @@ interface Props {
   description?: string;
   /** Hide the marketing header/footer chrome (rare — used by form-only pages). */
   minimal?: boolean;
+  /** Keep the page out of search results. Travels in the HTML, so it survives
+   *  edge caching in a way a response header set by the worker does not. */
+  noindex?: boolean;
 }
 
 const {
   title,
   description = 'Hyphos Consulting designs and builds people-focused business software. We remove the manual work so your team can focus on the work that actually matters.',
   minimal = false,
+  noindex = false,
 } = Astro.props;
 
 const fullTitle = title === 'Hyphos Consulting' ? title : `${title} — Hyphos Consulting`;
@@ -30,6 +34,7 @@ const canonicalUrl = new URL(Astro.url.pathname, siteUrl).href;
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonicalUrl} />
+    {noindex && <meta name="robots" content="noindex, nofollow, noarchive" />}
 
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />

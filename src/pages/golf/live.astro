@@ -14,7 +14,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
  */
 ---
 
-<BaseLayout title="Live draw" minimal>
+<BaseLayout title="Live draw"
+  noindex minimal>
+  <canvas id="fx"></canvas>
   <div id="stage">
     <div id="loading" class="screen on">
       <p class="kicker">Hyphos Consulting</p>
@@ -88,34 +90,112 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       font-size: clamp(16px, 2.2vw, 38px); color: #9fb0c9; margin-top: 2vmin;
     }
 
+    #fx { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+    #reel.landed { animation: pop .55s cubic-bezier(.2,1.5,.3,1) both; }
+    @keyframes pop { 0% { transform: scale(.86); opacity: .4; } 100% { transform: scale(1); opacity: 1; } }
+
     #hint {
       position: fixed; bottom: 2vmin; left: 0; right: 0; text-align: center;
       font-size: 13px; color: #3d4c66; margin: 0; letter-spacing: .06em;
     }
-    @media (prefers-reduced-motion: reduce) { .screen.on { animation: none; } .fill { transition: none; } }
+    @media (prefers-reduced-motion: reduce) {
+      .screen.on { animation: none; }
+      .fill { transition: none; }
+      #reel.landed { animation: none; }
+    }
   </style>
 
   <script>
-    const KEY = new URLSearchParams(location.search).get('key') || '';
     const ORDER = ['title', 'groups', 'draw', 'closing'];
     let step = -1;
     let data = null;
     let drawIndex = 0;
 
     const el = (id) => document.getElementById(id);
+    const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ── Fireworks ──────────────────────────────────────────────────────────
+    // Deliberately small: a few shells of gravity-bound sparks over the name.
+    // It runs after the winner is already on screen, so a slow frame rate
+    // costs sparkle and nothing else.
+    const canvas = el('fx');
+    const ctx = canvas.getContext('2d');
+    const sparks = [];
+    const HUES = ['#76b4ff', '#faf8f4', '#c08b4c', '#9fd0ff'];
+
+    function sizeCanvas() {
+      canvas.width = innerWidth * devicePixelRatio;
+      canvas.height = innerHeight * devicePixelRatio;
+      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    }
+    sizeCanvas();
+    addEventListener('resize', sizeCanvas);
+
+    function shell(x, y) {
+      const n = 46 + Math.floor(Math.random() * 24);
+      const colour = HUES[Math.floor(Math.random() * HUES.length)];
+      for (let i = 0; i < n; i++) {
+        const a = (Math.PI * 2 * i) / n + Math.random() * 0.3;
+        const speed = 2.4 + Math.random() * 4.4;
+        sparks.push({
+          x, y,
+          vx: Math.cos(a) * speed,
+          vy: Math.sin(a) * speed - 1.4,
+          life: 1,
+          decay: 0.008 + Math.random() * 0.012,
+          colour,
+          size: 1.6 + Math.random() * 2.4,
+        });
+      }
+    }
+
+    let drawing = false;
+    function frame() {
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        const p = sparks[i];
+        p.x += p.vx; p.y += p.vy;
+        p.vy += 0.055;          // gravity
+        p.vx *= 0.988;          // drag
+        p.life -= p.decay;
+        if (p.life <= 0) { sparks.splice(i, 1); continue; }
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.colour;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      if (sparks.length) requestAnimationFrame(frame);
+      else drawing = false;
+    }
+
+    function celebrate() {
+      if (REDUCED) return;
+      const r = el('reel').getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const bursts = [[cx, cy, 0], [cx - r.width * 0.34, cy - 40, 260], [cx + r.width * 0.34, cy - 20, 480], [cx, cy - 70, 760]];
+      bursts.forEach(([x, y, t]) =>
+        setTimeout(() => {
+          shell(x, y);
+          if (!drawing) { drawing = true; requestAnimationFrame(frame); }
+        }, t)
+      );
+    }
     const show = (id) => {
       document.querySelectorAll('.screen').forEach((s) => s.classList.remove('on'));
       el(id)?.classList.add('on');
     };
 
     async function load() {
-      if (!KEY) { el('loading-note').textContent = 'Add ?key=… to the URL.'; return; }
       try {
-        const res = await fetch(`/api/golf/summary?key=${encodeURIComponent(KEY)}&format=json`);
+        const res = await fetch('/api/golf/summary?format=json');
+        if (res.status === 401) { location.href = '/golf/enter'; return; }
         if (!res.ok) throw new Error(String(res.status));
         data = await res.json();
       } catch {
-        el('loading-note').textContent = 'Could not load. Check the key and connection, then reload.';
+        el('loading-note').textContent = 'Could not load. Check your connection, then reload.';
         return;
       }
       // Everything past here runs offline. Losing wifi now changes nothing.
@@ -146,11 +226,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       }
       const pool = data.everyone.length ? data.everyone : [winner.name];
       el('draw-sub').textContent = '';
-      let delay = 60;
+      let delay = 38;
       const tick = () => {
-        if (delay > 420) {
+        if (delay > 620) {
           reel.classList.remove('spinning');
+          reel.classList.add('landed');
           reel.innerHTML = `${winner.name}<span class="co">${winner.company}</span>`;
+          celebrate();
           el('draw-sub').textContent =
             drawIndex === 0
               ? 'Not here? Press R for the next name.'
@@ -158,8 +240,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           return;
         }
         reel.classList.add('spinning');
+        reel.classList.remove('landed');
         reel.textContent = pool[Math.floor(Math.random() * pool.length)];
-        delay *= 1.16;
+        delay *= 1.088;
         setTimeout(tick, delay);
       };
       tick();

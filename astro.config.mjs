@@ -11,7 +11,7 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   site: 'https://hyphosconsulting.com',
   output: 'static',
-  integrations: [sitemap()],
+  integrations: [sitemap({ filter: (page) => !page.includes('/golf') })],
   vite: {
     plugins: [tailwindcss()],
   },

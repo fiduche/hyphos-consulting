@@ -127,7 +127,30 @@ Then push to `main` as usual. `wrangler.toml` ships with `database_id = "PASTE_D
 npx wrangler d1 execute hyphos-golf --remote --command "SELECT * FROM golf_entries ORDER BY created_at"
 ```
 
-Or, in a browser, `https://hyphosconsulting.com/api/golf/entries?key=<GOLF_EXPORT_KEY>` for a CSV download. The key travels in the query string, so treat it as event-scoped, rotate or unset it after Sept 18.
+Or sign in at `/golf/enter` and open `/api/golf/entries` in the same browser.
+
+### Access control
+
+Entries are real people's names, emails and answers, so **nothing that returns
+them is reachable without a session.**
+
+- **Sign in once at `/golf/enter`** with `GOLF_EXPORT_KEY`. That mints a signed
+  `golf_session` cookie (HttpOnly, Secure, SameSite=Strict, 14 hours) which the
+  browser sends automatically and no script can read.
+- **There is deliberately no `?key=` parameter.** The dinner screen runs on a
+  projector: a URL carrying a secret is readable by anyone in the room with a
+  phone camera, and it persists in browser history, referrer headers and logs.
+  A bearer token still works for the command line, where neither applies.
+- **The hole board gets a reduced payload** (`?format=board`): counts and one
+  answer, no names, companies or emails. It never receives what it does not
+  display.
+- `/golf*` carries `noindex` **in the HTML**, not as a response header. Static
+  assets are edge-cached, so a header set by the worker is skipped on a cache
+  hit; a meta tag travels with the page. `robots.txt` disallows `/golf` and
+  `/api/`, and the sitemap excludes them.
+- **`POST /api/golf/entry` is necessarily public** — the form has to reach it.
+  It is protected by a honeypot, length caps and validation, not by auth.
+  Consider removing the route after Sept 18.
 
 ### The AI follow-up question
 

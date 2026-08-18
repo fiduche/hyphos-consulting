@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+/**
+ * Sign-in for the two screens and the readout. Exists so the password is typed
+ * once into a field, never carried in a URL: the dinner screen runs on a
+ * projector, and a querystring secret is readable by anyone in the room with a
+ * phone. The password is exchanged for a signed HttpOnly cookie the browser
+ * sends automatically and no script can read.
+ */
+---
+
+<BaseLayout title="Sign in"
+  noindex minimal>
+  <section class="mx-auto max-w-md px-5 pt-24 pb-24">
+    <div class="eyebrow mb-3">Hyphos Consulting</div>
+    <h1 class="display text-3xl text-ink-900">Tournament screens</h1>
+    <p class="mt-3 text-ink-600 leading-relaxed">
+      Sign in once on this device. Stays valid for 14 hours, so do it before you set up.
+    </p>
+
+    <form id="f" class="card p-6 mt-8">
+      <label class="block text-sm font-semibold text-ink-900 mb-2" for="pw">Password</label>
+      <input id="pw" type="password" autocomplete="current-password" required
+             class="w-full rounded-lg border border-ink-300 bg-white px-4 py-3.5 text-base outline-none transition focus:border-signal-500 focus:ring-2 focus:ring-signal-100" />
+      <p id="err" class="hidden mt-3 text-sm text-warm-600 font-medium"></p>
+      <button class="btn-primary w-full justify-center mt-5 py-3.5">Sign in</button>
+    </form>
+
+    <div id="links" class="hidden mt-8 space-y-2">
+      <p class="text-sm text-ink-600">Signed in. No key needed in any URL now.</p>
+      <p><a class="link" href="/golf/board">Hole board</a> — leave running at the hole</p>
+      <p><a class="link" href="/golf/live">Dinner draw</a> — plug into the projector</p>
+      <p><a class="link" href="/api/golf/summary">Text readout</a> — the backup</p>
+    </div>
+  </section>
+
+  <script>
+    const form = document.getElementById('f') as HTMLFormElement;
+    const pw = document.getElementById('pw') as HTMLInputElement;
+    const err = document.getElementById('err')!;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      err.classList.add('hidden');
+      const res = await fetch('/api/golf/auth', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ password: pw.value }),
+      }).catch(() => null);
+      if (res && res.ok) {
+        form.classList.add('hidden');
+        document.getElementById('links')!.classList.remove('hidden');
+      } else {
+        err.textContent = 'That password is not right.';
+        err.classList.remove('hidden');
+        pw.select();
+      }
+    });
+  </script>
+</BaseLayout>

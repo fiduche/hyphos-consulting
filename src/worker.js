@@ -228,6 +228,84 @@ async function handleProbe(request, env) {
   }
 }
 
+// ── Access control ────────────────────────────────────────────────────────
+// Entries are real people's names, emails and answers, so nothing that returns
+// them is reachable without a session. Auth is a signed HttpOnly cookie set by
+// /golf/enter, NOT a key in the query string: the dinner screen runs on a
+// projector, and a URL with a secret in it is readable by anyone in the room
+// with a phone camera.
+
+const COOKIE = 'golf_session';
+const SESSION_HOURS = 14;
+
+const enc = new TextEncoder();
+
+async function sign(value, secret) {
+  const key = await crypto.subtle.importKey(
+    'raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const mac = await crypto.subtle.sign('HMAC', key, enc.encode(value));
+  return [...new Uint8Array(mac)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/** Constant-time compare, so a wrong guess leaks nothing through timing. */
+function safeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+async function mintSession(secret) {
+  const exp = String(Date.now() + SESSION_HOURS * 3600 * 1000);
+  return `${exp}.${await sign(exp, secret)}`;
+}
+
+async function hasSession(request, env) {
+  const secret = env.GOLF_EXPORT_KEY;
+  if (!secret) return false;
+
+  // A bearer token still works for the command line, where there is no browser
+  // and no projector to read it off.
+  const bearer = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
+  if (bearer && safeEqual(bearer, secret)) return true;
+
+  const raw = (request.headers.get('cookie') || '')
+    .split(';')
+    .map((c) => c.trim())
+    .find((c) => c.startsWith(`${COOKIE}=`));
+  if (!raw) return false;
+
+  const [exp, mac] = decodeURIComponent(raw.slice(COOKIE.length + 1)).split('.');
+  if (!exp || !mac) return false;
+  if (Number(exp) < Date.now()) return false;
+  return safeEqual(mac, await sign(exp, secret));
+}
+
+async function handleAuth(request, env) {
+  const secret = env.GOLF_EXPORT_KEY;
+  if (!secret) return json({ error: 'Not configured.' }, 503);
+
+  let body;
+  try { body = await request.json(); } catch { return json({ ok: false }, 400); }
+
+  const supplied = String(body.password || '');
+  if (!safeEqual(supplied, secret)) {
+    // Uniform delay so failures can't be told apart by how fast they come back.
+    await new Promise((r) => setTimeout(r, 700));
+    return json({ ok: false }, 401);
+  }
+
+  const token = await mintSession(secret);
+  return new Response(JSON.stringify({ ok: true }), {
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      'cache-control': 'no-store',
+      'set-cookie': `${COOKIE}=${encodeURIComponent(token)}; Path=/; Max-Age=${SESSION_HOURS * 3600}; HttpOnly; Secure; SameSite=Strict`,
+    },
+  });
+}
+
 const csvCell = (value) => {
   const text = value === null || value === undefined ? '' : String(value);
   return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
@@ -237,16 +315,10 @@ async function handleExport(request, env) {
   if (!env.DB) return json({ error: 'Storage is not configured.' }, 503);
 
   // Set with: npx wrangler secret put GOLF_EXPORT_KEY
-  const expected = env.GOLF_EXPORT_KEY;
-  if (!expected) return json({ error: 'Export is not configured.' }, 503);
+  if (!env.GOLF_EXPORT_KEY) return json({ error: 'Export is not configured.' }, 503);
+  if (!(await hasSession(request, env))) return json({ error: 'Not authorized.' }, 401);
 
   const url = new URL(request.url);
-  const supplied =
-    request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ??
-    url.searchParams.get('key') ??
-    '';
-
-  if (supplied !== expected) return json({ error: 'Not authorized.' }, 401);
 
   const { results } = await env.DB.prepare(
     `SELECT created_at, first_name, last_name, company, role, email, cell, wish, wish_detail, probe_question, category,
@@ -282,15 +354,10 @@ async function handleExport(request, env) {
 async function handleSummary(request, env) {
   if (!env.DB) return json({ error: 'Storage is not configured.' }, 503);
 
-  const expected = env.GOLF_EXPORT_KEY;
-  if (!expected) return json({ error: 'Export is not configured.' }, 503);
+  if (!env.GOLF_EXPORT_KEY) return json({ error: 'Export is not configured.' }, 503);
+  if (!(await hasSession(request, env))) return json({ error: 'Not authorized.' }, 401);
 
   const url = new URL(request.url);
-  const supplied =
-    request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ??
-    url.searchParams.get('key') ??
-    '';
-  if (supplied !== expected) return json({ error: 'Not authorized.' }, 401);
 
   const { results } = await env.DB.prepare(
     `SELECT first_name, last_name, company, wish, wish_detail, draw_key
@@ -498,7 +565,20 @@ Every answer belongs to exactly one group. Use each number once.`,
 
   // ?format=json feeds the on-screen draw at /golf/live, which loads once and
   // then runs entirely offline. Same numbers, same order, same source.
-  if (url.searchParams.get('format') === 'json') {
+  const format = url.searchParams.get('format');
+
+  if (format === 'board') {
+    return new Response(
+      JSON.stringify({
+        answered: answered.length,
+        groups: (groups || []).filter((g) => g.members.length).map((g) => ({ label: g.label, count: g.members.length })),
+        latest: answered.length ? answered[answered.length - 1].wish : '',
+      }),
+      { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } }
+    );
+  }
+
+  if (format === 'json') {
     return new Response(
       JSON.stringify({
         entries: rows.length,
@@ -538,6 +618,12 @@ export default {
         : json({ error: 'Method not allowed.' }, 405);
     }
 
+    if (pathname === '/api/golf/auth') {
+      return request.method === 'POST'
+        ? handleAuth(request, env)
+        : json({ error: 'Method not allowed.' }, 405);
+    }
+
     if (pathname === '/api/golf/probe') {
       return request.method === 'POST'
         ? handleProbe(request, env)
@@ -556,6 +642,13 @@ export default {
         : json({ error: 'Method not allowed.' }, 405);
     }
 
-    return env.ASSETS.fetch(request);
+    const response = await env.ASSETS.fetch(request);
+    if (pathname.startsWith('/golf')) {
+      const headers = new Headers(response.headers);
+      headers.set('x-robots-tag', 'noindex, nofollow, noarchive');
+      headers.set('cache-control', 'no-store');
+      return new Response(response.body, { status: response.status, headers });
+    }
+    return response;
   },
 };
