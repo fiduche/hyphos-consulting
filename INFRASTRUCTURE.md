@@ -173,6 +173,14 @@ npx wrangler secret put ANTHROPIC_API_KEY
   finding it. A full field costs roughly two cents.
 - **The prompt is a single string** (`PROBE_SYSTEM` in `src/worker.js`). The
   worked examples set the tone more than the rules do, so tune those first.
+- **Every example must end in a question mark.** The route discards any reply
+  without one, as a guard against replies that ignored the instruction. An
+  example phrased as an imperative ("walk me through the last one.") teaches the
+  model to write lines that are then silently dropped, and someone typing that
+  example's exact input gets no question at all. This has already happened once.
+- **It asks for a story, not a number.** Questions answerable with a figure get
+  answered with a figure, and "15-20" is not something you can follow up on.
+  Numeric, yes/no and either/or questions are ruled out in the prompt.
 
 ### The two screens
 
@@ -209,8 +217,22 @@ from `draw_key`, assigned when each person entered, so the reel is theatre over
 a settled outcome. The screen and the phone always show the same winner, and no
 amount of reloading changes it.
 
+**The board's "recently added" line cycles every seven seconds** through the
+last eight answers, on its own clock rather than the 45s data refresh. Entries
+arrive over five hours, so a line that only moves when someone enters is
+motionless most of the day.
+
+Those lines are **tidied, not raw**: capitalisation, typos and filler cleaned
+up and capped at eight words, with the wording and meaning left alone. The
+tidying rides along with the clustering call, so it costs no extra request, and
+the raw answer is the fallback everywhere. If the model call fails, the line
+shows exactly what the golfer typed rather than nothing.
+
 **Grouping is cached in `grouping_cache`** and only recomputed when the answer
-count changes. Without that, each poll from the board would re-run the
+count changes. A run that placed nobody in any group is **not** cached: it
+happened once live, valid JSON with plausible labels and no usable member
+numbers, and caching it would have pinned the board to an empty result until
+the next person entered. Without that, each poll from the board would re-run the
 clustering model: measured 15.7s uncached versus 0.14s cached, and at one
 refresh a minute for five hours that would be 300 model calls to redraw a board
 that only changes when someone enters.

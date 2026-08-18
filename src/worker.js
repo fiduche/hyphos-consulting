@@ -50,6 +50,8 @@ Rules:
   Never offer two options to choose between, they will just pick one.
 - Anchor it to a moment where you can. "The last one" beats "usually", because
   people can picture the last one.
+- End with a question mark. Not "walk me through the last one." but "what did
+  the last one look like?". A reply without one is discarded unread.
 - Talk like a person. Contractions are good.
 - Never pitch, never suggest a fix, never mention software or AI.
 - At most one exclamation mark. If nothing funny comes to mind, just be warm.
@@ -58,9 +60,16 @@ Rules:
   will be filling this in near each other and comparing.
 - No preamble, no quotes, no sign-off. Output only the line.
 
+The examples below show the shape, not lines to reuse. If someone's answer
+matches one of them word for word, and it will, write a fresh line anyway.
+Several people are filling this in near each other and comparing.
+
+Keep your tenses consistent. "What went sideways the last time?" or "what goes
+sideways?", not a mix of the two.
+
 Examples:
 "everything" -> "Everything? Right. Which one ruins the day when it lands on you?"
-"invoicing" -> "Invoicing, the eternal enemy. Walk me through what doing them actually looks like."
+"invoicing" -> "Invoicing, the eternal enemy. What does sitting down to do them actually look like?"
 "scheduling" -> "Oof. What happens on your end when one job moves?"
 "paperwork" -> "Nobody has ever said paperwork with joy. What's the last one that took way too long?"`;
 
@@ -493,27 +502,36 @@ These get read by the person who wrote them, standing next to the screen.`,
         .filter((g) => g.label && g.members.length)
         .sort((a, b) => b.members.length - a.members.length);
 
-      const missed = answered.length - claimed.size;
-      if (missed > 0) groups.push({ label: 'everything else', members: [], missed });
+      // A run that placed nobody is a bad run, not a finding. Observed once
+      // live: valid JSON, plausible labels, not a single usable member number.
+      // Caching that would pin the board to an empty result until the next
+      // person entered, which on a slow afternoon is an hour of blank screen.
+      // Drop it and let the next poll try again.
+      if (!claimed.size) {
+        groups = null;
+      } else {
+        const missed = answered.length - claimed.size;
+        if (missed > 0) groups.push({ label: 'everything else', members: [], missed });
 
-      // Same treatment as the counts: only accept a tidied line that points at
-      // a real answer, and cap the length ourselves rather than trusting the
-      // eight-word instruction to hold.
-      tidied = {};
-      for (const t of parsed.tidied || []) {
-        const n = t?.n;
-        const text = String(t?.text || '').trim().replace(/\s+/g, ' ');
-        if (!Number.isInteger(n) || n < 1 || n > answered.length) continue;
-        if (!text || text.length > 90) continue;
-        tidied[n] = text;
+        // Same treatment as the counts: only accept a tidied line that points
+        // at a real answer, and cap the length here rather than trusting the
+        // eight-word instruction to hold.
+        tidied = {};
+        for (const t of parsed.tidied || []) {
+          const n = t?.n;
+          const text = String(t?.text || '').trim().replace(/\s+/g, ' ');
+          if (!Number.isInteger(n) || n < 1 || n > answered.length) continue;
+          if (!text || text.length > 90) continue;
+          tidied[n] = text;
+        }
+
+        try {
+          await env.DB.prepare(
+            `INSERT INTO grouping_cache (id, computed_at, entry_count, payload) VALUES (1, ?1, ?2, ?3)
+             ON CONFLICT(id) DO UPDATE SET computed_at = ?1, entry_count = ?2, payload = ?3`
+          ).bind(new Date().toISOString(), answered.length, JSON.stringify({ groups, tidied })).run();
+        } catch { /* Cache write failing must not fail the readout. */ }
       }
-
-      try {
-        await env.DB.prepare(
-          `INSERT INTO grouping_cache (id, computed_at, entry_count, payload) VALUES (1, ?1, ?2, ?3)
-           ON CONFLICT(id) DO UPDATE SET computed_at = ?1, entry_count = ?2, payload = ?3`
-        ).bind(new Date().toISOString(), answered.length, JSON.stringify({ groups, tidied })).run();
-      } catch { /* Cache write failing must not fail the readout. */ }
     } catch {
       groups = null;
     }
