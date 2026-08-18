@@ -151,6 +151,28 @@ npx wrangler secret put ANTHROPIC_API_KEY
 - **The prompt is a single string** (`PROBE_SYSTEM` in `src/worker.js`). The
   worked examples set the tone more than the rules do, so tune those first.
 
+### The two screens
+
+Both take the export key in the URL and read the same JSON
+(`/api/golf/summary?key=…&format=json`), so they can never disagree with the
+text readout.
+
+| Page | Where | Behaviour |
+|---|---|---|
+| `/golf/board` | At the hole, all day, on a cellular hotspot | Refreshes every 45s. A failed refresh changes nothing on screen: the last good data stays up and a dot in the corner turns amber. A dropped hotspot is invisible to the room. |
+| `/golf/live` | Dinner, plugged into the projector | Loads once, then runs **entirely offline**. Driven by keyboard: space advances, `R` moves to the next name if the winner isn't present, arrows move back and forth. |
+
+**The draw animation reveals a result that is already decided.** Order comes
+from `draw_key`, assigned when each person entered, so the reel is theatre over
+a settled outcome. The screen and the phone always show the same winner, and no
+amount of reloading changes it.
+
+**Grouping is cached in `grouping_cache`** and only recomputed when the answer
+count changes. Without that, each poll from the board would re-run the
+clustering model: measured 15.7s uncached versus 0.14s cached, and at one
+refresh a minute for five hours that would be 300 model calls to redraw a board
+that only changes when someone enters.
+
 ### Notes
 
 - **Duplicate submits collapse.** A unique index on `lower(email)` plus an upsert means a double-tapped button on flaky signal updates the row rather than creating a second one. Checkbox opt-ins only ever ratchet up, so a retry can't silently un-tick something.

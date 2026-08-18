@@ -122,9 +122,9 @@ async function handleEntry(request, env) {
   try {
     await env.DB.prepare(
       `INSERT INTO golf_entries
-         (created_at, first_name, last_name, company, role, email, cell, wish, wish_detail, probe_question,
+         (created_at, draw_key, first_name, last_name, company, role, email, cell, wish, wish_detail, probe_question,
           ${CONSENT.join(', ')})
-       VALUES (${Array.from({ length: 10 + CONSENT.length }, (_, i) => `?${i + 1}`).join(', ')})
+       VALUES (${Array.from({ length: 11 + CONSENT.length }, (_, i) => `?${i + 1}`).join(', ')})
        -- A resubmit should only ever add information, never remove it. Required
        -- fields overwrite; optional ones keep the existing value when the new
        -- submission left them blank, so a hurried second entry can't wipe a
@@ -143,6 +143,7 @@ async function handleEntry(request, env) {
     )
       .bind(
         new Date().toISOString(),
+        crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296,
         entry.first_name, entry.last_name, entry.company, entry.role,
         entry.email, entry.cell, entry.wish, entry.wish_detail,
         entry.probe_question,
@@ -292,7 +293,7 @@ async function handleSummary(request, env) {
   if (supplied !== expected) return json({ error: 'Not authorized.' }, 401);
 
   const { results } = await env.DB.prepare(
-    `SELECT first_name, last_name, company, wish, wish_detail, category
+    `SELECT first_name, last_name, company, wish, wish_detail, draw_key
        FROM golf_entries ORDER BY created_at`
   ).all();
   const rows = results ?? [];
@@ -307,7 +308,20 @@ async function handleSummary(request, env) {
   // list. A vocabulary invented in advance mislabels anything it didn't
   // anticipate, and the label is what gets read out loud.
   let groups = null;
-  if (answered.length && env.ANTHROPIC_API_KEY) {
+
+  // Serve the cached grouping unless the answer set actually changed. Displays
+  // poll; the grouping only moves when someone new enters.
+  let cached = null;
+  try {
+    const { results: c } = await env.DB.prepare('SELECT * FROM grouping_cache WHERE id = 1').all();
+    cached = c?.[0] || null;
+  } catch { cached = null; }
+
+  if (cached && cached.entry_count === answered.length) {
+    try { groups = JSON.parse(cached.payload); } catch { groups = null; }
+  }
+
+  if (!groups && answered.length && env.ANTHROPIC_API_KEY) {
     try {
       const numbered = answered
         .map((r, i) => `${i + 1}. ${r.wish}${(r.wish_detail || '').trim() ? ` (${r.wish_detail})` : ''}`)
@@ -373,6 +387,13 @@ Every answer belongs to exactly one group. Use each number once.`,
 
       const missed = answered.length - claimed.size;
       if (missed > 0) groups.push({ label: 'everything else', members: [], missed });
+
+      try {
+        await env.DB.prepare(
+          `INSERT INTO grouping_cache (id, computed_at, entry_count, payload) VALUES (1, ?1, ?2, ?3)
+           ON CONFLICT(id) DO UPDATE SET computed_at = ?1, entry_count = ?2, payload = ?3`
+        ).bind(new Date().toISOString(), answered.length, JSON.stringify(groups)).run();
+      } catch { /* Cache write failing must not fail the readout. */ }
     } catch {
       groups = null;
     }
@@ -392,31 +413,15 @@ Every answer belongs to exactly one group. Use each number once.`,
   }
 
   // ── The draw ────────────────────────────────────────────────────────────
-  // Deterministic shuffle seeded from the entry set, so refreshing the page
-  // returns the same order. A raffle you can silently reroll until you like the
-  // winner is not a raffle. Absences are handled by going down the list, not by
-  // drawing again.
-  let drawOrder = [];
-  if (rows.length) {
-    let seed = 0;
-    for (const row of rows) {
-      const s = `${row.first_name}${row.last_name}${row.company}`;
-      for (let i = 0; i < s.length; i++) seed = (seed * 31 + s.charCodeAt(i)) >>> 0;
-    }
-    const rand = () => {
-      seed = (seed + 0x6d2b79f5) >>> 0;
-      let t = seed;
-      t = Math.imul(t ^ (t >>> 15), t | 1);
-      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-    const order = [...rows];
-    for (let i = order.length - 1; i > 0; i--) {
-      const j = Math.floor(rand() * (i + 1));
-      [order[i], order[j]] = [order[j], order[i]];
-    }
+  // Order comes from a random key assigned to each entry when it was created,
+  // so it never changes as new people enter and cannot be rerolled by
+  // refreshing. A raffle you can reshuffle is not a raffle.
+  const drawOrder = [...rows]
+    .filter((r) => typeof r.draw_key === 'number')
+    .sort((a, b) => a.draw_key - b.draw_key)
+    .slice(0, 5);
 
-    drawOrder = order.slice(0, 5);
+  if (drawOrder.length) {
     lines.push('');
     lines.push('RANDOM DRAW  (Tidal rangefinder)');
     lines.push('  Call name 1. Not in the room, call name 2, and so on down.');
@@ -489,6 +494,33 @@ Every answer belongs to exactly one group. Use each number once.`,
       lines.push(`     "${row.wish}"`);
       if ((row.wish_detail || '').trim()) lines.push(`     -> ${row.wish_detail}`);
     }
+  }
+
+  // ?format=json feeds the on-screen draw at /golf/live, which loads once and
+  // then runs entirely offline. Same numbers, same order, same source.
+  if (url.searchParams.get('format') === 'json') {
+    return new Response(
+      JSON.stringify({
+        entries: rows.length,
+        answered: answered.length,
+        groups: (groups || [])
+          .filter((g) => g.members.length)
+          .map((g) => ({ label: g.label, count: g.members.length })),
+        draw: drawOrder.map((r) => ({
+          name: `${r.first_name} ${r.last_name}`,
+          company: r.company,
+        })),
+        best: shortlist.map((r) => ({
+          name: `${r.first_name} ${r.last_name}`,
+          company: r.company,
+          wish: r.wish,
+          detail: r.wish_detail || '',
+        })),
+        everyone: rows.map((r) => `${r.first_name} ${r.last_name}`),
+        latest: answered.length ? answered[answered.length - 1].wish : '',
+      }),
+      { headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } }
+    );
   }
 
   return new Response(lines.join('\n') + '\n', {

@@ -27,10 +27,10 @@ CREATE TABLE golf_entries (
   -- The exact follow-up that was asked. Without it, wish_detail is an answer to
   -- a question nobody recorded.
   probe_question TEXT,
-  -- Fixed-vocabulary bucket for the wish, assigned in the same model call that
-  -- writes the question. Free text doesn't aggregate; this is what makes the
-  -- dinner readout countable.
-  category      TEXT,
+  -- Random sort key assigned once at insert. The draw reads this, so the order
+  -- is fixed the moment someone enters: it cannot drift as more people enter,
+  -- and it cannot be rerolled by reloading the summary.
+  draw_key      REAL,
 
   -- Consent is per purpose and per company. Nothing here is pre-ticked, and
   -- entering the draw on its own is NOT consent to be contacted about anything
@@ -64,3 +64,14 @@ CREATE TABLE probe_log (
 );
 
 CREATE INDEX idx_probe_log_created ON probe_log(created_at);
+
+-- Cached grouping for the live screens. Without this, every poll from a display
+-- would re-run the clustering model: at one refresh a minute for five hours
+-- that is 300 calls to redraw a board that changes when someone enters, not
+-- when the clock ticks.
+CREATE TABLE grouping_cache (
+  id           INTEGER PRIMARY KEY CHECK (id = 1),
+  computed_at  TEXT NOT NULL,
+  entry_count  INTEGER NOT NULL,
+  payload      TEXT NOT NULL
+);

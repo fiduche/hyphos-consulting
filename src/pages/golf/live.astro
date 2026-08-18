@@ -1,0 +1,194 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+/**
+ * The dinner screen. Open on a laptop plugged into the projector, pass the
+ * export key in the URL, then drive it with the spacebar.
+ *
+ * Two rules shaped this. It loads its data ONCE and then runs entirely
+ * offline, so clubhouse wifi dying mid-presentation cannot break it. And the
+ * winner is already decided before the reel starts: draw order comes from a
+ * random key stored on each entry when they entered, so the animation reveals
+ * a settled result rather than deciding one. The screen and your phone always
+ * agree.
+ */
+---
+
+<BaseLayout title="Live draw" minimal>
+  <div id="stage">
+    <div id="loading" class="screen on">
+      <p class="kicker">Hyphos Consulting</p>
+      <h1 class="huge">Loading…</h1>
+      <p class="sub" id="loading-note">Fetching the entries. This happens once.</p>
+    </div>
+
+    <div id="title" class="screen">
+      <p class="kicker">Springs Men's Golf Classic</p>
+      <h1 class="huge">What the room said.</h1>
+      <p class="sub"><span id="answered">0</span> of you told us what you'd hand off if you could.</p>
+    </div>
+
+    <div id="groups" class="screen">
+      <p class="kicker">The answers</p>
+      <ol id="bars"></ol>
+    </div>
+
+    <div id="draw" class="screen">
+      <p class="kicker">The draw · Tidal Insurance rangefinder</p>
+      <div id="reel">Ready</div>
+      <p class="sub" id="draw-sub">Press space to draw.</p>
+    </div>
+
+    <div id="closing" class="screen">
+      <p class="kicker">Hyphos Consulting</p>
+      <h1 class="huge">I'm at table six.</h1>
+      <p class="sub">The list is hitting your inbox tonight.</p>
+    </div>
+  </div>
+
+  <p id="hint">space = next · R = next name · &larr; &rarr; = move</p>
+
+  <style is:global>
+    :root { color-scheme: dark; }
+    body { background: #0b1220; overflow: hidden; }
+    #stage { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; padding: 4vmin; }
+    .screen { display: none; max-width: 92vw; }
+    .screen.on { display: block; animation: rise .5s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(2vmin); } to { opacity: 1; transform: none; } }
+
+    .kicker {
+      font-size: clamp(14px, 1.7vw, 30px); letter-spacing: .28em; text-transform: uppercase;
+      color: #76b4ff; margin: 0 0 3vmin; font-weight: 600;
+    }
+    .huge {
+      font-family: 'Source Serif 4', Georgia, serif; font-weight: 500;
+      font-size: clamp(40px, 8vw, 150px); line-height: 1.02; color: #faf8f4; margin: 0;
+    }
+    .sub { font-size: clamp(16px, 2.2vw, 40px); color: #9fb0c9; margin: 4vmin 0 0; }
+
+    #bars { list-style: none; padding: 0; margin: 0; width: min(88vw, 1500px); }
+    #bars li { margin-bottom: 2.4vmin; text-align: left; }
+    .row { display: flex; align-items: baseline; gap: 2vmin; }
+    .n {
+      font-family: 'Source Serif 4', Georgia, serif; font-size: clamp(30px, 5vw, 92px);
+      color: #76b4ff; min-width: 2.4ch; text-align: right; font-variant-numeric: tabular-nums;
+    }
+    .label { font-size: clamp(18px, 3vw, 56px); color: #faf8f4; }
+    .track { height: 1.1vmin; background: #1d2a3f; border-radius: 99px; margin-top: 1vmin; overflow: hidden; }
+    .fill { height: 100%; background: #76b4ff; width: 0; transition: width .9s cubic-bezier(.2,.8,.2,1); }
+
+    #reel {
+      font-family: 'Source Serif 4', Georgia, serif; font-weight: 500;
+      font-size: clamp(38px, 7.5vw, 132px); line-height: 1.05; color: #faf8f4;
+      min-height: 1.2em; margin: 2vmin 0;
+    }
+    #reel.spinning { color: #5d7a9e; }
+    #reel .co {
+      display: block; font-family: 'Inter', system-ui, sans-serif;
+      font-size: clamp(16px, 2.2vw, 38px); color: #9fb0c9; margin-top: 2vmin;
+    }
+
+    #hint {
+      position: fixed; bottom: 2vmin; left: 0; right: 0; text-align: center;
+      font-size: 13px; color: #3d4c66; margin: 0; letter-spacing: .06em;
+    }
+    @media (prefers-reduced-motion: reduce) { .screen.on { animation: none; } .fill { transition: none; } }
+  </style>
+
+  <script>
+    const KEY = new URLSearchParams(location.search).get('key') || '';
+    const ORDER = ['title', 'groups', 'draw', 'closing'];
+    let step = -1;
+    let data = null;
+    let drawIndex = 0;
+
+    const el = (id) => document.getElementById(id);
+    const show = (id) => {
+      document.querySelectorAll('.screen').forEach((s) => s.classList.remove('on'));
+      el(id)?.classList.add('on');
+    };
+
+    async function load() {
+      if (!KEY) { el('loading-note').textContent = 'Add ?key=… to the URL.'; return; }
+      try {
+        const res = await fetch(`/api/golf/summary?key=${encodeURIComponent(KEY)}&format=json`);
+        if (!res.ok) throw new Error(String(res.status));
+        data = await res.json();
+      } catch {
+        el('loading-note').textContent = 'Could not load. Check the key and connection, then reload.';
+        return;
+      }
+      // Everything past here runs offline. Losing wifi now changes nothing.
+      el('answered').textContent = String(data.answered);
+      const max = Math.max(1, data.groups[0]?.count || 1);
+      el('bars').innerHTML = data.groups
+        .map(
+          (g) => `<li><div class="row"><span class="n">${g.count}</span><span class="label">${g.label}</span></div>
+                  <div class="track"><div class="fill" data-w="${Math.round((g.count / max) * 100)}"></div></div></li>`
+        )
+        .join('');
+      next();
+    }
+
+    const paintBars = () =>
+      requestAnimationFrame(() =>
+        document.querySelectorAll('#bars .fill').forEach((f) => (f.style.width = f.dataset.w + '%'))
+      );
+
+    /** Spin through every entrant, then land on the name already drawn. */
+    function spin() {
+      const winner = data.draw[drawIndex];
+      const reel = el('reel');
+      if (!winner) {
+        reel.textContent = 'That is everyone.';
+        el('draw-sub').textContent = '';
+        return;
+      }
+      const pool = data.everyone.length ? data.everyone : [winner.name];
+      el('draw-sub').textContent = '';
+      let delay = 60;
+      const tick = () => {
+        if (delay > 420) {
+          reel.classList.remove('spinning');
+          reel.innerHTML = `${winner.name}<span class="co">${winner.company}</span>`;
+          el('draw-sub').textContent =
+            drawIndex === 0
+              ? 'Not here? Press R for the next name.'
+              : `Name ${drawIndex + 1}. Press R again if they're not here.`;
+          return;
+        }
+        reel.classList.add('spinning');
+        reel.textContent = pool[Math.floor(Math.random() * pool.length)];
+        delay *= 1.16;
+        setTimeout(tick, delay);
+      };
+      tick();
+    }
+
+    function next(dir = 1) {
+      if (!data) return;
+      step = Math.max(0, Math.min(ORDER.length - 1, step + dir));
+      const id = ORDER[step];
+      show(id);
+      if (id === 'groups') paintBars();
+      if (id === 'draw') {
+        drawIndex = 0;
+        el('reel').textContent = 'Ready';
+        el('draw-sub').textContent = 'Press space to draw.';
+      }
+    }
+
+    addEventListener('keydown', (e) => {
+      if (!data) return;
+      const k = e.key.toLowerCase();
+      if (e.key === ' ' || e.key === 'ArrowRight' || e.key === 'Enter') {
+        e.preventDefault();
+        if (ORDER[step] === 'draw' && el('reel').textContent === 'Ready') return spin();
+        next(1);
+      } else if (e.key === 'ArrowLeft') { e.preventDefault(); next(-1); }
+      else if (k === 'r' && ORDER[step] === 'draw') { e.preventDefault(); drawIndex++; spin(); }
+    });
+
+    load();
+  </script>
+</BaseLayout>
