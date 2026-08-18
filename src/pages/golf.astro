@@ -2,154 +2,188 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 /**
- * Entry form for the Springs Men's Golf Classic — D'Arcy Ranch, Sept 18 2026.
+ * Entry form for the Springs Men's Golf Classic at D'Arcy Ranch, Sept 18 2026.
  *
  * Reached by QR code at the sponsored hole, so it is filled in on a phone,
  * outdoors, in sunlight, possibly on one bar of signal, by someone who wants
  * to get back in a cart. Everything below follows from that: large targets,
- * correct mobile keyboards, autofill enabled, and a localStorage queue so a
- * dropped request is retried rather than lost.
+ * correct mobile keyboards, autofill enabled, paired fields to cut scrolling,
+ * and a localStorage queue so a dropped request is retried rather than lost.
+ *
+ * Consent is per purpose and per company, never pre-ticked, and entering the
+ * draw is deliberately NOT consent to be contacted about anything else.
  */
 
-const checkboxes = [
+// ── Swap these for the real prizes. ──────────────────────────────────────
+const prizes = [
+  { sponsor: 'Hyphos Consulting', prize: 'A dozen Pro V1s' },
+  { sponsor: 'Tidal Insurance', prize: 'A rangefinder' },
+];
+// ─────────────────────────────────────────────────────────────────────────
+
+const consentGroups = [
   {
-    name: 'want_list',
-    label: 'Send me the 10 ways small businesses are actually using AI right now',
+    sponsor: 'Hyphos Consulting',
+    intro: 'I would like someone to follow up:',
+    options: [
+      { name: 'hyphos_company', label: 'For my company' },
+      { name: 'hyphos_workplace', label: 'For my workplace' },
+      { name: 'hyphos_referral', label: 'For someone I know' },
+    ],
   },
   {
-    name: 'want_talk',
-    label: "I'd like to talk about my company specifically",
-  },
-  {
-    name: 'knows_someone',
-    label: 'I know someone who should hear about this',
-  },
-  {
-    name: 'want_tidal',
-    label: "I'd also like Tidal Insurance to take a look at my coverage",
+    sponsor: 'Tidal Insurance',
+    intro: 'I would like someone to follow up about insurance:',
+    options: [
+      { name: 'tidal_company', label: 'For my company' },
+      { name: 'tidal_workplace', label: 'For my workplace' },
+      { name: 'tidal_personal', label: 'For me personally' },
+    ],
   },
 ];
+
+const field =
+  'w-full rounded-lg border border-ink-300 bg-white px-4 py-3.5 text-base text-ink-900 outline-none transition focus:border-signal-500 focus:ring-2 focus:ring-signal-100';
+const labelCls = 'block text-sm font-semibold text-ink-900 mb-2';
+const boxCls =
+  'mt-0.5 h-5 w-5 flex-none rounded border-ink-300 accent-signal-600 cursor-pointer';
 ---
 
 <BaseLayout
   title="Enter to win"
-  description="Enter the Hyphos hole contest at the Springs Men's Golf Classic, D'Arcy Ranch, September 18 2026."
+  description="Enter the draw at the Hyphos Consulting hole, Springs Men's Golf Classic, D'Arcy Ranch, September 18 2026."
 >
   <section class="mx-auto max-w-2xl px-5 sm:px-8 pt-8 sm:pt-20 pb-6">
     <div class="eyebrow mb-3">Springs Men's Golf Classic · D'Arcy Ranch</div>
-    <h1 class="display text-4xl sm:text-5xl leading-tight text-ink-900">
-      Enter to win.
-    </h1>
+    <h1 class="display text-4xl sm:text-5xl leading-tight text-ink-900">Enter to win.</h1>
     <p class="mt-4 text-lg text-ink-600 leading-relaxed">
-      One entry each. Winner announced at dinner. Takes about twenty seconds.
+      One entry each. Winners announced at dinner. Takes about twenty seconds.
     </p>
+
+    <div class="mt-7 grid sm:grid-cols-2 gap-3">
+      {prizes.map((p) => (
+        <div class="card p-5">
+          <div class="eyebrow mb-2">{p.sponsor}</div>
+          <div class="display text-lg text-ink-900 leading-snug">{p.prize}</div>
+        </div>
+      ))}
+    </div>
   </section>
 
   <section class="mx-auto max-w-2xl px-5 sm:px-8 pb-24">
     <form id="entry-form" class="card p-6 sm:p-8" novalidate>
       <div class="space-y-6">
-        <div>
-          <label class="block text-sm font-semibold text-ink-900 mb-2" for="name">
-            Name
-          </label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            required
-            autocomplete="name"
-            enterkeyhint="next"
-            class="w-full rounded-lg border border-ink-300 bg-white px-4 py-3.5 text-base text-ink-900 outline-none transition focus:border-signal-500 focus:ring-2 focus:ring-signal-100"
-          />
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class={labelCls} for="first_name">First name</label>
+            <input id="first_name" name="first_name" type="text" required
+                   autocomplete="given-name" enterkeyhint="next" class={field} />
+          </div>
+          <div>
+            <label class={labelCls} for="last_name">Last name</label>
+            <input id="last_name" name="last_name" type="text" required
+                   autocomplete="family-name" enterkeyhint="next" class={field} />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class={labelCls} for="company">Company</label>
+            <input id="company" name="company" type="text" required
+                   autocomplete="organization" enterkeyhint="next" class={field} />
+          </div>
+          <div>
+            <label class={labelCls} for="role">Role</label>
+            <input id="role" name="role" type="text" required
+                   autocomplete="organization-title" enterkeyhint="next" class={field} />
+          </div>
         </div>
 
         <div>
-          <label class="block text-sm font-semibold text-ink-900 mb-2" for="company_role">
-            Company &amp; role
-          </label>
-          <input
-            id="company_role"
-            name="company_role"
-            type="text"
-            required
-            autocomplete="organization"
-            enterkeyhint="next"
-            placeholder="Miller Plumbing — owner"
-            class="w-full rounded-lg border border-ink-300 bg-white px-4 py-3.5 text-base text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-signal-500 focus:ring-2 focus:ring-signal-100"
-          />
+          <label class={labelCls} for="email">Email</label>
+          <input id="email" name="email" type="email" required inputmode="email"
+                 autocomplete="email" autocapitalize="off" autocorrect="off"
+                 spellcheck="false" enterkeyhint="next" class={field} />
         </div>
 
         <div>
-          <label class="block text-sm font-semibold text-ink-900 mb-2" for="email">
-            Email
+          <label class={labelCls} for="cell">
+            Cell <span class="font-normal text-ink-400">(optional)</span>
           </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            inputmode="email"
-            autocomplete="email"
-            autocapitalize="off"
-            autocorrect="off"
-            spellcheck="false"
-            enterkeyhint="next"
-            class="w-full rounded-lg border border-ink-300 bg-white px-4 py-3.5 text-base text-ink-900 outline-none transition focus:border-signal-500 focus:ring-2 focus:ring-signal-100"
-          />
-        </div>
-
-        <div>
-          <label class="block text-sm font-semibold text-ink-900 mb-2" for="cell">
-            Cell <span class="font-normal text-ink-400">— optional</span>
-          </label>
-          <input
-            id="cell"
-            name="cell"
-            type="tel"
-            inputmode="tel"
-            autocomplete="tel"
-            enterkeyhint="next"
-            class="w-full rounded-lg border border-ink-300 bg-white px-4 py-3.5 text-base text-ink-900 outline-none transition focus:border-signal-500 focus:ring-2 focus:ring-signal-100"
-          />
+          <input id="cell" name="cell" type="tel" inputmode="tel"
+                 autocomplete="tel" enterkeyhint="next" class={field} />
         </div>
 
         <div class="rule"></div>
 
         <div>
           <label class="block text-sm font-semibold text-ink-900 mb-1" for="wish">
-            Bonus entry
+            Bonus entry <span class="font-normal text-ink-400">(optional)</span>
           </label>
           <p class="text-sm text-ink-600 mb-3">
             What's the one task at work you wish just did itself?
           </p>
-          <textarea
-            id="wish"
-            name="wish"
-            rows="3"
-            enterkeyhint="done"
-            placeholder="Chasing invoices. It's killing me."
-            class="w-full rounded-lg border border-ink-300 bg-white px-4 py-3.5 text-base text-ink-900 placeholder:text-ink-400 outline-none transition focus:border-signal-500 focus:ring-2 focus:ring-signal-100 resize-y"
-          ></textarea>
+          <textarea id="wish" name="wish" rows="3" enterkeyhint="done"
+                    class={`${field} resize-y`}></textarea>
+
+          <p id="probe-thinking" class="hidden mt-3 text-sm text-ink-500">
+            One quick follow-up…
+          </p>
+
+          <div id="probe-block" class="hidden mt-4 rounded-lg bg-signal-50 p-4">
+            <p id="probe-question" class="text-sm font-semibold text-ink-900 mb-2"></p>
+            <textarea id="wish_detail" name="wish_detail" rows="2" enterkeyhint="done"
+                      class={`${field} resize-y`}></textarea>
+            <p class="mt-2 text-xs text-ink-500">Optional, but it's the bit that's actually useful.</p>
+          </div>
         </div>
 
-        <div class="space-y-1">
-          {checkboxes.map((box) => (
-            <label
-              class="flex items-start gap-3 py-2.5 cursor-pointer select-none"
-              for={box.name}
-            >
-              <input
-                id={box.name}
-                name={box.name}
-                type="checkbox"
-                class="mt-0.5 h-5 w-5 flex-none rounded border-ink-300 text-signal-600 accent-signal-600 cursor-pointer"
-              />
-              <span class="text-[15px] leading-snug text-ink-700">{box.label}</span>
-            </label>
+        <div class="rule"></div>
+
+        <div class="space-y-6">
+          <p class="text-sm text-ink-600 leading-relaxed">
+            Tick anything you'd like. Leave them all blank and we'll only contact you if you win.
+          </p>
+
+          <label class="flex items-start gap-3 cursor-pointer select-none" for="want_list">
+            <input id="want_list" name="want_list" type="checkbox" class={boxCls} />
+            <span class="text-[15px] leading-snug text-ink-700">
+              Send me the 10 ways small businesses are actually using AI right now
+            </span>
+          </label>
+
+          {consentGroups.map((group) => (
+            <fieldset class="border border-ink-200 rounded-lg p-4">
+              <legend class="px-2 text-sm font-semibold text-ink-900">{group.sponsor}</legend>
+              <p class="text-sm text-ink-600 mb-2">{group.intro}</p>
+              <div class="space-y-1">
+                {group.options.map((opt) => (
+                  <label class="flex items-start gap-3 py-2 cursor-pointer select-none" for={opt.name}>
+                    <input id={opt.name} name={opt.name} type="checkbox" class={boxCls} />
+                    <span class="text-[15px] leading-snug text-ink-700">{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
           ))}
         </div>
 
-        {/* Honeypot — hidden from people, irresistible to bots. */}
+        <div class="rounded-lg bg-cream-100 p-5 text-sm text-ink-700 leading-relaxed space-y-3">
+          <p class="font-semibold text-ink-900">How your details are used</p>
+          <p>
+            Your name and email are used to reach you if you win. Nothing else happens
+            unless you tick a box above.
+          </p>
+          <p>
+            Tick a Hyphos box and Daniel Newton at Hyphos Consulting will contact you.
+            Tick a Tidal box and we will pass your name, email and phone number to Laird
+            at Tidal Insurance so he can contact you. Nobody else receives your details,
+            we will not add you to any other list, and you can ask either of us to stop
+            at any time.
+          </p>
+        </div>
+
+        {/* Honeypot: hidden from people, irresistible to bots. */}
         <div class="hidden" aria-hidden="true">
           <label for="website">Website</label>
           <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
@@ -157,16 +191,18 @@ const checkboxes = [
 
         <p id="entry-error" class="hidden text-sm text-warm-600 font-medium" role="alert"></p>
 
-        <button id="entry-submit" type="submit" class="btn-primary w-full justify-center text-base py-4">
+        <p class="text-sm text-ink-600 leading-relaxed">
+          By entering this draw you agree that Hyphos Consulting may store and use the
+          information you have given, as described above.
+        </p>
+
+        <button id="entry-submit" type="submit"
+                class="btn-primary w-full justify-center text-base py-4">
           <span data-label>Enter the draw</span>
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
           </svg>
         </button>
-
-        <p class="text-xs text-ink-500 leading-relaxed">
-          We'll only send what you asked for above. No list, no forwarding, unsubscribe any time.
-        </p>
       </div>
     </form>
 
@@ -178,7 +214,7 @@ const checkboxes = [
       </div>
       <h2 class="display text-2xl text-ink-900">You're in.</h2>
       <p id="entry-success-note" class="mt-3 text-ink-600 leading-relaxed">
-        Winner announced at dinner. If you asked for the list, it lands in your inbox tonight.
+        Winners announced at dinner. If you asked for the list, it lands in your inbox tonight.
       </p>
       <p class="mt-6 text-sm text-ink-500">
         Daniel Newton · Hyphos Consulting · <a href="/work" class="link">see what we build</a>
@@ -189,6 +225,12 @@ const checkboxes = [
   <script>
     const QUEUE_KEY = 'hyphos-golf-queue';
     const ENDPOINT = '/api/golf/entry';
+    const TEXT_FIELDS = ['first_name', 'last_name', 'company', 'role', 'email', 'cell', 'wish', 'wish_detail'];
+    const CONSENT = [
+      'want_list',
+      'hyphos_company', 'hyphos_workplace', 'hyphos_referral',
+      'tidal_company', 'tidal_workplace', 'tidal_personal',
+    ];
 
     const form = document.getElementById('entry-form') as HTMLFormElement | null;
     const success = document.getElementById('entry-success');
@@ -199,25 +241,48 @@ const checkboxes = [
     if (!form || !success || !successNote || !errorEl || !submit) {
       throw new Error('Entry form markup is missing an expected element.');
     }
-
     const label = submit.querySelector('[data-label]') as HTMLElement;
+    const cellInput = document.getElementById('cell') as HTMLInputElement;
+    const emailInput = document.getElementById('email') as HTMLInputElement;
+
+    /** Progressive North American mask: 4035550100 becomes (403) 555-0100. */
+    const formatCell = (raw: string) => {
+      let digits = raw.replace(/\D/g, '');
+      // A pasted "+1 403 555 0100" must not turn the country code into the
+      // area code.
+      if (digits.length === 11 && digits.startsWith('1')) digits = digits.slice(1);
+      const d = digits.slice(0, 10);
+      if (d.length <= 3) return d;
+      if (d.length <= 6) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
+      return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+    };
+
+    cellInput.addEventListener('input', () => {
+      const atEnd = cellInput.selectionStart === cellInput.value.length;
+      cellInput.value = formatCell(cellInput.value);
+      // Only force the caret when typing at the end; mid-string edits keep it.
+      if (atEnd) cellInput.setSelectionRange(cellInput.value.length, cellInput.value.length);
+    });
+
+    // Requires text, an @, more text, a dot, and a real suffix.
+    const EMAIL_RE = /^[^@\s]+@[^@\s.]+(\.[^@\s.]+)*\.[A-Za-z]{2,}$/;
+
+    const markInvalid = (el: HTMLInputElement) => {
+      el.classList.add('border-warm-600');
+      el.focus();
+    };
+    for (const el of [emailInput, cellInput]) {
+      el.addEventListener('input', () => el.classList.remove('border-warm-600'));
+    }
 
     const readQueue = (): unknown[] => {
-      try {
-        return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
-      } catch {
-        return [];
-      }
+      try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); } catch { return []; }
     };
-
     const writeQueue = (items: unknown[]) => {
-      try {
-        localStorage.setItem(QUEUE_KEY, JSON.stringify(items));
-      } catch {
-        /* Private browsing or full storage — nothing useful to do here. */
+      try { localStorage.setItem(QUEUE_KEY, JSON.stringify(items)); } catch {
+        /* Private browsing or full storage. Nothing useful to do here. */
       }
     };
-
     const post = (payload: unknown) =>
       fetch(ENDPOINT, {
         method: 'POST',
@@ -232,17 +297,13 @@ const checkboxes = [
     const flushQueue = async () => {
       const queue = readQueue();
       if (queue.length === 0) return;
-
       const remaining: unknown[] = [];
       for (const item of queue) {
         try {
           const response = await post(item);
-          // 4xx means this entry will never succeed — drop it rather than
-          // retrying forever. Only network errors and 5xx are worth keeping.
+          // 4xx will never succeed, so drop it rather than retrying forever.
           if (!response.ok && response.status >= 500) remaining.push(item);
-        } catch {
-          remaining.push(item);
-        }
+        } catch { remaining.push(item); }
       }
       writeQueue(remaining);
     };
@@ -250,12 +311,13 @@ const checkboxes = [
     const showError = (message: string) => {
       errorEl.textContent = message;
       errorEl.classList.remove('hidden');
+      errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
     const showSuccess = (queued: boolean) => {
       if (queued) {
         successNote.textContent =
-          "Saved on your phone — signal is patchy out here, so we'll send it automatically the moment you're back in range. Nothing more for you to do.";
+          "Saved on your phone. Signal is patchy out here, so we'll send it automatically the moment you're back in range. Nothing more for you to do.";
       }
       form.classList.add('hidden');
       success.classList.remove('hidden');
@@ -267,23 +329,23 @@ const checkboxes = [
       errorEl.classList.add('hidden');
 
       const data = new FormData(form);
-      const payload = {
-        name: String(data.get('name') || '').trim(),
-        company_role: String(data.get('company_role') || '').trim(),
-        email: String(data.get('email') || '').trim(),
-        cell: String(data.get('cell') || '').trim(),
-        wish: String(data.get('wish') || '').trim(),
-        want_list: data.get('want_list') === 'on',
-        want_talk: data.get('want_talk') === 'on',
-        knows_someone: data.get('knows_someone') === 'on',
-        want_tidal: data.get('want_tidal') === 'on',
-        website: String(data.get('website') || ''),
-      };
+      const payload: Record<string, unknown> = {};
+      for (const key of TEXT_FIELDS) payload[key] = String(data.get(key) || '').trim();
+      for (const key of CONSENT) payload[key] = data.get(key) === 'on';
+      payload.website = String(data.get('website') || '');
 
-      if (!payload.name) return showError('Name is required.');
-      if (!payload.company_role) return showError('Company and role are required.');
-      if (!/^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(payload.email)) {
-        return showError('That email address looks off — mind checking it?');
+      if (!payload.first_name) return showError('First name is required.');
+      if (!payload.last_name) return showError('Last name is required.');
+      if (!payload.company) return showError('Company is required.');
+      if (!payload.role) return showError('Role is required.');
+      if (!EMAIL_RE.test(payload.email as string)) {
+        markInvalid(emailInput);
+        return showError('That email address looks off. It needs to look like name@company.com.');
+      }
+      const cellDigits = String(payload.cell || '').replace(/\D/g, '');
+      if (cellDigits && cellDigits.length !== 10) {
+        markInvalid(cellInput);
+        return showError('That phone number needs 10 digits, or you can leave it blank.');
       }
 
       submit.disabled = true;
@@ -291,29 +353,60 @@ const checkboxes = [
 
       try {
         const response = await post(payload);
-
-        if (response.ok) {
-          showSuccess(false);
-          return;
-        }
-
+        if (response.ok) { showSuccess(false); return; }
         if (response.status >= 500) {
-          // Server-side problem — hold it and retry rather than losing it.
+          // Server-side problem. Hold it and retry rather than losing it.
           writeQueue([...readQueue(), payload]);
           showSuccess(true);
           return;
         }
-
         const body = await response.json().catch(() => ({}));
         showError(body.error || 'Something went wrong. Try once more?');
       } catch {
-        // Almost always no signal. Queue it and reassure them it's handled.
+        // Almost always no signal. Queue it and reassure them it is handled.
         writeQueue([...readQueue(), payload]);
         showSuccess(true);
         return;
       } finally {
         submit.disabled = false;
         label.textContent = 'Enter the draw';
+      }
+    });
+
+    /**
+     * Ask for one sharper follow-up once they finish the bonus answer. Entirely
+     * best-effort: if it is slow, blocked, or unavailable, nothing appears and
+     * the form behaves exactly as it would without it.
+     */
+    const wishInput = document.getElementById('wish') as HTMLTextAreaElement;
+    const probeThinking = document.getElementById('probe-thinking');
+    const probeBlock = document.getElementById('probe-block');
+    const probeQuestion = document.getElementById('probe-question');
+    let probedFor = '';
+
+    wishInput.addEventListener('blur', async () => {
+      const wish = wishInput.value.trim();
+      // Don't re-ask for text we've already probed, and don't bother for
+      // an answer too short to have anything to follow up on.
+      if (wish.length < 4 || wish === probedFor) return;
+      probedFor = wish;
+
+      probeThinking?.classList.remove('hidden');
+      try {
+        const response = await fetch('/api/golf/probe', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ wish }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (data.question && probeQuestion && probeBlock) {
+          probeQuestion.textContent = data.question;
+          probeBlock.classList.remove('hidden');
+        }
+      } catch {
+        /* No signal or no key. The follow-up is a bonus, not a dependency. */
+      } finally {
+        probeThinking?.classList.add('hidden');
       }
     });
 

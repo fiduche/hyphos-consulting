@@ -1,6 +1,11 @@
 // Cloudflare Worker entry.
 //
-// The site is still fully static — Astro prerenders everything to ./dist and
+// Adds one AI route on top of the entry form: POST /api/golf/probe takes the
+// golfer's one-line answer and returns a single sharper follow-up question, so
+// the answer that reaches the dinner slide is "chasing 40 invoices a month,
+// each one a phone call" rather than "invoicing".
+//
+// The site is still fully static. Astro prerenders everything to ./dist and
 // the ASSETS binding serves it. The only dynamic surface is the golf
 // tournament entry form at /golf, which needs somewhere to put entries:
 //
@@ -9,7 +14,44 @@
 //
 // Everything else falls straight through to ASSETS exactly as before.
 
-const MAX = { name: 120, company_role: 160, email: 200, cell: 40, wish: 600 };
+import Anthropic from '@anthropic-ai/sdk';
+
+// Haiku for the follow-up: it is one short question on a phone with one bar of
+// signal, so time-to-answer matters far more than depth.
+const PROBE_MODEL = 'claude-haiku-4-5';
+const PROBE_TIMEOUT_MS = 4500;
+const PROBE_HOURLY_CAP = 250;
+const PROBE_MIN_CHARS = 4;
+
+const PROBE_SYSTEM = `You are helping a consultant collect better answers at a golf tournament.
+
+Someone has written what task at work they wish would do itself. Their answer is
+usually two or three words, which is not enough to act on. Write ONE short
+follow-up question that gets them to say something specific.
+
+Aim at whichever of these is missing: how often it happens, how long it takes,
+who does it, or what makes it annoying.
+
+Rules:
+- One question. Under 15 words.
+- Plainly worded, the way a person would ask it in conversation.
+- Ask about their situation, never pitch or suggest a solution.
+- No preamble, no quotes, no sign-off. Output only the question.
+
+Example. They wrote "invoicing" -> "How many invoices is that a month, and who chases them?"`;
+
+const MAX = {
+  first_name: 80, last_name: 80, company: 140, role: 120,
+  email: 200, cell: 40, wish: 600,
+};
+
+// Every consent flag. Nothing is pre-ticked on the form, and none of these
+// gate entry into the draw: the winner is reachable by email either way.
+const CONSENT = [
+  'want_list',
+  'hyphos_company', 'hyphos_workplace', 'hyphos_referral',
+  'tidal_company', 'tidal_workplace', 'tidal_personal',
+];
 
 const json = (body, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -21,8 +63,15 @@ const json = (body, status = 200) =>
 const clean = (value, max) =>
   typeof value === 'string' ? value.trim().slice(0, max) : '';
 
-/** Loose on purpose — a rejected real address costs more than a junk row. */
-const looksLikeEmail = (value) => /^[^@\s]+@[^@\s.]+\.[^@\s]+$/.test(value);
+/** Requires text, an @, more text, a dot, and a real suffix. Mirrors the form. */
+const looksLikeEmail = (value) => /^[^@\s]+@[^@\s.]+(\.[^@\s.]+)*\.[A-Za-z]{2,}$/.test(value);
+
+/** Store phones in one shape regardless of how they were typed. */
+const normaliseCell = (value) => {
+  let d = String(value || '').replace(/\D/g, '');
+  if (d.length === 11 && d.startsWith('1')) d = d.slice(1);
+  return d.length === 10 ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : '';
+};
 
 async function handleEntry(request, env) {
   if (!env.DB) return json({ error: 'Storage is not configured.' }, 503);
@@ -39,52 +88,49 @@ async function handleEntry(request, env) {
   if (clean(body.website, 200)) return json({ ok: true });
 
   const entry = {
-    name: clean(body.name, MAX.name),
-    company_role: clean(body.company_role, MAX.company_role),
+    first_name: clean(body.first_name, MAX.first_name),
+    last_name: clean(body.last_name, MAX.last_name),
+    company: clean(body.company, MAX.company),
+    role: clean(body.role, MAX.role),
     email: clean(body.email, MAX.email),
-    cell: clean(body.cell, MAX.cell),
+    cell: normaliseCell(body.cell),
     wish: clean(body.wish, MAX.wish),
-    want_list: body.want_list ? 1 : 0,
-    want_talk: body.want_talk ? 1 : 0,
-    knows_someone: body.knows_someone ? 1 : 0,
-    want_tidal: body.want_tidal ? 1 : 0,
+    wish_detail: clean(body.wish_detail, MAX.wish_detail),
   };
+  for (const flag of CONSENT) entry[flag] = body[flag] ? 1 : 0;
 
-  if (!entry.name) return json({ error: 'Name is required.' }, 400);
-  if (!entry.company_role) return json({ error: 'Company and role are required.' }, 400);
+  if (!entry.first_name) return json({ error: 'First name is required.' }, 400);
+  if (!entry.last_name) return json({ error: 'Last name is required.' }, 400);
+  if (!entry.company) return json({ error: 'Company is required.' }, 400);
+  if (!entry.role) return json({ error: 'Role is required.' }, 400);
   if (!looksLikeEmail(entry.email)) return json({ error: 'That email address looks off.' }, 400);
 
   try {
     await env.DB.prepare(
       `INSERT INTO golf_entries
-         (created_at, name, company_role, email, cell, wish,
-          want_list, want_talk, knows_someone, want_tidal)
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
+         (created_at, first_name, last_name, company, role, email, cell, wish, wish_detail,
+          ${CONSENT.join(', ')})
+       VALUES (${Array.from({ length: 9 + CONSENT.length }, (_, i) => `?${i + 1}`).join(', ')})
        -- A resubmit should only ever add information, never remove it. Required
        -- fields overwrite; optional ones keep the existing value when the new
        -- submission left them blank, so a hurried second entry can't wipe a
-       -- phone number or an answer given the first time round.
+       -- phone number or an answer given the first time round. Consent flags
+       -- only ratchet up, so a retry can never silently withdraw a tick.
        ON CONFLICT(lower(email)) DO UPDATE SET
-         name          = excluded.name,
-         company_role  = excluded.company_role,
-         cell          = CASE WHEN excluded.cell <> '' THEN excluded.cell ELSE golf_entries.cell END,
-         wish          = CASE WHEN excluded.wish <> '' THEN excluded.wish ELSE golf_entries.wish END,
-         want_list     = MAX(golf_entries.want_list,     excluded.want_list),
-         want_talk     = MAX(golf_entries.want_talk,     excluded.want_talk),
-         knows_someone = MAX(golf_entries.knows_someone, excluded.knows_someone),
-         want_tidal    = MAX(golf_entries.want_tidal,    excluded.want_tidal)`
+         first_name = excluded.first_name,
+         last_name  = excluded.last_name,
+         company    = excluded.company,
+         role       = excluded.role,
+         cell = CASE WHEN excluded.cell <> '' THEN excluded.cell ELSE golf_entries.cell END,
+         wish = CASE WHEN excluded.wish <> '' THEN excluded.wish ELSE golf_entries.wish END,
+         wish_detail = CASE WHEN excluded.wish_detail <> '' THEN excluded.wish_detail ELSE golf_entries.wish_detail END,
+         ${CONSENT.map((c) => `${c} = MAX(golf_entries.${c}, excluded.${c})`).join(',\n         ')}`
     )
       .bind(
         new Date().toISOString(),
-        entry.name,
-        entry.company_role,
-        entry.email,
-        entry.cell,
-        entry.wish,
-        entry.want_list,
-        entry.want_talk,
-        entry.knows_someone,
-        entry.want_tidal
+        entry.first_name, entry.last_name, entry.company, entry.role,
+        entry.email, entry.cell, entry.wish, entry.wish_detail,
+        ...CONSENT.map((flag) => entry[flag])
       )
       .run();
   } catch (error) {
@@ -94,6 +140,75 @@ async function handleEntry(request, env) {
   }
 
   return json({ ok: true });
+}
+
+/**
+ * One adaptive follow-up question for the bonus-entry answer.
+ *
+ * Deliberately fail-open: any error, timeout, or cap breach returns
+ * {question: null} with a 200 so the form treats it as "no follow-up" and the
+ * golfer's entry is never blocked by an LLM call on course wifi.
+ */
+async function handleProbe(request, env) {
+  const quiet = () => json({ question: null });
+
+  if (!env.ANTHROPIC_API_KEY || !env.DB) return quiet();
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return quiet();
+  }
+
+  const wish = clean(body.wish, MAX.wish);
+  if (wish.length < PROBE_MIN_CHARS) return quiet();
+
+  try {
+    // Trailing-hour spend guard. A public endpoint that calls a paid API needs
+    // a ceiling that does not depend on nobody noticing it exists.
+    const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { results } = await env.DB.prepare(
+      'SELECT COUNT(*) AS n FROM probe_log WHERE created_at > ?1'
+    ).bind(since).all();
+    if ((results?.[0]?.n ?? 0) >= PROBE_HOURLY_CAP) return quiet();
+
+    await env.DB.prepare('INSERT INTO probe_log (created_at) VALUES (?1)')
+      .bind(new Date().toISOString())
+      .run();
+  } catch {
+    return quiet();
+  }
+
+  try {
+    const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+    const message = await client.messages.create(
+      {
+        model: PROBE_MODEL,
+        max_tokens: 100,
+        system: PROBE_SYSTEM,
+        messages: [{ role: 'user', content: wish }],
+      },
+      { timeout: PROBE_TIMEOUT_MS, maxRetries: 1 }
+    );
+
+    if (message.stop_reason === 'refusal') return quiet();
+
+    const question = message.content
+      .filter((block) => block.type === 'text')
+      .map((block) => block.text)
+      .join(' ')
+      .trim()
+      .replace(/^["'\u201c\u2018]|["'\u201d\u2019]$/g, '')
+      .slice(0, 200);
+
+    // A model that ignored the one-question instruction is worse than silence.
+    if (!question || !question.includes('?')) return quiet();
+
+    return json({ question });
+  } catch {
+    return quiet();
+  }
 }
 
 const csvCell = (value) => {
@@ -117,15 +232,15 @@ async function handleExport(request, env) {
   if (supplied !== expected) return json({ error: 'Not authorized.' }, 401);
 
   const { results } = await env.DB.prepare(
-    `SELECT created_at, name, company_role, email, cell, wish,
-            want_list, want_talk, knows_someone, want_tidal, starred
+    `SELECT created_at, first_name, last_name, company, role, email, cell, wish, wish_detail,
+            ${CONSENT.join(', ')}, starred
        FROM golf_entries
       ORDER BY created_at`
   ).all();
 
   const columns = [
-    'created_at', 'name', 'company_role', 'email', 'cell', 'wish',
-    'want_list', 'want_talk', 'knows_someone', 'want_tidal', 'starred',
+    'created_at', 'first_name', 'last_name', 'company', 'role', 'email', 'cell',
+    'wish', 'wish_detail', ...CONSENT, 'starred',
   ];
 
   const csv = [
@@ -149,6 +264,12 @@ export default {
     if (pathname === '/api/golf/entry') {
       return request.method === 'POST'
         ? handleEntry(request, env)
+        : json({ error: 'Method not allowed.' }, 405);
+    }
+
+    if (pathname === '/api/golf/probe') {
+      return request.method === 'POST'
+        ? handleProbe(request, env)
         : json({ error: 'Method not allowed.' }, 405);
     }
 
