@@ -81,6 +81,34 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   </style>
 
   <script>
+// Rehearsal data. ?demo=1 skips the network entirely, so you can practise
+    // the run as often as you like without putting a single fake name near the
+    // real entries.
+    const DEMO = {
+      entries: 34, answered: 31,
+      groups: [
+        { label: 'writing quotes and invoices at night', count: 9 },
+        { label: 'things slipping through the cracks', count: 7 },
+        { label: 'chasing money already owed', count: 6 },
+        { label: 'rebuilding the schedule every week', count: 5 },
+        { label: 'a form for every single job', count: 4 },
+      ],
+      latest: 'quoting, every one is a fresh spreadsheet',
+      draw: [
+        { name: 'Marc Dube', company: 'Dube Excavating' },
+        { name: 'Jen Kwan', company: 'Foothills Dental' },
+        { name: 'Rob Fenn', company: 'Fenn HVAC' },
+        { name: 'Tara Nolan', company: 'Nolan Bakery' },
+        { name: 'Amrit Singh', company: 'Singh Landscaping' },
+      ],
+      best: [
+        { name: 'Dale Ross', company: 'Ross Electric', wish: 'invoicing', detail: 'Two full evenings a month I will never get back' },
+        { name: 'Sam Doyle', company: 'Doyle Roofing', wish: 'quotes', detail: 'I write them at 10pm after the kids are down' },
+      ],
+      everyone: ['Marc Dube','Jen Kwan','Rob Fenn','Tara Nolan','Amrit Singh','Dale Ross','Sam Doyle','Pat Miller','Chris Bell','Lena Ortiz','Kyle Brenner','Nina Faust','Owen Reid','Maya Grant','Tom Vance'],
+    };
+    const DEMO_MODE = new URLSearchParams(location.search).has('demo');
+
     const REFRESH_MS = 45000;
     let lastGood = 0;
 
@@ -104,6 +132,17 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     }
 
     async function tick() {
+      if (DEMO_MODE) {
+        // Nudge a count each cycle so the refresh behaviour is visible too.
+        DEMO.answered += 1;
+        DEMO.groups[Math.floor(Math.random() * DEMO.groups.length)].count += 1;
+        DEMO.groups.sort((a, b) => b.count - a.count);
+        render(DEMO);
+        lastGood = Date.now();
+        el('dot').classList.remove('stale');
+        setTimeout(tick, 4000);
+        return;
+      }
       try {
         const res = await fetch('/api/golf/summary?format=board', { cache: 'no-store' });
         if (!res.ok) throw new Error(String(res.status));

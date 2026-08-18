@@ -196,6 +196,17 @@ clustering model: measured 15.7s uncached versus 0.14s cached, and at one
 refresh a minute for five hours that would be 300 model calls to redraw a board
 that only changes when someone enters.
 
+### Rehearsing the screens
+
+Add `?demo=1` to either screen. It uses a built-in sample field and makes **no
+API call at all**, so you can practise the run as often as you like with no
+sign-in and no risk of a fake name reaching the real entries.
+
+- `/golf/live/?demo=1` — full dinner sequence, ~8s reel, fireworks
+- `/golf/board/?demo=1` — hole board, counts tick every 4s so the refresh is visible
+
+Drop `?demo=1` for the real thing. Real data always requires the session cookie.
+
 ### Notes
 
 - **Duplicate submits collapse.** A unique index on `lower(email)` plus an upsert means a double-tapped button on flaky signal updates the row rather than creating a second one. Checkbox opt-ins only ever ratchet up, so a retry can't silently un-tick something.
