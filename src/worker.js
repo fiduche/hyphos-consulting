@@ -366,6 +366,54 @@ async function handleSummary(request, env) {
     }
   }
 
+  // ── The draw ────────────────────────────────────────────────────────────
+  // Deterministic shuffle seeded from the entry set, so refreshing the page
+  // returns the same order. A raffle you can silently reroll until you like the
+  // winner is not a raffle. Absences are handled by going down the list, not by
+  // drawing again.
+  if (rows.length) {
+    let seed = 0;
+    for (const row of rows) {
+      const s = `${row.first_name}${row.last_name}${row.company}`;
+      for (let i = 0; i < s.length; i++) seed = (seed * 31 + s.charCodeAt(i)) >>> 0;
+    }
+    const rand = () => {
+      seed = (seed + 0x6d2b79f5) >>> 0;
+      let t = seed;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+    const order = [...rows];
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+
+    lines.push('');
+    lines.push('RANDOM DRAW  (Tidal rangefinder)');
+    lines.push('  Read down the list. First person actually in the room wins.');
+    order.slice(0, 6).forEach((row, i) => {
+      lines.push(`  ${i + 1}. ${row.first_name} ${row.last_name}, ${row.company}`);
+    });
+  }
+
+  // ── Best answer ─────────────────────────────────────────────────────────
+  // Judged, not computed. The endpoint shortlists; the choice is the owner's.
+  const shortlist = answered
+    .filter((r) => (r.wish_detail || '').trim().length > 12)
+    .sort((a, b) => (b.wish_detail || '').length - (a.wish_detail || '').length)
+    .slice(0, 5);
+
+  if (shortlist.length) {
+    lines.push('');
+    lines.push('BEST ANSWER  (Hyphos Pro V1s) — you pick, they must be present');
+    shortlist.forEach((row, i) => {
+      lines.push(`  ${i + 1}. ${row.first_name} ${row.last_name}, ${row.company}`);
+      lines.push(`     "${row.wish}" -> ${row.wish_detail}`);
+    });
+  }
+
   // Verbatims: the specific ones are the ones worth reading out. Longest
   // follow-up answers first, since those are the people who actually elaborated.
   const verbatims = answered

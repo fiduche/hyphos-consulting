@@ -16,8 +16,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 // ── Swap these for the real prizes. ──────────────────────────────────────
 const prizes = [
-  { sponsor: 'Hyphos Consulting', prize: 'A dozen Pro V1s' },
-  { sponsor: 'Tidal Insurance', prize: 'A rangefinder' },
+  { sponsor: 'Hyphos Consulting', prize: 'A dozen Pro V1s', how: 'Best answer to the bonus question' },
+  { sponsor: 'Tidal Insurance', prize: 'A rangefinder', how: 'Random draw' },
 ];
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -57,7 +57,8 @@ const boxCls =
     <div class="eyebrow mb-3">Springs Men's Golf Classic · D'Arcy Ranch</div>
     <h1 class="display text-4xl sm:text-5xl leading-tight text-ink-900">Enter to win.</h1>
     <p class="mt-4 text-lg text-ink-600 leading-relaxed">
-      One entry each. Winners announced at dinner. Takes about twenty seconds.
+      One entry each. Both winners announced at dinner, and you need to be there to win.
+      Takes about twenty seconds.
     </p>
 
     <div class="mt-7 grid sm:grid-cols-2 gap-3">
@@ -65,6 +66,7 @@ const boxCls =
         <div class="card p-5">
           <div class="eyebrow mb-2">{p.sponsor}</div>
           <div class="display text-lg text-ink-900 leading-snug">{p.prize}</div>
+          <div class="mt-1.5 text-sm text-ink-600">{p.how}</div>
         </div>
       ))}
     </div>
@@ -122,6 +124,7 @@ const boxCls =
           </label>
           <p class="text-sm text-ink-600 mb-3">
             What's the one task at work you wish just did itself?
+            <span class="text-ink-500">The best answer takes the Pro V1s.</span>
           </p>
           <textarea id="wish" name="wish" rows="3" enterkeyhint="done"
                     class={`${field} resize-y`}></textarea>
@@ -214,7 +217,8 @@ const boxCls =
       </div>
       <h2 class="display text-2xl text-ink-900">You're in.</h2>
       <p id="entry-success-note" class="mt-3 text-ink-600 leading-relaxed">
-        Winners announced at dinner. If you asked for the list, it lands in your inbox tonight.
+        Both winners announced at dinner, so stick around. If you asked for the list, it lands
+        in your inbox tonight.
       </p>
       <p class="mt-6 text-sm text-ink-500">
         Daniel Newton · Hyphos Consulting · <a href="/work" class="link">see what we build</a>
