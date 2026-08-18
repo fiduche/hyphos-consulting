@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import GolfQr from '../../components/GolfQr.astro';
 
 /**
  * The hole screen. Runs all day on a laptop or tablet at the sponsored hole,
@@ -9,29 +10,42 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
  * nothing on screen. If the hotspot drops for twenty minutes the board keeps
  * showing the last good data rather than an error, and quietly catches up when
  * signal returns. The only visible sign is a dot in the corner.
+ *
+ * The QR sits in its own column and never moves. The first groups through
+ * arrive at an empty board, so the screen has to work as a poster before it
+ * works as a scoreboard: the invitation is always the largest thing on it, and
+ * the results grow into the space beside it.
  */
 ---
 
 <BaseLayout title="Live board"
   noindex minimal>
   <main id="board">
-    <header>
-      <div>
+    <div class="col-main">
+      <header>
         <p class="kicker">What this room wishes would do itself</p>
         <h1><span id="count">0</span> <small>answers so far</small></h1>
-      </div>
-      <div class="right">
-        <p class="kicker">Scan the code. Twenty seconds.</p>
-        <p class="url">hyphosconsulting.com/golf</p>
-      </div>
-    </header>
+      </header>
 
-    <ol id="bars"></ol>
+      <ol id="bars"></ol>
 
-    <section id="latest">
-      <p class="kicker">Just added</p>
-      <p id="latest-line">&nbsp;</p>
-    </section>
+      <section id="empty">
+        <p class="empty-q">“What's the one task at work you wish just did itself?”</p>
+        <p class="empty-sub">Answers appear here as they come in.</p>
+      </section>
+
+      <section id="latest">
+        <p class="kicker">Just added</p>
+        <p id="latest-line">&nbsp;</p>
+      </section>
+    </div>
+
+    <aside class="col-qr">
+      <p class="kicker">Scan To Enter</p>
+      <div class="qr-plate"><GolfQr class="qr" /></div>
+      <p class="url">hyphosconsulting.com/golf</p>
+      <p class="prizes">A dozen Pro V1s and a rangefinder.<br />Both drawn at dinner. Be there to win.</p>
+    </aside>
 
     <div id="dot" title="connection"></div>
   </main>
@@ -40,21 +54,38 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     :root { color-scheme: dark; }
     body { background: #0b1220; overflow: hidden; }
     #board {
-      position: fixed; inset: 0; padding: 4vmin 5vmin;
-      display: flex; flex-direction: column; gap: 3vmin;
+      position: fixed; inset: 0; padding: 4vmin 4.5vmin;
+      display: grid; grid-template-columns: 1fr minmax(26vw, 30vw); gap: 5vmin;
+      align-items: stretch;
     }
-    header { display: flex; justify-content: space-between; align-items: flex-start; gap: 4vmin; }
+    .col-main { display: flex; flex-direction: column; gap: 3vmin; min-width: 0; }
     .kicker {
-      font-size: clamp(12px, 1.3vw, 24px); letter-spacing: .24em; text-transform: uppercase;
+      font-size: clamp(12px, 1.2vw, 22px); letter-spacing: .24em; text-transform: uppercase;
       color: #76b4ff; margin: 0 0 1.4vmin; font-weight: 600;
     }
-    .right { text-align: right; }
-    .url { font-size: min(2vw, 3.8vh); color: #faf8f4; margin: 0; font-weight: 600; }
     h1 {
       font-family: 'Source Serif 4', Georgia, serif; font-weight: 500; margin: 0;
-      font-size: min(6vw, 11vh); color: #faf8f4; line-height: 1;
+      font-size: min(5.4vw, 10vh); color: #faf8f4; line-height: 1;
     }
     h1 small { font-size: .32em; color: #9fb0c9; font-family: 'Inter', system-ui, sans-serif; }
+
+    /* The QR column. Fixed width, so nothing about the data can shrink it. */
+    .col-qr {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; border-left: 1px solid #1d2a3f; padding-left: 4vmin;
+    }
+    .qr-plate {
+      background: #ffffff; border-radius: 1.4vmin; padding: 1.6vmin;
+      line-height: 0; box-shadow: 0 0 6vmin rgba(118, 180, 255, .10);
+    }
+    .qr { display: block; width: min(22vw, 42vh); height: min(22vw, 42vh); }
+    .col-qr .url {
+      font-size: min(1.7vw, 3.2vh); color: #faf8f4; font-weight: 600;
+      margin: 2.4vmin 0 0; letter-spacing: .01em;
+    }
+    .col-qr .prizes {
+      font-size: min(1.15vw, 2.2vh); color: #9fb0c9; margin: 1.6vmin 0 0; line-height: 1.5;
+    }
 
     #bars { list-style: none; padding: 0; margin: 0; flex: 1; min-height: 0; overflow: hidden;
       display: flex; flex-direction: column; justify-content: center; gap: 1.6vh; }
@@ -62,28 +93,53 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     @keyframes in { from { opacity: 0; transform: translateX(-1.5vmin); } to { opacity: 1; transform: none; } }
     .row { display: flex; align-items: baseline; gap: 2vmin; line-height: 1; }
     .n {
-      font-family: 'Source Serif 4', Georgia, serif; font-size: min(3.4vw, 6vh);
+      font-family: 'Source Serif 4', Georgia, serif; font-size: min(3vw, 5.4vh);
       color: #76b4ff; min-width: 2.2ch; text-align: right; font-variant-numeric: tabular-nums;
     }
-    .label { font-size: min(2.2vw, 4vh); color: #faf8f4; }
+    .label { font-size: min(2vw, 3.6vh); color: #faf8f4; }
     .track { height: 0.9vh; background: #1d2a3f; border-radius: 99px; margin-top: .9vmin; overflow: hidden; }
     .fill { height: 100%; background: #76b4ff; width: 0; transition: width 1s cubic-bezier(.2,.8,.2,1); }
 
+    /* Before anyone has answered. The board should read as an invitation, not
+       as a scoreboard that is broken. */
+    #empty { display: none; flex: 1; flex-direction: column; justify-content: center; }
+    .empty-q {
+      font-family: 'Source Serif 4', Georgia, serif; font-size: min(3.2vw, 6vh);
+      color: #faf8f4; line-height: 1.25; margin: 0; max-width: 20ch;
+    }
+    .empty-sub { font-size: min(1.6vw, 3vh); color: #9fb0c9; margin: 2.4vmin 0 0; }
+
+    /* "0 answers so far" in 10vh serif is the wrong first impression for the
+       group that happens to arrive first. Drop the tally until there is one. */
+    #board.is-empty h1 { display: none; }
+    #board.is-empty #bars { display: none; }
+    #board.is-empty #empty { display: flex; }
+    #board.is-empty #latest { visibility: hidden; }
+
     #latest { border-top: 1px solid #1d2a3f; padding-top: 2.4vmin; }
-    #latest-line { font-size: min(2.1vw, 4vh); color: #c7d3e4; margin: 0; font-style: italic; }
+    #latest-line { font-size: min(1.9vw, 3.6vh); color: #c7d3e4; margin: 0; font-style: italic; }
 
     #dot {
       position: fixed; right: 1.6vmin; bottom: 1.6vmin; width: 10px; height: 10px;
       border-radius: 99px; background: #2f6d4a; transition: background .4s;
     }
     #dot.stale { background: #7a5a2a; }
+
+    /* Portrait or a narrow tablet: stack, QR on top. It is still the thing
+       someone walking past needs to see first. */
+    @media (max-aspect-ratio: 1/1) {
+      #board { grid-template-columns: 1fr; grid-template-rows: auto 1fr; gap: 3vmin; }
+      .col-qr { border-left: 0; border-bottom: 1px solid #1d2a3f; padding: 0 0 3vmin; }
+      .qr { width: min(46vw, 30vh); height: min(46vw, 30vh); }
+    }
     @media (prefers-reduced-motion: reduce) { #bars li { animation: none; } .fill { transition: none; } }
   </style>
 
   <script>
-// Rehearsal data. ?demo=1 skips the network entirely, so you can practise
+    // Rehearsal data. ?demo=1 skips the network entirely, so you can practise
     // the run as often as you like without putting a single fake name near the
-    // real entries.
+    // real entries. Add ?demo=1&empty=1 to see the board as the first group
+    // through will find it.
     const DEMO = {
       entries: 34, answered: 31,
       groups: [
@@ -107,32 +163,72 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       ],
       everyone: ['Marc Dube','Jen Kwan','Rob Fenn','Tara Nolan','Amrit Singh','Dale Ross','Sam Doyle','Pat Miller','Chris Bell','Lena Ortiz','Kyle Brenner','Nina Faust','Owen Reid','Maya Grant','Tom Vance'],
     };
-    const DEMO_MODE = new URLSearchParams(location.search).has('demo');
+    const params = new URLSearchParams(location.search);
+    const DEMO_MODE = params.has('demo');
+    const DEMO_EMPTY = params.has('empty');
 
     const REFRESH_MS = 45000;
     let lastGood = 0;
 
     const el = (id) => document.getElementById(id);
 
+    // Built as nodes with textContent, never as an HTML string. Group labels
+    // are model output derived from whatever golfers typed into the form, so
+    // they are untrusted twice over. This screen faces a room.
+    function barRow(group, max) {
+      const li = document.createElement('li');
+
+      const row = document.createElement('div');
+      row.className = 'row';
+
+      const n = document.createElement('span');
+      n.className = 'n';
+      n.textContent = String(group.count);
+
+      const label = document.createElement('span');
+      label.className = 'label';
+      label.textContent = String(group.label);
+
+      row.append(n, label);
+
+      const track = document.createElement('div');
+      track.className = 'track';
+      const fill = document.createElement('div');
+      fill.className = 'fill';
+      fill.dataset.w = String(Math.round((group.count / max) * 100));
+      track.append(fill);
+
+      li.append(row, track);
+      return li;
+    }
+
     function render(data) {
-      el('count').textContent = String(data.answered);
-      const top = data.groups.slice(0, 5);
-      const max = Math.max(1, top[0]?.count || 1);
-      el('bars').innerHTML = top
-        .map(
-          (g) => `<li><div class="row"><span class="n">${g.count}</span><span class="label">${g.label}</span></div>
-                  <div class="track"><div class="fill" data-w="${Math.round((g.count / max) * 100)}"></div></div></li>`
-        )
-        .join('');
+      el('count').textContent = String(data.answered || 0);
+
+      const top = (data.groups || []).slice(0, 5);
+      // No groups means nothing to rank, whether that is nobody yet or nobody
+      // who wrote an answer. Either way the poster is the better screen.
+      el('board').classList.toggle('is-empty', top.length === 0);
+      if (top.length === 0) return;
+
+      const max = Math.max(1, top[0].count || 1);
+      const bars = el('bars');
+      bars.replaceChildren(...top.map((g) => barRow(g, max)));
       requestAnimationFrame(() =>
-        document.querySelectorAll('.fill').forEach((f) => (f.style.width = f.dataset.w + '%'))
+        bars.querySelectorAll('.fill').forEach((f) => (f.style.width = f.dataset.w + '%'))
       );
+
       const recent = data.best?.[0];
-      el('latest-line').textContent = recent ? `“${recent.wish}”` : ' ';
+      el('latest-line').textContent = recent ? `“${recent.wish}”` : ' ';
     }
 
     async function tick() {
       if (DEMO_MODE) {
+        if (DEMO_EMPTY) {
+          render({ answered: 0, groups: [] });
+          lastGood = Date.now();
+          return;
+        }
         // Nudge a count each cycle so the refresh behaviour is visible too.
         DEMO.answered += 1;
         DEMO.groups[Math.floor(Math.random() * DEMO.groups.length)].count += 1;
@@ -157,6 +253,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       setTimeout(tick, REFRESH_MS);
     }
 
+    // Start on the poster. If the fetch is slow or the hotspot is still coming
+    // up, an empty invitation beats an empty scoreboard.
+    el('board').classList.add('is-empty');
     tick();
   </script>
 </BaseLayout>

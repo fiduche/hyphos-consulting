@@ -176,14 +176,33 @@ npx wrangler secret put ANTHROPIC_API_KEY
 
 ### The two screens
 
-Both take the export key in the URL and read the same JSON
-(`/api/golf/summary?key=…&format=json`), so they can never disagree with the
-text readout.
+Both read the same JSON (`/api/golf/summary?format=json`) behind the session
+cookie, so they can never disagree with the text readout. Neither carries a key
+in its URL; sign in once at `/golf/enter` first.
 
 | Page | Where | Behaviour |
 |---|---|---|
 | `/golf/board` | At the hole, all day, on a cellular hotspot | Refreshes every 45s. A failed refresh changes nothing on screen: the last good data stays up and a dot in the corner turns amber. A dropped hotspot is invisible to the room. |
 | `/golf/live` | Dinner, plugged into the projector | Loads once, then runs **entirely offline**. Driven by keyboard: space advances, `R` moves to the next name if the winner isn't present, arrows move back and forth. |
+
+**The board carries the QR at poster scale**, in a fixed right-hand column that
+nothing about the data can shrink. Before anyone has answered it drops the
+running tally and shows the question instead: the first group through the hole
+should meet an invitation, not a scoreboard reading zero.
+
+**The dinner deck runs five slides**, in this order:
+
+1. `title` — what the room said, and how many answered
+2. `groups` — the ranked answers
+3. `best` — the Pro V1s. Two beats on one slide: space shows the winning answer
+   in their own words, space again reveals who wrote it. `R` drops to the next
+   name on the shortlist if they are not in the room.
+4. `draw` — the Tidal rangefinder. Space spins, `R` drops to the next name.
+5. `closing`
+
+Best answer sits before the draw deliberately. It follows straight out of the
+groups slide, and it leaves the random draw as the last thing the room sees,
+which is the one Laird gets thanked for.
 
 **The draw animation reveals a result that is already decided.** Order comes
 from `draw_key`, assigned when each person entered, so the reel is theatre over
@@ -202,10 +221,18 @@ Add `?demo=1` to either screen. It uses a built-in sample field and makes **no
 API call at all**, so you can practise the run as often as you like with no
 sign-in and no risk of a fake name reaching the real entries.
 
-- `/golf/live/?demo=1` — full dinner sequence, ~8s reel, fireworks
+- `/golf/live/?demo=1` — full dinner sequence, five-second reel, fireworks, and
+  a five-name shortlist so you can practise going down the list
 - `/golf/board/?demo=1` — hole board, counts tick every 4s so the refresh is visible
+- `/golf/board/?demo=1&empty=1` — the board as the first group through will find
+  it, before a single answer is in
 
 Drop `?demo=1` for the real thing. Real data always requires the session cookie.
+
+**Entries close when you walk up to the mic.** The deck loads its data once, so
+anyone who enters after that is not in the draw. With QR codes out on carts and
+in gift bags an entry can arrive at any hour, so reload `/golf/live` immediately
+before you present and say entries are closed when you start.
 
 ### Notes
 
