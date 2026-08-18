@@ -23,22 +23,6 @@ const PROBE_TIMEOUT_MS = 4500;
 const PROBE_HOURLY_CAP = 250;
 const PROBE_MIN_CHARS = 4;
 
-// Fixed vocabulary. The model must choose one, so answers tally instead of
-// sprawling. Labels are written to be read out at a dinner, not displayed.
-const CATEGORIES = {
-  invoicing_payments: 'chasing invoices and payments',
-  scheduling: 'scheduling and dispatch',
-  quoting_estimating: 'quotes and estimates',
-  paperwork_documents: 'paperwork and contracts',
-  bookkeeping_accounting: 'bookkeeping and reconciling',
-  payroll_hr: 'payroll and hiring',
-  email_communication: 'email and phone tag',
-  customer_service: 'answering the same customer questions',
-  inventory_ordering: 'inventory and ordering',
-  marketing_sales: 'marketing and following up on leads',
-  reporting_data: 'reports and data entry',
-  other: 'something else',
-};
 
 const PROBE_SYSTEM = `You are writing one short follow-up line for a contest form at a charity golf
 tournament. It should read like a friendly person leaning over to ask, not like a
@@ -61,9 +45,7 @@ Rules:
 - Never use an em dash. Use a comma or a full stop instead.
 - Vary how you open. Don't lean on "Oh man" or "that's a beast"; several people
   will be filling this in near each other and comparing.
-- No preamble, no quotes, no sign-off.
-
-Also pick the single category that best fits what they wrote.
+- No preamble, no quotes, no sign-off. Output only the line.
 
 Examples:
 "everything" -> "Everything? Oh no. Okay, what's the one that bugs you most?"
@@ -128,7 +110,6 @@ async function handleEntry(request, env) {
     wish: clean(body.wish, MAX.wish),
     wish_detail: clean(body.wish_detail, MAX.wish_detail),
     probe_question: clean(body.probe_question, MAX.probe_question),
-    category: CATEGORIES[body.category] ? body.category : '',
   };
   for (const flag of CONSENT) entry[flag] = body[flag] ? 1 : 0;
 
@@ -141,9 +122,9 @@ async function handleEntry(request, env) {
   try {
     await env.DB.prepare(
       `INSERT INTO golf_entries
-         (created_at, first_name, last_name, company, role, email, cell, wish, wish_detail, probe_question, category,
+         (created_at, first_name, last_name, company, role, email, cell, wish, wish_detail, probe_question,
           ${CONSENT.join(', ')})
-       VALUES (${Array.from({ length: 11 + CONSENT.length }, (_, i) => `?${i + 1}`).join(', ')})
+       VALUES (${Array.from({ length: 10 + CONSENT.length }, (_, i) => `?${i + 1}`).join(', ')})
        -- A resubmit should only ever add information, never remove it. Required
        -- fields overwrite; optional ones keep the existing value when the new
        -- submission left them blank, so a hurried second entry can't wipe a
@@ -158,14 +139,13 @@ async function handleEntry(request, env) {
          wish = CASE WHEN excluded.wish <> '' THEN excluded.wish ELSE golf_entries.wish END,
          wish_detail = CASE WHEN excluded.wish_detail <> '' THEN excluded.wish_detail ELSE golf_entries.wish_detail END,
          probe_question = CASE WHEN excluded.probe_question <> '' THEN excluded.probe_question ELSE golf_entries.probe_question END,
-         category = CASE WHEN excluded.category <> '' THEN excluded.category ELSE golf_entries.category END,
          ${CONSENT.map((c) => `${c} = MAX(golf_entries.${c}, excluded.${c})`).join(',\n         ')}`
     )
       .bind(
         new Date().toISOString(),
         entry.first_name, entry.last_name, entry.company, entry.role,
         entry.email, entry.cell, entry.wish, entry.wish_detail,
-        entry.probe_question, entry.category,
+        entry.probe_question,
         ...CONSENT.map((flag) => entry[flag])
       )
       .run();
@@ -224,49 +204,24 @@ async function handleProbe(request, env) {
         max_tokens: 200,
         system: PROBE_SYSTEM,
         messages: [{ role: 'user', content: wish }],
-        output_config: {
-          format: {
-            type: 'json_schema',
-            schema: {
-              type: 'object',
-              properties: {
-                question: { type: 'string' },
-                category: { type: 'string', enum: Object.keys(CATEGORIES) },
-              },
-              required: ['question', 'category'],
-              additionalProperties: false,
-            },
-          },
-        },
       },
       { timeout: PROBE_TIMEOUT_MS, maxRetries: 1 }
     );
 
     if (message.stop_reason === 'refusal') return quiet();
 
-    const raw = message.content
+    const question = message.content
       .filter((block) => block.type === 'text')
       .map((block) => block.text)
-      .join('')
-      .trim();
-
-    let parsed;
-    try {
-      parsed = JSON.parse(raw);
-    } catch {
-      return quiet();
-    }
-
-    const question = String(parsed.question || '')
+      .join(' ')
       .trim()
       .replace(/^["'\u201c\u2018]|["'\u201d\u2019]$/g, '')
       .slice(0, 300);
-    const category = CATEGORIES[parsed.category] ? parsed.category : 'other';
 
     // A reply that ignored the one-question instruction is worse than silence.
     if (!question || !question.includes('?')) return quiet();
 
-    return json({ question, category });
+    return json({ question });
   } catch {
     return quiet();
   }
@@ -343,27 +298,97 @@ async function handleSummary(request, env) {
   const rows = results ?? [];
 
   const answered = rows.filter((r) => (r.wish || '').trim());
-  const counts = new Map();
-  for (const row of answered) {
-    const key = CATEGORIES[row.category] ? row.category : 'unclassified';
-    counts.set(key, (counts.get(key) || 0) + 1);
-  }
-  const ranked = [...counts.entries()].sort((a, b) => b[1] - a[1]);
 
   const lines = [];
   lines.push(`ENTRIES: ${rows.length}`);
   lines.push(`ANSWERED THE BONUS QUESTION: ${answered.length}`);
-  lines.push('');
-  lines.push('WHAT THE ROOM SAID');
 
-  if (ranked.length === 0) {
-    lines.push('  (nothing yet)');
-  } else {
-    for (const [key, n] of ranked) {
-      const label = key === 'unclassified' ? 'not categorised' : CATEGORIES[key];
-      // Read as "N of you said X" — the shape that works out loud.
-      lines.push(`  ${String(n).padStart(3)}  ${label}`);
+  // Grouping is derived from what the room actually wrote, not from a fixed
+  // list. A vocabulary invented in advance mislabels anything it didn't
+  // anticipate, and the label is what gets read out loud.
+  let groups = null;
+  if (answered.length && env.ANTHROPIC_API_KEY) {
+    try {
+      const numbered = answered
+        .map((r, i) => `${i + 1}. ${r.wish}${(r.wish_detail || '').trim() ? ` (${r.wish_detail})` : ''}`)
+        .join('\n');
+
+      const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
+      const res = await client.messages.create(
+        {
+          model: 'claude-opus-5',
+          max_tokens: 4000,
+          system: `Below are answers from business people at a golf tournament, each asked what task at work they wish would do itself.
+
+Group them by what the underlying problem actually is. Derive the groups from these answers; do not force them into standard business categories. If several people describe the same underlying problem in different words, that is one group. If someone's answer is genuinely its own thing, let it be its own group.
+
+Label each group in plain words that can be read out loud to a room, six words at most, no jargon. "chasing invoices" not "accounts receivable management".
+
+Every answer belongs to exactly one group. Use each number once.`,
+          messages: [{ role: 'user', content: numbered }],
+          output_config: {
+            format: {
+              type: 'json_schema',
+              schema: {
+                type: 'object',
+                properties: {
+                  groups: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        label: { type: 'string' },
+                        members: { type: 'array', items: { type: 'integer' } },
+                      },
+                      required: ['label', 'members'],
+                      additionalProperties: false,
+                    },
+                  },
+                },
+                required: ['groups'],
+                additionalProperties: false,
+              },
+            },
+          },
+        },
+        { timeout: 60000, maxRetries: 1 }
+      );
+
+      const parsed = JSON.parse(
+        res.content.filter((b) => b.type === 'text').map((b) => b.text).join('')
+      );
+
+      // Counts come from validated membership, never from a number the model
+      // asserted. Each answer counts once, for the first group claiming it.
+      const claimed = new Set();
+      groups = (parsed.groups || [])
+        .map((g) => ({
+          label: String(g.label || '').trim(),
+          members: (g.members || [])
+            .filter((n) => Number.isInteger(n) && n >= 1 && n <= answered.length)
+            .filter((n) => (claimed.has(n) ? false : (claimed.add(n), true))),
+        }))
+        .filter((g) => g.label && g.members.length)
+        .sort((a, b) => b.members.length - a.members.length);
+
+      const missed = answered.length - claimed.size;
+      if (missed > 0) groups.push({ label: 'everything else', members: [], missed });
+    } catch {
+      groups = null;
     }
+  }
+
+  lines.push('');
+  if (groups && groups.length) {
+    lines.push('WHAT THE ROOM SAID');
+    for (const g of groups) {
+      const n = g.members.length || g.missed || 0;
+      if (!n) continue;
+      lines.push(`  ${String(n).padStart(3)}  ${g.label}`);
+    }
+  } else if (answered.length) {
+    lines.push('WHAT THE ROOM SAID');
+    lines.push('  (grouping unavailable, read the verbatim list below)');
   }
 
   // ── The draw ────────────────────────────────────────────────────────────
@@ -431,29 +456,39 @@ async function handleSummary(request, env) {
 
   // Verbatims: the specific ones are the ones worth reading out. Longest
   // follow-up answers first, since those are the people who actually elaborated.
-  const verbatims = answered
-    .filter((r) => (r.wish_detail || '').trim().length > 12)
-    .sort((a, b) => (b.wish_detail || '').length - (a.wish_detail || '').length)
-    .slice(0, 8);
+  const substance = (r) => `${r.wish || ''} ${r.wish_detail || ''}`.trim().length;
+  const verbatims = [...answered].sort((a, b) => substance(b) - substance(a)).slice(0, 8);
 
   if (verbatims.length) {
     lines.push('');
     lines.push('WORTH READING OUT');
     for (const row of verbatims) {
-      lines.push(`  "${row.wish}" -> ${row.wish_detail}`);
+      lines.push(`  "${row.wish}"`);
+      if ((row.wish_detail || '').trim()) lines.push(`     -> ${row.wish_detail}`);
       lines.push(`     (${row.first_name} ${row.last_name}, ${row.company})`);
     }
   }
 
-  const top = ranked.filter(([k]) => k !== 'unclassified').slice(0, 3);
+  const top = (groups || []).filter((g) => g.members.length).slice(0, 3);
   if (top.length) {
     lines.push('');
     lines.push('THE LINE');
     lines.push(
       `  "I asked what you'd hand off if you could. ` +
-        top.map(([k, n]) => `${n} of you said ${CATEGORIES[k]}`).join(', ') +
+        top.map((g) => `${g.members.length} of you said ${g.label}`).join(', ') +
         `."`
     );
+  }
+
+  if (answered.length) {
+    lines.push('');
+    lines.push(`EVERY ANSWER, VERBATIM  (${answered.length})`);
+    lines.push('  The categories above are a convenience. This is the record.');
+    for (const row of answered) {
+      lines.push(`  ${row.first_name} ${row.last_name}, ${row.company}`);
+      lines.push(`     "${row.wish}"`);
+      if ((row.wish_detail || '').trim()) lines.push(`     -> ${row.wish_detail}`);
+    }
   }
 
   return new Response(lines.join('\n') + '\n', {
