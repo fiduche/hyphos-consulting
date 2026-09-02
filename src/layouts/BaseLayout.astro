@@ -15,12 +15,12 @@ interface Props {
 
 const {
   title,
-  description = 'Hyphos Consulting designs and builds people-focused business software. We remove the manual work so your team can focus on the work that actually matters.',
+  description = 'Hyphos helps growing businesses handle more revenue with the people they already have by connecting company information with usable organizational knowledge.',
   minimal = false,
   noindex = false,
 } = Astro.props;
 
-const fullTitle = title === 'Hyphos Consulting' ? title : `${title} — Hyphos Consulting`;
+const fullTitle = title === 'Hyphos' ? title : `${title} — Hyphos`;
 const siteUrl = 'https://hyphosconsulting.com';
 const canonicalUrl = new URL(Astro.url.pathname, siteUrl).href;
 ---
@@ -40,7 +40,7 @@ const canonicalUrl = new URL(Astro.url.pathname, siteUrl).href;
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalUrl} />
-    <meta property="og:site_name" content="Hyphos Consulting" />
+    <meta property="og:site_name" content="Hyphos" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />

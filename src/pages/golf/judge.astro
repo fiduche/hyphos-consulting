@@ -1,0 +1,125 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Choose the judged winner"
+  description="Choose the winner of the Hyphos best-answer prize."
+  noindex
+  minimal
+>
+  <section class="mx-auto max-w-3xl px-5 sm:px-8 py-12 sm:py-20">
+    <div class="eyebrow mb-3">Hyphos · Tournament control</div>
+    <h1 class="display text-3xl sm:text-4xl text-ink-900">Choose the best answer.</h1>
+    <p class="mt-4 text-ink-600 leading-relaxed max-w-2xl">
+      This is the judged Pro V1s prize. Read the answers, choose one deliberately,
+      then open the dinner screen on this same device. Your choice stays on this device.
+    </p>
+
+    <div id="status" class="mt-8 card p-5 text-sm text-ink-600">Loading answers…</div>
+    <div id="answers" class="mt-5 space-y-4"></div>
+
+    <div id="actions" class="hidden sticky bottom-4 mt-8 rounded-xl border border-ink-200 bg-cream-50/95 p-4 shadow-lg backdrop-blur">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <p id="chosen" class="text-sm font-semibold text-ink-900"></p>
+        <a href="/golf/live" class="btn-primary justify-center">Open dinner screen</a>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const PICK_KEY = 'hyphos-golf-best-pick';
+    const status = document.getElementById('status')!;
+    const answers = document.getElementById('answers')!;
+    const actions = document.getElementById('actions')!;
+    const chosen = document.getElementById('chosen')!;
+    const DEMO_MODE = new URLSearchParams(location.search).has('demo');
+    const DEMO_CANDIDATES = [
+      { id: 1, name: 'Dale Ross', company: 'Ross Electric', wish: 'invoicing', detail: 'Two full evenings a month I will never get back.' },
+      { id: 2, name: 'Sam Doyle', company: 'Doyle Roofing', wish: 'quotes', detail: 'I write them at 10pm after the kids are down.' },
+      { id: 3, name: 'Chris Bell', company: 'Bell Auto Glass', wish: 'the schedule', detail: 'One cancellation and I rebuild the whole week by hand.' },
+    ];
+
+    const select = (entry: { id: number; name: string; company?: string }) => {
+      localStorage.setItem(PICK_KEY, String(entry.id));
+      document.querySelectorAll('[data-entry]').forEach((node) => {
+        const active = (node as HTMLElement).dataset.entry === String(entry.id);
+        node.classList.toggle('border-signal-500', active);
+        node.classList.toggle('bg-signal-50', active);
+        node.querySelector('[data-check]')?.classList.toggle('hidden', !active);
+      });
+      chosen.textContent = `Selected: ${entry.name}${entry.company ? ` · ${entry.company}` : ''}`;
+      actions.classList.remove('hidden');
+    };
+
+    const load = async () => {
+      if (DEMO_MODE) {
+        renderCandidates(DEMO_CANDIDATES);
+        return;
+      }
+      let response;
+      try {
+        response = await fetch('/api/golf/summary?format=json', { cache: 'no-store' });
+      } catch {
+        status.textContent = 'Could not load the entries. Check the connection and try again.';
+        return;
+      }
+
+      if (response.status === 401) {
+        location.href = '/golf/enter';
+        return;
+      }
+      if (!response.ok) {
+        status.textContent = 'Could not load the entries. Try again in a moment.';
+        return;
+      }
+
+      const data = await response.json();
+      const candidates = Array.isArray(data.best) ? data.best : [];
+      renderCandidates(candidates);
+    };
+
+    const renderCandidates = (candidates: Array<{ id: number; name: string; company?: string; wish: string; detail?: string }>) => {
+      if (!candidates.length) {
+        status.textContent = 'No detailed bonus answers are available yet.';
+        return;
+      }
+
+      status.textContent = `${candidates.length} detailed answer${candidates.length === 1 ? '' : 's'}. Choose one; answer length does not decide the prize.`;
+      const saved = Number(localStorage.getItem(PICK_KEY));
+
+      for (const entry of candidates) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.entry = String(entry.id);
+        button.className = 'card w-full p-5 text-left transition border-2 hover:border-signal-300';
+
+        const top = document.createElement('div');
+        top.className = 'flex items-start justify-between gap-4';
+        const quote = document.createElement('p');
+        quote.className = 'display text-xl text-ink-900 leading-snug';
+        quote.textContent = `“${entry.wish}”`;
+        const check = document.createElement('span');
+        check.dataset.check = '';
+        check.className = 'hidden rounded-full bg-signal-600 px-2.5 py-1 text-xs font-semibold text-white';
+        check.textContent = 'Selected';
+        top.append(quote, check);
+
+        const detail = document.createElement('p');
+        detail.className = 'mt-3 text-ink-700 leading-relaxed';
+        detail.textContent = entry.detail || '';
+
+        const person = document.createElement('p');
+        person.className = 'mt-4 text-sm text-ink-500';
+        person.textContent = `${entry.name}${entry.company ? ` · ${entry.company}` : ''}`;
+
+        button.append(top, detail, person);
+        button.addEventListener('click', () => select(entry));
+        answers.append(button);
+        if (entry.id === saved) select(entry);
+      }
+    };
+
+    load();
+  </script>
+</BaseLayout>

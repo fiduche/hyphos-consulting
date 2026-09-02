@@ -2,8 +2,9 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 /**
- * The dinner screen. Open on a laptop plugged into the projector, pass the
- * export key in the URL, then drive it with the spacebar.
+ * The dinner screen. Sign in on the presentation laptop, choose the judged
+ * winner at /golf/judge, then open this on the projector and drive it with the
+ * spacebar. No credential appears in the URL.
  *
  * Two rules shaped this. It loads its data ONCE and then runs entirely
  * offline, so clubhouse wifi dying mid-presentation cannot break it. And the
@@ -33,6 +34,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     <div id="groups" class="screen">
       <p class="kicker">The answers</p>
       <ol id="bars"></ol>
+    </div>
+
+    <div id="bridge" class="screen">
+      <p class="kicker">What Hyphos does</p>
+      <h1 class="huge bridge-title">One answer is a task.<br />Together, they show the system.</h1>
+      <p class="sub bridge-sub">
+        Hyphos connects company information with the knowledge and judgment of
+        the people who keep everything moving.
+      </p>
     </div>
 
     <div id="best" class="screen">
@@ -77,6 +87,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       font-size: clamp(40px, 8vw, 150px); line-height: 1.02; color: #faf8f4; margin: 0;
     }
     .sub { font-size: clamp(16px, 2.2vw, 40px); color: #9fb0c9; margin: 4vmin 0 0; }
+    .bridge-title { font-size: clamp(38px, 6.7vw, 126px); }
+    .bridge-sub { max-width: 42ch; margin-inline: auto; line-height: 1.35; }
 
     #bars { list-style: none; padding: 0; margin: 0; width: min(88vw, 1500px); }
     #bars li { margin-bottom: 2.4vmin; text-align: left; }
@@ -185,7 +197,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     // groups slide (here is what the room said, here is the one that stuck),
     // and it leaves the random draw as the last thing the room sees, which is
     // the one Laird gets thanked for.
-    const ORDER = ['title', 'groups', 'best', 'draw', 'closing'];
+    const ORDER = ['title', 'groups', 'bridge', 'best', 'draw', 'closing'];
     let step = -1;
     let data = null;
     let drawIndex = 0;
@@ -285,6 +297,19 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       } catch {
         el('loading-note').textContent = 'Could not load. Check your connection, then reload.';
         return;
+      }
+
+      // The Pro V1s are a judged prize. The judge page stores the chosen entry
+      // on this presentation device; do not silently substitute "longest
+      // answer" for judgment if that step was skipped.
+      const selectedId = Number(localStorage.getItem('hyphos-golf-best-pick'));
+      const selectedIndex = data.best?.findIndex((entry) => entry.id === selectedId) ?? -1;
+      if (data.best?.length && selectedIndex < 0) {
+        location.href = '/golf/judge';
+        return;
+      }
+      if (selectedIndex > 0) {
+        data.best = [data.best[selectedIndex], ...data.best.filter((_, i) => i !== selectedIndex)];
       }
       // Everything past here runs offline. Losing wifi now changes nothing.
       paint();

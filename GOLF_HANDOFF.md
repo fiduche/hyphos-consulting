@@ -17,6 +17,7 @@ Technical detail is in `INFRASTRUCTURE.md` under "Golf tournament entry form".
 | `/ai` | The "10 ways" piece the form promises **(draft, unreviewed)** |
 | `/golf/enter` | Sign in once; mints a 14h HttpOnly cookie |
 | `/golf/board` | Hole screen, all day, hotspot, auto-refresh |
+| `/golf/judge` | Choose the judged Pro V1s winner on the presentation device |
 | `/golf/live` | Dinner screen, keyboard-driven draw |
 | `/api/golf/summary` | Text readout: groups, both draws, verbatims, "THE LINE" |
 | `/api/golf/entries` | CSV export |
@@ -25,8 +26,9 @@ Add `?demo=1` to either screen to rehearse with sample data and no API call.
 
 ## Credentials
 
-- **Password:** `3376cae4ea934379afdcad91a045fd46b84a73ef` (Cloudflare secret
-  `GOLF_EXPORT_KEY`). Rotate with `npx wrangler secret put GOLF_EXPORT_KEY`.
+- The screen password is the Cloudflare secret `GOLF_EXPORT_KEY`. It must never
+  be written in this repository. Store it in a password manager and rotate it
+  with `npx wrangler secret put GOLF_EXPORT_KEY` from the `website` directory.
 - **`ANTHROPIC_API_KEY` expires 2026-09-30 23:00**, twelve days after the
   event. Nothing alerts on it; the probe fails open, so the symptom is silence.
 
@@ -36,6 +38,10 @@ Add `?demo=1` to either screen to rehearse with sample data and no API call.
   a random draw; Hyphos Pro V1s goes to the best answer, judged. Picking a
   winner on merit after calling it a draw was rejected: these are people he sees
   at church on Sundays.
+- **The judged winner is chosen at `/golf/judge` on the presentation device.**
+  The choice is stored only on that device and the live deck sends you back to
+  the judge page if this step was skipped. Answer length never silently chooses
+  the winner.
 - **Draw order is a `draw_key` written when each person enters.** It cannot be
   rerolled by reloading, and the dinner screen's reel reveals an already-settled
   result. Within one page load the winner never changes; that is deliberate.

@@ -52,28 +52,32 @@ const boxCls =
 <BaseLayout
   title="Enter to win"
   noindex
+  minimal
   description="Enter the draw at the Hyphos Consulting hole, Springs Men's Golf Classic, D'Arcy Ranch, September 18 2026."
 >
-  <section class="mx-auto max-w-2xl px-5 sm:px-8 pt-8 sm:pt-20 pb-6">
-    <div class="eyebrow mb-3">Springs Men's Golf Classic · D'Arcy Ranch</div>
+  <section class="mx-auto max-w-2xl px-5 sm:px-8 pt-7 sm:pt-14 pb-5">
+    <div class="flex items-center justify-between gap-4 mb-3">
+      <div class="eyebrow">Springs Men's Golf Classic · D'Arcy Ranch</div>
+      <div class="text-xs font-semibold text-ink-500 whitespace-nowrap">Hyphos</div>
+    </div>
     <h1 class="display text-4xl sm:text-5xl leading-tight text-ink-900">Enter to win.</h1>
     <p class="mt-4 text-lg text-ink-600 leading-relaxed">
       One entry each. Both winners announced at dinner, and you need to be there to win.
-      Takes about twenty seconds.
+      Takes about a minute.
     </p>
 
-    <div class="mt-7 grid sm:grid-cols-2 gap-3">
+    <div class="mt-6 grid grid-cols-2 gap-3">
       {prizes.map((p) => (
-        <div class="card p-5">
+        <div class="card p-4 sm:p-5">
           <div class="eyebrow mb-2">{p.sponsor}</div>
-          <div class="display text-lg text-ink-900 leading-snug">{p.prize}</div>
+          <div class="display text-base sm:text-lg text-ink-900 leading-snug">{p.prize}</div>
           <div class="mt-1.5 text-sm text-ink-600">{p.how}</div>
         </div>
       ))}
     </div>
   </section>
 
-  <section class="mx-auto max-w-2xl px-5 sm:px-8 pb-24">
+  <section class="mx-auto max-w-2xl px-5 sm:px-8 pb-16">
     <form id="entry-form" class="card p-6 sm:p-8" novalidate>
       <div class="space-y-6">
         <div class="grid grid-cols-2 gap-3">
@@ -91,13 +95,17 @@ const boxCls =
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class={labelCls} for="company">Company</label>
-            <input id="company" name="company" type="text" required
+            <label class={labelCls} for="company">
+              Company <span class="font-normal text-ink-400">(optional)</span>
+            </label>
+            <input id="company" name="company" type="text"
                    autocomplete="organization" enterkeyhint="next" class={field} />
           </div>
           <div>
-            <label class={labelCls} for="role">Role</label>
-            <input id="role" name="role" type="text" required
+            <label class={labelCls} for="role">
+              Role <span class="font-normal text-ink-400">(optional)</span>
+            </label>
+            <input id="role" name="role" type="text"
                    autocomplete="organization-title" enterkeyhint="next" class={field} />
           </div>
         </div>
@@ -144,7 +152,7 @@ const boxCls =
 
         <div class="rule"></div>
 
-        <div class="space-y-6">
+        <div class="space-y-5">
           <p class="text-sm text-ink-600 leading-relaxed">
             Tick anything you'd like. Leave them all blank and we'll only contact you if you win.
           </p>
@@ -156,36 +164,44 @@ const boxCls =
             </span>
           </label>
 
-          {consentGroups.map((group) => (
-            <fieldset class="border border-ink-200 rounded-lg p-4">
-              <legend class="px-2 text-sm font-semibold text-ink-900">{group.sponsor}</legend>
-              <p class="text-sm text-ink-600 mb-2">{group.intro}</p>
-              <div class="space-y-1">
-                {group.options.map((opt) => (
-                  <label class="flex items-start gap-3 py-2 cursor-pointer select-none" for={opt.name}>
-                    <input id={opt.name} name={opt.name} type="checkbox" class={boxCls} />
-                    <span class="text-[15px] leading-snug text-ink-700">{opt.label}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-          ))}
+          <details class="rounded-lg border border-ink-200 bg-white">
+            <summary class="cursor-pointer px-4 py-3.5 text-sm font-semibold text-ink-900">
+              Optional follow-up from Hyphos or Tidal
+            </summary>
+            <div class="border-t border-ink-200 p-4 space-y-5">
+              {consentGroups.map((group) => (
+                <fieldset>
+                  <legend class="text-sm font-semibold text-ink-900">{group.sponsor}</legend>
+                  <p class="text-sm text-ink-600 mt-1 mb-2">{group.intro}</p>
+                  <div class="space-y-1">
+                    {group.options.map((opt) => (
+                      <label class="flex items-start gap-3 py-2 cursor-pointer select-none" for={opt.name}>
+                        <input id={opt.name} name={opt.name} type="checkbox" class={boxCls} />
+                        <span class="text-[15px] leading-snug text-ink-700">{opt.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              ))}
+            </div>
+          </details>
         </div>
 
-        <div class="rounded-lg bg-cream-100 p-5 text-sm text-ink-700 leading-relaxed space-y-3">
-          <p class="font-semibold text-ink-900">How your details are used</p>
-          <p>
-            Your name and email are used to reach you if you win. Nothing else happens
-            unless you tick a box above.
-          </p>
-          <p>
-            Tick a Hyphos box and Daniel Newton at Hyphos Consulting will contact you.
-            Tick a Tidal box and we will pass your name, email and phone number to Laird
-            at Tidal Insurance so he can contact you. Nobody else receives your details,
-            we will not add you to any other list, and you can ask either of us to stop
-            at any time.
-          </p>
-        </div>
+        <details class="rounded-lg bg-cream-100 px-5 py-4 text-sm text-ink-700 leading-relaxed">
+          <summary class="cursor-pointer font-semibold text-ink-900">How your details are used</summary>
+          <div class="mt-3 space-y-3">
+            <p>
+              Your name and email are used to reach you if you win. Nothing else happens
+              unless you tick a box above.
+            </p>
+            <p>
+              Tick a Hyphos box and Daniel Newton at Hyphos will contact you. Tick a Tidal
+              box and we will pass your name, email and phone number to Laird at Tidal
+              Insurance so he can contact you. Nobody else receives your details, we will
+              not add you to another list, and you can ask either of us to stop at any time.
+            </p>
+          </div>
+        </details>
 
         {/* Honeypot: hidden from people, irresistible to bots. */}
         <div class="hidden" aria-hidden="true">
@@ -233,7 +249,6 @@ const boxCls =
     const TEXT_FIELDS = ['first_name', 'last_name', 'company', 'role', 'email', 'cell', 'wish', 'wish_detail'];
     // Captured from the probe so the answer is stored with the question it answered.
     let probeQuestionText = '';
-    let probeCategory = '';
     const CONSENT = [
       'want_list',
       'hyphos_company', 'hyphos_workplace', 'hyphos_referral',
@@ -342,12 +357,9 @@ const boxCls =
       for (const key of CONSENT) payload[key] = data.get(key) === 'on';
       payload.website = String(data.get('website') || '');
       payload.probe_question = probeQuestionText;
-      payload.category = probeCategory;
 
       if (!payload.first_name) return showError('First name is required.');
       if (!payload.last_name) return showError('Last name is required.');
-      if (!payload.company) return showError('Company is required.');
-      if (!payload.role) return showError('Role is required.');
       if (!EMAIL_RE.test(payload.email as string)) {
         markInvalid(emailInput);
         return showError('That email address looks off. It needs to look like name@company.com.');
@@ -413,7 +425,6 @@ const boxCls =
           probeQuestion.textContent = data.question;
           probeBlock.classList.remove('hidden');
           probeQuestionText = data.question;
-          probeCategory = data.category || '';
         }
       } catch {
         /* No signal or no key. The follow-up is a bonus, not a dependency. */

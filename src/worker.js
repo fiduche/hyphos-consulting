@@ -75,7 +75,8 @@ Examples:
 
 const MAX = {
   first_name: 80, last_name: 80, company: 140, role: 120,
-  email: 200, cell: 40, wish: 600,
+  email: 200, cell: 40, wish: 600, wish_detail: 600,
+  probe_question: 300,
 };
 
 // Every consent flag. Nothing is pre-ticked on the form, and none of these
@@ -135,8 +136,6 @@ async function handleEntry(request, env) {
 
   if (!entry.first_name) return json({ error: 'First name is required.' }, 400);
   if (!entry.last_name) return json({ error: 'Last name is required.' }, 400);
-  if (!entry.company) return json({ error: 'Company is required.' }, 400);
-  if (!entry.role) return json({ error: 'Role is required.' }, 400);
   if (!looksLikeEmail(entry.email)) return json({ error: 'That email address looks off.' }, 400);
 
   try {
@@ -338,10 +337,8 @@ async function handleExport(request, env) {
   if (!env.GOLF_EXPORT_KEY) return json({ error: 'Export is not configured.' }, 503);
   if (!(await hasSession(request, env))) return json({ error: 'Not authorized.' }, 401);
 
-  const url = new URL(request.url);
-
   const { results } = await env.DB.prepare(
-    `SELECT created_at, first_name, last_name, company, role, email, cell, wish, wish_detail, probe_question, category,
+    `SELECT created_at, first_name, last_name, company, role, email, cell, wish, wish_detail, probe_question,
             ${CONSENT.join(', ')}, starred
        FROM golf_entries
       ORDER BY created_at`
@@ -349,7 +346,7 @@ async function handleExport(request, env) {
 
   const columns = [
     'created_at', 'first_name', 'last_name', 'company', 'role', 'email', 'cell',
-    'wish', 'wish_detail', 'probe_question', 'category', ...CONSENT, 'starred',
+    'wish', 'wish_detail', 'probe_question', ...CONSENT, 'starred',
   ];
 
   const csv = [
@@ -380,7 +377,7 @@ async function handleSummary(request, env) {
   const url = new URL(request.url);
 
   const { results } = await env.DB.prepare(
-    `SELECT first_name, last_name, company, wish, wish_detail, draw_key
+    `SELECT id, first_name, last_name, company, wish, wish_detail, draw_key
        FROM golf_entries ORDER BY created_at`
   ).all();
   const rows = results ?? [];
@@ -573,7 +570,7 @@ These get read by the person who wrote them, standing next to the screen.`,
   const shortlist = answered
     .filter((r) => (r.wish_detail || '').trim().length > 12)
     .sort((a, b) => (b.wish_detail || '').length - (a.wish_detail || '').length)
-    .slice(0, 5);
+    .slice(0, 12);
 
   if (shortlist.length) {
     lines.push('');
@@ -672,6 +669,7 @@ These get read by the person who wrote them, standing next to the screen.`,
           company: r.company,
         })),
         best: shortlist.map((r) => ({
+          id: r.id,
           name: `${r.first_name} ${r.last_name}`,
           company: r.company,
           wish: r.wish,
@@ -733,3 +731,7 @@ export default {
     return response;
   },
 };
+
+// Small pure helpers are exported for contract tests. The Worker continues to
+// use the default export above in production.
+export { clean, looksLikeEmail, normaliseCell };

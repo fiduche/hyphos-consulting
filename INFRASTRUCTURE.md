@@ -191,6 +191,7 @@ in its URL; sign in once at `/golf/enter` first.
 | Page | Where | Behaviour |
 |---|---|---|
 | `/golf/board` | At the hole, all day, on a cellular hotspot | Refreshes every 45s. A failed refresh changes nothing on screen: the last good data stays up and a dot in the corner turns amber. A dropped hotspot is invisible to the room. |
+| `/golf/judge` | On the presentation laptop before dinner | Lists the detailed answers and stores the judge's explicit Pro V1s pick on that device. The live deck will not silently choose by answer length. |
 | `/golf/live` | Dinner, plugged into the projector | Loads once, then runs **entirely offline**. Driven by keyboard: space advances, `R` moves to the next name if the winner isn't present, arrows move back and forth. |
 
 **The board carries the QR at poster scale**, in a fixed right-hand column that
@@ -198,24 +199,37 @@ nothing about the data can shrink. Before anyone has answered it drops the
 running tally and shows the question instead: the first group through the hole
 should meet an invitation, not a scoreboard reading zero.
 
-**The dinner deck runs five slides**, in this order:
+**The dinner deck runs six slides**, in this order:
 
 1. `title` — what the room said, and how many answered
 2. `groups` — the ranked answers
-3. `best` — the Pro V1s. Two beats on one slide: space shows the winning answer
+3. `bridge` — one answer is a task; together they show the system. This bridges
+   the room's pattern to the explanation of what Hyphos does.
+4. `best` — the Pro V1s. Two beats on one slide: space shows the winning answer
    in their own words, space again reveals who wrote it. `R` drops to the next
    name on the shortlist if they are not in the room.
-4. `draw` — the Tidal rangefinder. Space spins, `R` drops to the next name.
-5. `closing`
+5. `draw` — the Tidal rangefinder. Space spins, `R` drops to the next name.
+6. `closing`
+
+Speaker line over the bridge slide:
+
+> Hyphos helps growing businesses handle more revenue with the people they
+> already have. Most successful companies eventually reach a point where their
+> systems are disconnected and a few key people have to hold everything
+> together. We connect the company's information with the knowledge and
+> judgment of those people so they can do more—and the rest of the organization
+> becomes less dependent on them. This screen is a small demonstration:
+> individual pieces of information came in, and Hyphos identified the larger
+> pattern.
 
 Best answer sits before the draw deliberately. It follows straight out of the
 groups slide, and it leaves the random draw as the last thing the room sees,
 which is the one Laird gets thanked for.
 
-**The draw animation reveals a result that is already decided.** Order comes
-from `draw_key`, assigned when each person entered, so the reel is theatre over
-a settled outcome. The screen and the phone always show the same winner, and no
-amount of reloading changes it.
+**The draw animation reveals a result that is already decided after entries
+close.** Order comes from `draw_key`, assigned when each person enters. Reload
+the deck once immediately after closing entries; from that point the reel is
+theatre over the settled order and the loaded deck runs offline.
 
 **The board's "recently added" line cycles every seven seconds** through the
 last eight answers, on its own clock rather than the 45s data refresh. Entries
@@ -245,6 +259,7 @@ sign-in and no risk of a fake name reaching the real entries.
 
 - `/golf/live/?demo=1` — full dinner sequence, five-second reel, fireworks, and
   a five-name shortlist so you can practise going down the list
+- `/golf/judge/?demo=1` — rehearse the explicit judged-winner selection
 - `/golf/board/?demo=1` — hole board, counts tick every 4s so the refresh is visible
 - `/golf/board/?demo=1&empty=1` — the board as the first group through will find
   it, before a single answer is in
