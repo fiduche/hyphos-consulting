@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/FlowIcon.astro';
+import FieldNotesPreview from '../components/FieldNotesPreview.astro';
 import { productUrl, wanderAppStoreUrl, wanderWebsiteUrl } from '../lib/site-links';
 import '../styles/visual-home.css';
 ---
@@ -8,8 +9,9 @@ import '../styles/visual-home.css';
 <div class="visual-page">
   <section class="v-hero v-shell">
     <p class="v-eyebrow">Hyphos Inc. · Consulting & software</p>
-    <h1>Your business.<br /><em>Working together.</em></h1>
-    <p class="v-intro">We connect your business systems, website and marketing—and build the software in between.</p>
+    <h1>Your best people<br /><em>have better things to do.</em></h1>
+    <p class="v-intro">Less chasing information. Less entering it twice. Less holding everything together by hand.</p>
+    <p class="v-hero-context">We connect your business systems, website and marketing—and build software around the way your team works.</p>
     <figure class="v-business-flow">
       <div class="v-flow-grid">
         <div class="v-flow-node"><div class="v-mini-screen" aria-hidden="true"><div class="v-screen-bar"><i></i><i></i><i></i></div><div class="v-mini-content"><Icon name="records" /><div class="v-data-lines"><span></span><span></span><span></span></div><div class="v-mini-status"><Icon name="check" />Reviewed by your team</div></div></div><strong>Business data</strong></div>
@@ -21,7 +23,7 @@ import '../styles/visual-home.css';
       <div class="v-feedback"><span>↶ Insight feeds the next business decision</span></div>
       <figcaption class="v-caption">Illustrated connection · Example from our client work, not live metrics</figcaption>
     </figure>
-    <div class="v-actions"><a href="/contact" class="button button--ink">Talk with us ↗</a><a href="#selected-work" class="text-link">See it in practice ↓</a></div>
+    <div class="v-actions"><a href="#selected-work" class="button button--ink">See what we’ve built ↓</a><a href="#field-notes" class="text-link">Explore the field notes ↓</a></div>
     <details class="v-detail"><summary>What does “working together” mean?</summary><div><p>Record information once. Use it where it belongs. Bring the response back into view. We connect the tools your team already uses and build custom software where the gaps are.</p><p><a href="/services">Explore how we help ↗</a></p></div></details>
   </section>
   <section id="selected-work" class="v-chapter v-proof"><div class="v-shell">
@@ -44,7 +46,8 @@ import '../styles/visual-home.css';
     <div class="v-capabilities"><article><Icon name="records" /><h3>Connect your systems.</h3><p>Less copying. Fewer gaps.</p></article><article><Icon name="website" /><h3>Build the missing piece.</h3><p>Software that fits the work.</p></article><article><Icon name="people" /><h3>Put knowledge to work.</h3><p>AI chats, meetings & documents.</p></article></div>
     <div class="v-work-links"><a href="/services" class="text-link">Explore how we help ↗</a></div>
   </div></section>
-  <section class="v-closing v-shell"><h2>What could work<br /><em>better together?</em></h2><p>Bring one problem. We’ll start there.</p><div class="v-actions"><a href="/contact" class="button button--ink">Talk with us ↗</a></div></section>
+  <FieldNotesPreview />
+  <section class="v-closing v-shell"><h2>Does this happen<br /><em>in your business?</em></h2><p>A question is enough. There’s no need for a prepared brief.</p><div class="v-actions"><a href="mailto:info@hyphos.io?subject=A%20question%20about%20connected%20business%20systems" class="button button--ink">Ask us a question ↗</a><a href="/contact" class="text-link">Talk with us ↗</a></div><p>Opens your email app.</p></section>
   <div class="v-bridge v-shell"><span>Also from Hyphos Inc.</span><a href={productUrl}>Hyphos & Domas: shaped around your business ↗</a></div>
 </div>
 </BaseLayout>

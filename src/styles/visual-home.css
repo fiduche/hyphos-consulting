@@ -7,6 +7,7 @@
 .visual-page h1{font-size:clamp(2.65rem,5.8vw,5rem);line-height:1.04;letter-spacing:-.06em;font-weight:500;margin:22px auto;max-width:850px;text-wrap:balance;}
 .visual-page h1 em,.visual-page h2 em{font-style:normal;color:var(--v-gold);}
 .v-intro{font-size:1.15rem;line-height:1.6;max-width:610px;margin-inline:auto!important;color:var(--v-muted);text-wrap:balance;}
+.visual-page .v-hero-context{max-width:640px;margin:18px auto 0;font-size:1rem;line-height:1.7;color:var(--v-muted);text-wrap:balance;}
 .v-actions{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:18px 30px;margin-top:27px;}
 .v-actions .button{border-radius:5px;min-height:48px;padding:14px 22px;font-size:.9375rem;}
 .visual-page .v-caption{color:var(--v-muted);font-size:.75rem;line-height:1.5;margin-top:18px;}
