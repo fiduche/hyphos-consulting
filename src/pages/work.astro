@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { wanderAppStoreUrl, wanderWebsiteUrl } from '../lib/site-links';
 ---
 
 <BaseLayout
@@ -193,7 +194,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <div class="mx-auto max-w-5xl px-5 sm:px-8 py-20 sm:py-24">
       <div class="flex flex-wrap items-center gap-3 mb-5">
         <span class="inline-block px-2.5 py-1 rounded-full bg-ink-100 text-ink-700 text-xs font-semibold">Mobile · iOS</span>
-        <span class="text-sm text-ink-500">In TestFlight beta</span>
+        <span class="text-sm text-ink-500">Available on the App Store</span>
       </div>
 
       <h2 class="display text-4xl sm:text-5xl text-ink-900 leading-tight">
@@ -220,14 +221,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
               <li>· Map discovery service ingesting curated park data across cities</li>
               <li>· Family-friendly review &amp; photo system with moderation</li>
               <li>· Marketing site (Astro + Cloudflare) at wanderapp.ca</li>
-              <li>· TestFlight rollout, App Store assets, brand work end-to-end</li>
+              <li>· App Store launch, release assets, brand work end-to-end</li>
             </ul>
           </div>
 
           <div>
             <div class="eyebrow mb-2">Status</div>
             <p class="text-ink-700 leading-relaxed">
-              Currently in TestFlight beta with a growing family-tester cohort. Android build planned. Ongoing partnership for product, engineering and growth.
+              Live on the Apple App Store and free to download on iPhone. Android is coming soon. Ongoing partnership for product, engineering and growth.
             </p>
           </div>
         </div>
@@ -242,15 +243,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
               That restraint is hard to keep when you're shipping. It only happens if it's a deliberate design choice from day one. That's the kind of constraint we like working under.
             </p>
             <div class="rule mt-8 mb-6"></div>
-            <a href="https://wanderapp.ca" class="link text-sm">Visit wanderapp.ca →</a>
+            <div class="flex flex-wrap gap-x-6 gap-y-3"><a href={wanderAppStoreUrl} class="link text-sm" target="_blank" rel="noopener">Download on the App Store ↗</a><a href={wanderWebsiteUrl} class="link text-sm" target="_blank" rel="noopener">Visit wanderapp.ca ↗</a></div>
           </div>
         </div>
       </div>
 
       {/* ─── Wander screenshot gallery ─── */}
-      {/* Three iOS portrait screenshots (1179×2556 native). Tiles use the
-          phone aspect ratio so the captures sit naturally inside soft
-          warm-tinted "device" frames. */}
+      {/* Current promotional screenshots from wanderapp.ca, shown in full. */}
       <div class="mt-14 pt-10 border-t border-ink-200">
         <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
           <div>
@@ -258,39 +257,39 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <h3 class="display text-2xl text-ink-900 leading-tight">Wander on iOS</h3>
           </div>
           <p class="text-sm text-ink-500 max-w-sm">
-            Currently in TestFlight beta. The TestFlight invite is open — drop us a line and we'll add you.
+            Explore the map, check the details and make plans. Available now on iPhone.
           </p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
           <figure class="card overflow-hidden p-0 bg-cream-100">
-            <div class="aspect-[9/19.5] w-full overflow-hidden flex items-center justify-center p-4 sm:p-6">
+            <div class="aspect-[640/1388] w-full overflow-hidden flex items-center justify-center">
               <img
-                src="/work/wander/wander-1.png"
-                alt="Wander iOS app screenshot"
-                class="h-full w-auto object-contain rounded-2xl shadow-lg shadow-ink-900/10"
+                src="/work/wander/wander-find.webp"
+                alt="Wander map showing nearby parks and playgrounds" width="640" height="1388"
+                class="h-full w-full object-contain"
                 loading="lazy"
               />
             </div>
           </figure>
 
           <figure class="card overflow-hidden p-0 bg-cream-100">
-            <div class="aspect-[9/19.5] w-full overflow-hidden flex items-center justify-center p-4 sm:p-6">
+            <div class="aspect-[640/1388] w-full overflow-hidden flex items-center justify-center">
               <img
-                src="/work/wander/wander-2.png"
-                alt="Wander iOS app screenshot"
-                class="h-full w-auto object-contain rounded-2xl shadow-lg shadow-ink-900/10"
+                src="/work/wander/wander-check.webp"
+                alt="Wander park details with photos, reviews and amenities" width="640" height="1388"
+                class="h-full w-full object-contain"
                 loading="lazy"
               />
             </div>
           </figure>
 
           <figure class="card overflow-hidden p-0 bg-cream-100">
-            <div class="aspect-[9/19.5] w-full overflow-hidden flex items-center justify-center p-4 sm:p-6">
+            <div class="aspect-[640/1388] w-full overflow-hidden flex items-center justify-center">
               <img
-                src="/work/wander/wander-3.png"
-                alt="Wander iOS app screenshot"
-                class="h-full w-auto object-contain rounded-2xl shadow-lg shadow-ink-900/10"
+                src="/work/wander/wander-go.webp"
+                alt="Wander event creation for planning an outing with friends" width="640" height="1388"
+                class="h-full w-full object-contain"
                 loading="lazy"
               />
             </div>
