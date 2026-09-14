@@ -1,248 +1,46 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { productUrl } from '../lib/site-links';
+import '../styles/home.css';
+import CornerstoneSystem from '../components/CornerstoneSystem.astro';
 ---
-
-<BaseLayout
-  title="Hyphos"
-  description="Hyphos helps growing businesses handle more revenue with the people they already have by connecting company information with the knowledge and judgment of the people who keep the work moving."
->
-  <section class="relative overflow-hidden border-b border-ink-200/60">
-    <div class="absolute inset-0 grid-bg opacity-50 pointer-events-none"></div>
-    <div class="relative mx-auto max-w-6xl px-5 sm:px-8 py-20 sm:py-28 lg:py-36">
-      <div class="max-w-4xl">
-        <div class="eyebrow mb-5">Connected operations · usable knowledge</div>
-        <h1 class="display text-5xl sm:text-6xl lg:text-7xl leading-[1.02] text-ink-900">
-          Handle more revenue with the people you already have.
-        </h1>
-        <p class="mt-7 max-w-3xl text-lg sm:text-xl leading-relaxed text-ink-700">
-          Hyphos connects the systems your business runs on with the knowledge and
-          judgment of the people who keep them moving—so more work gets done without
-          adding the same coordination overhead.
-        </p>
-
-        <div class="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold uppercase tracking-widest text-ink-500">
-          <span>Connected information</span>
-          <span class="text-ink-300">·</span>
-          <span>Captured expertise</span>
-          <span class="text-ink-300">·</span>
-          <span>Automated coordination</span>
-        </div>
-
-        <div class="mt-10 flex flex-wrap gap-3">
-          <a href="/contact" class="btn-primary">
-            Find the constraint
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </a>
-          <a href="/work#cornerstone" class="btn-secondary">See the proof</a>
-        </div>
-      </div>
+<BaseLayout title="Hyphos Inc. — Consulting & software" description="Connected systems, shared knowledge, and software built around your business. Hyphos Inc. helps growing businesses reduce manual coordination and dependence on a few key people.">
+  <section class="consulting-hero page-shell">
+    <div class="hero-copy">
+      <p class="section-label"><span class="gold-dash" aria-hidden="true"></span> Hyphos Inc. · Consulting & software</p>
+      <h1>Grow without<br />making your people<br /><em>the bottleneck.</em></h1>
+      <p class="hero-intro">Connect the systems. Capture the know-how. Give your team more room to do the work that matters.</p>
+      <div class="button-row"><a href="/contact" class="button button--ink">Talk with us <span aria-hidden="true">↗</span></a><a href="#selected-work" class="text-link">See what we've built <span aria-hidden="true">↓</span></a></div>
     </div>
+    <a class="hero-project" href="/work/cornerstone" aria-label="Explore the connected business software case study">
+      <div class="project-topline"><span>From our work</span><span>01 / Business software</span></div>
+      <div class="project-title"><h2>The business. The website.<br />The marketing. Connected.</h2><span aria-hidden="true">↗</span></div>
+      <div class="project-image"><img src="/work/cornerstone/staff-portal.png" width="2912" height="2340" alt="Client staff portal showing its connected calendar and business tools" fetchpriority="high" /></div>
+      <div class="project-caption"><span>Business data, publishing & insight</span><span>One connected system</span></div>
+    </a>
   </section>
-
-  <section class="mx-auto max-w-6xl px-5 sm:px-8 py-20 sm:py-24">
-    <div class="grid lg:grid-cols-[0.9fr_1.35fr] gap-10 lg:gap-16">
-      <div>
-        <div class="eyebrow mb-4">The growth constraint</div>
-        <h2 class="display text-3xl sm:text-4xl leading-tight text-ink-900">
-          Growth eventually runs into the people holding everything together.
-        </h2>
-      </div>
-      <div class="space-y-5 text-lg leading-relaxed text-ink-700">
-        <p>
-          Most successful companies reach a point where their systems are disconnected
-          and a few key people have to carry the context between them. They know which
-          spreadsheet is right, which exception matters, who needs to be called, and what
-          the process really means when the written procedure stops being useful.
-        </p>
-        <p>
-          Revenue keeps growing, but so does the coordination load. The organization adds
-          people to move information, chase decisions, and protect against things slipping
-          through the cracks.
-        </p>
-        <p class="font-semibold text-ink-900">
-          That is not simply a staffing problem. It is an information-and-judgment problem.
-        </p>
-      </div>
+  <section class="work-strip"><div class="page-shell"><span>Good work, connected.</span><p>Business systems <span aria-hidden="true">/</span> Practical AI <span aria-hidden="true">/</span> Custom software</p></div></section>
+  <section class="constraint page-shell">
+    <div><p class="section-label"><span class="index">01</span>The work between the work</p><h2>Someone always<br />holds it all together.</h2></div>
+    <div class="constraint-copy"><p>They know which spreadsheet is right. Why the quote changed. Who needs a call before anything moves.</p><p>As the business grows, more work passes through the same few people. We connect your information and build around how your team actually works—so the context travels with the job.</p></div>
+  </section>
+  <section id="selected-work" class="selected-work"><div class="page-shell">
+    <div class="section-heading"><p class="section-label"><span class="index">02</span>Selected work</p><a href="/work" class="text-link">Explore the work <span aria-hidden="true">↗</span></a></div>
+    <div class="cs-home-feature">
+      <div class="cs-home-intro"><h3>Your business.<br />Connected.</h3><p>Business records feed the public website. Website and marketing activity come back into the staff system. Explore how the pieces fit.</p></div>
+      <CornerstoneSystem id="home-system" compact />
+      <a href="/work/cornerstone" class="text-link">Take a closer look at the software <span aria-hidden="true">↗</span></a>
     </div>
-
-    <div class="mt-14 grid md:grid-cols-3 gap-5">
-      <article class="card p-6">
-        <div class="eyebrow text-signal-600 mb-3">01 · Disconnected</div>
-        <h3 class="display text-xl text-ink-900">The information is scattered.</h3>
-        <p class="mt-3 text-sm leading-relaxed text-ink-600">
-          Customer history, schedules, finance, documents, and conversations live in
-          different systems that do not share context.
-        </p>
-      </article>
-      <article class="card p-6">
-        <div class="eyebrow text-signal-600 mb-3">02 · Concentrated</div>
-        <h3 class="display text-xl text-ink-900">The judgment lives in a few heads.</h3>
-        <p class="mt-3 text-sm leading-relaxed text-ink-600">
-          Experienced people become the routing layer because only they know how the
-          pieces relate and when the normal rule does not apply.
-        </p>
-      </article>
-      <article class="card p-6">
-        <div class="eyebrow text-signal-600 mb-3">03 · Constrained</div>
-        <h3 class="display text-xl text-ink-900">Capacity stops scaling.</h3>
-        <p class="mt-3 text-sm leading-relaxed text-ink-600">
-          More revenue creates more handoffs, more checking, and more dependence on the
-          same people instead of more leverage from what the company already knows.
-        </p>
-      </article>
+    <div class="case-grid">
+      <article class="case-story"><span class="case-number">01 / Connected operations</span><h2>Connected software.<br />Built around the business.</h2><p>From family communications and scheduling to documents and accounting: one connected platform, shaped around the people caring for families.</p><div class="case-facts"><div><span>The challenge</span><p>Information scattered across systems and people.</p></div><div><span>The work</span><p>Bring the website, staff tools and business operations together.</p></div></div><a href="/work/cornerstone" class="text-link">Explore the connected platform <span aria-hidden="true">↗</span></a></article>
+      <article class="wander-story"><div class="wander-visual"><img src="/work/wander/wander-1.png" width="1179" height="2556" alt="Wander's park and trail discovery app on iOS" loading="lazy" /><img src="/work/wander/wander-2.png" width="1179" height="2556" alt="A second view of the Wander app" loading="lazy" /></div><div class="wander-caption"><div><span class="case-number">02 / A product from the ground up</span><h3>Wander</h3><p>Less planning. More time outside.</p></div><a href="/work#wander" class="circle-link" aria-label="Read the Wander case study">↗</a></div></article>
     </div>
+  </div></section>
+  <section class="help-section page-shell"><div class="section-heading"><p class="section-label"><span class="index">03</span>How we help</p><h2>Start with the constraint.<br />Build what the work needs.</h2></div>
+    <div class="help-row"><span>01</span><h3>Connect what you have.</h3><p>Your accounting, website, scheduling and customer information should work together. We close the gaps that people are bridging by hand.</p><a href="/services#build" aria-label="Read about connecting existing systems">↗</a></div>
+    <div class="help-row"><span>02</span><h3>Build around your business.</h3><p>When the tools don't fit, we design and build software around the workflow, the exceptions and the people who use it.</p><a href="/services" aria-label="Read about custom software">↗</a></div>
+    <div class="help-row"><span>03</span><h3>Put your knowledge to work.</h3><p>Make decisions, documents and experience useful beyond the person who remembers them. This is the thinking behind Hyphos.</p><a href={productUrl} aria-label="Explore the Hyphos knowledge product">↗</a></div>
   </section>
-
-  <section class="bg-ink-950 text-cream-50">
-    <div class="mx-auto max-w-6xl px-5 sm:px-8 py-20 sm:py-24">
-      <div class="max-w-3xl">
-        <div class="eyebrow text-signal-300 mb-4">What Hyphos changes</div>
-        <h2 class="display text-3xl sm:text-5xl leading-tight">
-          Connect the systems. Capture the judgment. Put both to work.
-        </h2>
-      </div>
-
-      <div class="mt-14 grid lg:grid-cols-3 gap-8">
-        <article class="border-t border-cream-50/20 pt-6">
-          <div class="display text-3xl text-signal-300">01</div>
-          <h3 class="display text-xl mt-4">See the actual work</h3>
-          <p class="mt-3 text-sm leading-relaxed text-cream-100/70">
-            We sit with the people doing the work and map the systems, handoffs,
-            exceptions, and decisions that determine whether revenue moves or stalls.
-          </p>
-        </article>
-        <article class="border-t border-cream-50/20 pt-6">
-          <div class="display text-3xl text-signal-300">02</div>
-          <h3 class="display text-xl mt-4">Build the connected layer</h3>
-          <p class="mt-3 text-sm leading-relaxed text-cream-100/70">
-            We connect the tools that should stay, replace the patchwork that cannot,
-            and create one dependable flow of information through the business.
-          </p>
-        </article>
-        <article class="border-t border-cream-50/20 pt-6">
-          <div class="display text-3xl text-signal-300">03</div>
-          <h3 class="display text-xl mt-4">Make expertise reusable</h3>
-          <p class="mt-3 text-sm leading-relaxed text-cream-100/70">
-            The system uses the company’s real record together with experienced judgment,
-            so routine work moves without routing every decision through the same people.
-          </p>
-        </article>
-      </div>
-
-      <div class="mt-14 grid sm:grid-cols-3 rounded-xl border border-cream-50/15 bg-cream-50/5">
-        <div class="p-6 sm:border-r border-cream-50/15">
-          <div class="display text-2xl">More capacity</div>
-          <p class="mt-2 text-sm text-cream-100/60">Revenue grows faster than coordination overhead.</p>
-        </div>
-        <div class="p-6 border-t sm:border-t-0 sm:border-r border-cream-50/15">
-          <div class="display text-2xl">Less dependence</div>
-          <p class="mt-2 text-sm text-cream-100/60">The business stops relying on memory and heroics.</p>
-        </div>
-        <div class="p-6 border-t sm:border-t-0 border-cream-50/15">
-          <div class="display text-2xl">Better work</div>
-          <p class="mt-2 text-sm text-cream-100/60">People keep the relationships and judgment calls.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="mx-auto max-w-6xl px-5 sm:px-8 py-20 sm:py-24">
-    <div class="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-16 items-start">
-      <div>
-        <div class="flex flex-wrap items-center gap-3 mb-5">
-          <span class="eyebrow text-warm-600">In production</span>
-          <span class="text-sm text-ink-500">Cornerstone Funeral Home</span>
-        </div>
-        <h2 class="display text-3xl sm:text-4xl leading-tight text-ink-900">
-          One business. One connected operating system.
-        </h2>
-        <p class="mt-5 text-lg leading-relaxed text-ink-700">
-          Cornerstone had a public website, paper processes, family communications,
-          scheduling, marketing, finance, and reporting that required people to carry
-          information between them. Hyphos replaced that coordination layer with sixteen
-          connected modules on one database.
-        </p>
-        <p class="mt-4 text-ink-600 leading-relaxed">
-          The result is not “more software.” It is a business that can handle more activity
-          without rebuilding the same context by hand every day.
-        </p>
-        <a href="/work#cornerstone" class="link inline-block mt-7">Read the Cornerstone case study →</a>
-      </div>
-
-      <aside class="card overflow-hidden p-0">
-        <div class="grid grid-cols-2">
-          <div class="p-6 border-r border-b border-ink-200">
-            <div class="display text-2xl text-ink-900">16 modules</div>
-            <p class="mt-2 text-xs leading-relaxed text-ink-600">One database underneath the operation.</p>
-          </div>
-          <div class="p-6 border-b border-ink-200">
-            <div class="display text-2xl text-ink-900">~$98k / yr</div>
-            <p class="mt-2 text-xs leading-relaxed text-ink-600">Marketing and operations spend reclaimed.</p>
-          </div>
-          <div class="p-6 border-r border-ink-200">
-            <div class="display text-2xl text-ink-900">4–5 hrs / wk</div>
-            <p class="mt-2 text-xs leading-relaxed text-ink-600">For one staff member to run the marketing stack.</p>
-          </div>
-          <div class="p-6">
-            <div class="display text-2xl text-ink-900">One record</div>
-            <p class="mt-2 text-xs leading-relaxed text-ink-600">Customer, operational, and financial context stays connected.</p>
-          </div>
-        </div>
-      </aside>
-    </div>
-  </section>
-
-  <section class="border-y border-ink-200/60 bg-cream-100">
-    <div class="mx-auto max-w-6xl px-5 sm:px-8 py-20">
-      <div class="max-w-3xl">
-        <div class="eyebrow mb-4">How we deploy it</div>
-        <h2 class="display text-3xl sm:text-4xl text-ink-900">One outcome, three starting points.</h2>
-        <p class="mt-4 text-ink-600 leading-relaxed">
-          The right starting point depends on what already works, what cannot be replaced,
-          and where the organization is most dependent on manual coordination.
-        </p>
-      </div>
-
-      <div class="mt-10 grid md:grid-cols-3 gap-5">
-        <a href="/services#build" class="card p-6 group">
-          <div class="eyebrow text-signal-600 mb-3">Connect</div>
-          <h3 class="display text-xl text-ink-900">Integrate what you have.</h3>
-          <p class="mt-3 text-sm leading-relaxed text-ink-600">
-            Connect the systems that must stay and automate the work currently happening between them.
-          </p>
-          <span class="link inline-block mt-5 text-sm">Integration work →</span>
-        </a>
-        <a href="/products#foundation" class="card p-6 group">
-          <div class="eyebrow text-signal-600 mb-3">Operate</div>
-          <h3 class="display text-xl text-ink-900">Replace the patchwork.</h3>
-          <p class="mt-3 text-sm leading-relaxed text-ink-600">
-            Deploy the connected operating platform when the existing stack cannot be made coherent.
-          </p>
-          <span class="link inline-block mt-5 text-sm">Foundation →</span>
-        </a>
-        <a href="https://hyphos.io" class="card p-6 group">
-          <div class="eyebrow text-signal-600 mb-3">Know</div>
-          <h3 class="display text-xl text-ink-900">Make expertise available.</h3>
-          <p class="mt-3 text-sm leading-relaxed text-ink-600">
-            Connect meetings, documents, decisions, and experienced judgment into usable organizational knowledge.
-          </p>
-          <span class="link inline-block mt-5 text-sm">Knowledge platform →</span>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <section class="mx-auto max-w-4xl px-5 sm:px-8 py-20 sm:py-24 text-center">
-    <div class="eyebrow mb-4">Start with the constraint</div>
-    <h2 class="display text-3xl sm:text-4xl leading-tight text-ink-900">
-      Where does growth still depend on someone holding the whole picture in their head?
-    </h2>
-    <p class="mt-5 max-w-2xl mx-auto text-lg leading-relaxed text-ink-600">
-      We will look at the actual work, identify where information and judgment are constraining capacity,
-      and tell you plainly what is worth changing.
-    </p>
-    <a href="/contact" class="btn-primary mt-8">Start a conversation</a>
-  </section>
+  <section class="founder-section"><div class="page-shell founder-grid"><div><p class="section-label">A conversation, to start.</p><h2>Tell me where<br />the work gets stuck.</h2></div><div><p class="founder-quote">The first step is to understand the work. What's happening, who holds the context, and where things start to slip.</p><p class="founder-name">Daniel Newton <span>Hyphos Inc.</span></p><p class="founder-body">Bring a process that's taking too much time. We'll talk through the problem and whether there's a useful way to help.</p><a href="/contact" class="button button--gold">Start a conversation <span aria-hidden="true">↗</span></a></div></div></section>
+  <section class="product-bridge page-shell"><span class="section-label">Also from Hyphos Inc.</span><p>What if the knowledge<br />stayed with the work?</p><a href={productUrl} class="text-link">Meet Hyphos <span aria-hidden="true">↗</span></a></section>
 </BaseLayout>

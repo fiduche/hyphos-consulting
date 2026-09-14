@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./brand.css";
 
 /* ─────────────────────────────────────────────────────────────────────────────
  * Hyphos Consulting design tokens.
@@ -23,18 +24,18 @@
   --color-ink-100: #f3f4f6;
 
   /* Cream — page backgrounds, warm neutrals */
-  --color-cream-50:  #faf8f4;
-  --color-cream-100: #f4f0e8;
+  --color-cream-50:  #f6f5f1;
+  --color-cream-100: #eeede7;
   --color-cream-200: #ebe4d4;
   --color-cream-300: #ddd1b8;
 
   /* Signal — the single accent, tying the helix/network mark to interaction */
-  --color-signal-50:  #eef6ff;
-  --color-signal-100: #d9ecff;
-  --color-signal-300: #76b4ff;
-  --color-signal-500: #1d6fe0;
-  --color-signal-600: #1657b8;
-  --color-signal-700: #134a99;
+  --color-signal-50:  #f7f2e8;
+  --color-signal-100: #eee2cc;
+  --color-signal-300: #c6a572;
+  --color-signal-500: #92703c;
+  --color-signal-600: #795b30;
+  --color-signal-700: #654b26;
 
   /* Warm — secondary accent for product cards / hover states */
   --color-warm-500: #c08b4c;
@@ -164,3 +165,5 @@ body {
 .link:hover {
   text-decoration-color: var(--color-signal-600);
 }
+
+.eyebrow{font-size:.75rem;letter-spacing:.14em}.btn-primary,.btn-secondary{border-radius:2px}.bg-mesh,.bg-hairline-grid{background-image:none}.display{font-family:var(--font-sans);font-weight:500;letter-spacing:-.04em}

@@ -1,0 +1,34 @@
+---
+import '../styles/cornerstone.css';
+interface Props { id?: string; compact?: boolean; }
+const { id = 'cornerstone-system', compact = false } = Astro.props;
+const views = [
+  { key: 'business', title: 'Business data', subtitle: 'The work behind the scenes', heading: 'The details start with the work.', description: 'Customer and service information, schedules, documents and financial workflows sit within the same business platform.', connection: 'Service details can be brought into the obituary publishing workflow, giving staff a starting point from the information already recorded.', from: 'Customer & service record', through: 'Staff review & publishing', to: 'Public website content', items: ['Customer & service information', 'Staff schedules & documents', 'Estimates, invoices & accounting'] },
+  { key: 'website', title: 'Public website', subtitle: 'The experience people see', heading: 'The website is part of the system.', description: 'Website content is managed from the business platform. Public pages draw on published information, including obituaries, service details and approved guestbook entries.', connection: 'The website takes its content from the platform and sends activity signals back to reporting—connecting the public experience to the team behind it.', from: 'Published content', through: 'Customer-facing website', to: 'Page activity & referrals', items: ['Content management & publishing', 'Obituaries & service information', 'Approved guestbook contributions'] },
+  { key: 'marketing', title: 'Marketing & insight', subtitle: 'The feedback into the business', heading: 'See what the activity is telling you.', description: 'Publishing activity, reviews and connected search data feed the marketing reporting workflow. Website analytics brings traffic and referral information into the staff portal.', connection: 'Weekly marketing digests bring available evidence together with suggested next actions, giving the team a basis for deciding what to improve.', from: 'Website & marketing signals', through: 'Reporting & weekly review', to: 'The next business decision', items: ['Website traffic & referring sources', 'Search performance & content activity', 'Reviews & weekly marketing digests'] }
+];
+---
+<div class:list={['cs-system', { 'cs-system--compact': compact }]} data-cs-system>
+  <div class="cs-system-top"><span>Business software / One connected platform</span><span>Explore a view</span></div>
+  <div class="cs-system-tabs" role="tablist" aria-label="Explore the connected business software">
+    {views.map((view,i) => <button type="button" role="tab" id={`${id}-tab-${i}`} aria-controls={`${id}-panel-${i}`} aria-selected={i===0 ? 'true' : 'false'} tabindex={i===0 ? 0 : -1} data-cs-tab={i}><span class="cs-view-number">0{i+1}</span><span><strong>{view.title}</strong><small>{view.subtitle}</small></span><span class="cs-tab-arrow" aria-hidden="true">↗</span></button>)}
+  </div>
+  {views.map((view,i) => <section class="cs-system-panel" role="tabpanel" id={`${id}-panel-${i}`} aria-labelledby={`${id}-tab-${i}`} tabindex="0" hidden={i!==0}>
+    <div class="cs-panel-copy"><div><span class="section-label">{view.title}</span><h3>{view.heading}</h3><p>{view.description}</p></div><ul>{view.items.map(item=><li>{item}</li>)}</ul></div>
+    {!compact && <div class="cs-system-media">
+      {view.key === 'business' && <figure class="cs-portal"><img src="/work/cornerstone/staff-portal.png" width="2912" height="2340" alt="Actual client staff portal screenshot showing its calendar and business navigation" loading="lazy" /><figcaption>Actual software view · Staff portal and calendar</figcaption></figure>}
+      {view.key === 'website' && <figure class="cs-public-site"><div class="cs-public-image"><img src="/work/cornerstone/website-hero.webp" width="2560" height="1182" alt="Cornerstone Funeral Home's fleet outside the building, as featured on its website" loading="lazy" /></div><figcaption><span>Homepage imagery from the client website</span><a href="https://cornerstonefuneralhome.com" target="_blank" rel="noopener">Visit the public website ↗</a></figcaption></figure>}
+      {view.key === 'marketing' && <div class="cs-marketing-diagram" role="img" aria-label="Website traffic, search performance, publishing activity and reviews feed reporting and a weekly marketing digest, informing the team's next actions."><div class="cs-signal-list"><span>Website traffic & referrals</span><span>Connected search data</span><span>Content & review activity</span></div><div class="cs-diagram-arrow" aria-hidden="true">→</div><div class="cs-digest"><span class="section-label">Weekly marketing review</span><h4>What changed?<br />What needs attention?<br />What should happen next?</h4><p>Evidence and suggested actions, brought together.</p></div><p class="cs-diagram-caption">Reporting flow · Explanatory diagram</p></div>}
+    </div>}
+    <div class="cs-connection"><span class="section-label">The connection</span><div class="cs-flow"><span>{view.from}</span><span aria-hidden="true">→</span><span>{view.through}</span><span aria-hidden="true">→</span><span>{view.to}</span></div><p>{view.connection}</p></div>
+  </section>)}
+  <div class="cs-system-bottom"><span class="cs-loop-symbol" aria-hidden="true">↻</span><p>Business information informs the website. Website and marketing activity inform the next decision.</p><span>System overview</span></div>
+</div>
+<script>
+document.querySelectorAll<HTMLElement>('[data-cs-system]').forEach(system=>{
+ const tabs=[...system.querySelectorAll<HTMLButtonElement>('[data-cs-tab]')];
+ const panels=[...system.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
+ function select(index:number,focus=false){tabs.forEach((tab,i)=>{tab.setAttribute('aria-selected',String(i===index));tab.tabIndex=i===index?0:-1;});panels.forEach((panel,i)=>panel.hidden=i!==index);if(focus)tabs[index].focus();}
+ tabs.forEach((tab,i)=>{tab.addEventListener('click',()=>select(i));tab.addEventListener('keydown',event=>{let n=i;if(event.key==='ArrowRight')n=(i+1)%tabs.length;else if(event.key==='ArrowLeft')n=(i+tabs.length-1)%tabs.length;else if(event.key==='Home')n=0;else if(event.key==='End')n=tabs.length-1;else return;event.preventDefault();select(n,true);});});
+});
+</script>

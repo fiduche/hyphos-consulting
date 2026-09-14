@@ -1,0 +1,28 @@
+---
+interface Props { topic?: string; }
+const { topic = 'A conversation with Hyphos' } = Astro.props;
+---
+<form id="email-draft" class="contact-form" data-topic={topic}>
+  <div class="field-grid"><div><label for="contact-name">Your name</label><input id="contact-name" name="name" autocomplete="name" required maxlength="120" /></div><div><label for="contact-company">Company <span>(optional)</span></label><input id="contact-company" name="company" autocomplete="organization" maxlength="150" /></div></div>
+  <label for="contact-message">What would you like to work on?</label><textarea id="contact-message" name="message" rows="5" required maxlength="2500" placeholder="A process, a handoff, a problem that keeps coming back…"></textarea>
+  <button type="submit" class="button button--gold">Prepare an email <span aria-hidden="true">↗</span></button>
+  <p class="contact-note">Opens a draft in your email app. You can review it before sending. These details aren't saved by this page.</p>
+  <p class="form-status" id="email-status" role="status" hidden></p>
+</form>
+<script>
+const form=document.querySelector<HTMLFormElement>('#email-draft');
+form?.addEventListener('submit',event=>{
+  event.preventDefault();
+  if(!form.reportValidity()) return;
+  const data=new FormData(form);
+  const name=String(data.get('name')||'').trim();
+  const company=String(data.get('company')||'').trim();
+  const message=String(data.get('message')||'').trim();
+  if(!name || !message) return;
+  const body=`Hi Daniel,\n\n${message}\n\n${name}${company ? '\n'+company : ''}`;
+  const subject=form.dataset.topic || 'A conversation with Hyphos';
+  window.location.href=`mailto:info@hyphos.io?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const status=document.querySelector<HTMLElement>('#email-status');
+  if(status){status.hidden=false;status.textContent="Finish sending in your email app. If it didn't open, email info@hyphos.io directly.";}
+});
+</script>

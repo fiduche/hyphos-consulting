@@ -1,0 +1,6 @@
+---
+import { consultingUrl, productUrl } from '../lib/site-links';
+const { site } = Astro.props;
+const live = site === 'consulting' ? 'https://hyphosconsulting.com' : 'https://hyphos.io';
+---
+{import.meta.env.DEV && <aside class="preview-bar" aria-label="Design preview controls"><span>Local design draft</span><nav aria-label="Preview navigation"><a href={consultingUrl} aria-current={site === 'consulting' ? 'page' : undefined}>Consulting</a><a href={productUrl} aria-current={site === 'product' ? 'page' : undefined}>Product</a><a href={live} target="_blank" rel="noopener">Compare live ↗</a></nav></aside>}
