@@ -1,0 +1,19 @@
+---
+interface Props { name: 'records' | 'website' | 'insight' | 'people' | 'document' | 'conversation' | 'check' | 'ai' | 'meeting' | 'scope' | 'regulations' | 'business'; }
+const {name} = Astro.props;
+const paths = {
+  records: 'M7 5h14v20H7z M11 10h6 M11 15h6 M11 20h3 M4 9H3v20h14v-1',
+  website: 'M3 6h26v20H3z M3 12h26 M7 9h.01 M11 9h.01 M15 9h.01 M8 17h7 M8 21h12',
+  insight: 'M4 4v24h25 M10 23v-7 M17 23V9 M24 23V4',
+  people: 'M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M4 27v-4a8 8 0 0 1 16 0v4 M22 5a4 4 0 0 1 0 8 M24 17a7 7 0 0 1 4 6v4',
+  document: 'M7 3h12l6 6v20H7z M19 3v7h6 M11 15h10 M11 20h10 M11 25h6',
+  conversation: 'M4 5h24v17H14l-7 6v-6H4z M9 11h14 M9 16h9',
+  ai: 'M4 6h24v16H14l-7 6v-6H4z M16 9v10 M11 14h10',
+  meeting: 'M5 6h22v23H5z M5 12h22 M10 3v6 M22 3v6 M10 17h3 M19 17h3 M10 22h3',
+  scope: 'M7 3h18v26H7z M11 10l2 2 4-4 M11 19l2 2 4-4 M20 11h2 M20 20h2',
+  regulations: 'M16 3v25 M7 28h18 M5 10h22 M9 10L4 20h10L9 10 M23 10l-5 10h10l-5-10',
+  business: 'M4 10h24v18H4z M11 10V5h10v5 M4 17h24 M13 17v4h6v-4',
+  check: 'M6 16l7 7L27 8'
+};
+---
+<svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={paths[name]} /></svg>

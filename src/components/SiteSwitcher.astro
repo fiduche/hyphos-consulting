@@ -1,0 +1,20 @@
+---
+import { consultingUrl, productUrl } from '../lib/site-links';
+interface Props { site: 'consulting' | 'product'; }
+const { site } = Astro.props;
+const label = site === 'consulting' ? 'Consulting' : 'Knowledge & Work';
+---
+<details class="site-switcher" data-site-switcher>
+  <summary aria-label={`Switch website. Current: ${label}`}><span>{label}</span><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></summary>
+  <nav class="site-switcher-options" aria-label="Choose a Hyphos website">
+    <a href={consultingUrl} aria-current={site === 'consulting' ? 'true' : undefined}><strong>Consulting</strong><span>Systems, websites & software</span></a>
+    <a href={productUrl} aria-current={site === 'product' ? 'true' : undefined}><strong>Knowledge & Work</strong><span>Hyphos & Domas</span></a>
+  </nav>
+</details>
+<script>
+document.querySelectorAll<HTMLDetailsElement>('[data-site-switcher]').forEach(switcher => {
+  document.addEventListener('click', event => { if (event.target instanceof Node && !switcher.contains(event.target)) switcher.open = false; });
+  switcher.addEventListener('keydown', event => { if (event.key === 'Escape' && switcher.open) { event.preventDefault(); switcher.open = false; switcher.querySelector('summary')?.focus(); } });
+  switcher.addEventListener('focusout', event => { if (event.relatedTarget instanceof Node && !switcher.contains(event.relatedTarget)) switcher.open = false; });
+});
+</script>

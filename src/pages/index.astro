@@ -1,46 +1,50 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/FlowIcon.astro';
 import { productUrl, wanderAppStoreUrl, wanderWebsiteUrl } from '../lib/site-links';
-import '../styles/home.css';
-import CornerstoneSystem from '../components/CornerstoneSystem.astro';
+import '../styles/visual-home.css';
 ---
-<BaseLayout title="Hyphos Inc. — Consulting & software" description="Connected systems, shared knowledge, and software built around your business. Hyphos Inc. helps growing businesses reduce manual coordination and dependence on a few key people.">
-  <section class="consulting-hero page-shell">
-    <div class="hero-copy">
-      <p class="section-label"><span class="gold-dash" aria-hidden="true"></span> Hyphos Inc. · Consulting & software</p>
-      <h1>Grow without<br />making your people<br /><em>the bottleneck.</em></h1>
-      <p class="hero-intro">Connect the systems. Capture the know-how. Give your team more room to do the work that matters.</p>
-      <div class="button-row"><a href="/contact" class="button button--ink">Talk with us <span aria-hidden="true">↗</span></a><a href="#selected-work" class="text-link">See what we've built <span aria-hidden="true">↓</span></a></div>
-    </div>
-    <a class="hero-project" href="/work/cornerstone" aria-label="Explore the connected business software case study">
-      <div class="project-topline"><span>From our work</span><span>01 / Business software</span></div>
-      <div class="project-title"><h2>The business. The website.<br />The marketing. Connected.</h2><span aria-hidden="true">↗</span></div>
-      <div class="project-image"><img src="/work/cornerstone/staff-portal.png" width="2912" height="2340" alt="Client staff portal showing its connected calendar and business tools" fetchpriority="high" /></div>
-      <div class="project-caption"><span>Business data, publishing & insight</span><span>One connected system</span></div>
-    </a>
+<BaseLayout title="Hyphos Inc. — Consulting & software" description="We connect your business systems, website and marketing—and build the software in between. Explore what Hyphos Inc. has built.">
+<div class="visual-page">
+  <section class="v-hero v-shell">
+    <p class="v-eyebrow">Hyphos Inc. · Consulting & software</p>
+    <h1>Your business.<br /><em>Working together.</em></h1>
+    <p class="v-intro">We connect your business systems, website and marketing—and build the software in between.</p>
+    <figure class="v-business-flow">
+      <div class="v-flow-grid">
+        <div class="v-flow-node"><div class="v-mini-screen" aria-hidden="true"><div class="v-screen-bar"><i></i><i></i><i></i></div><div class="v-mini-content"><Icon name="records" /><div class="v-data-lines"><span></span><span></span><span></span></div><div class="v-mini-status"><Icon name="check" />Reviewed by your team</div></div></div><strong>Business data</strong></div>
+        <span class="v-flow-arrow" aria-label="feeds">→</span>
+        <div class="v-flow-node"><div class="v-mini-screen" aria-hidden="true"><div class="v-screen-bar"><i></i><i></i><i></i></div><img class="v-website-image" src="/work/cornerstone/website-hero.webp" width="2560" height="1182" alt="" /><div class="v-data-lines v-website-lines"><span></span><span></span></div></div><strong>Public website</strong></div>
+        <span class="v-flow-arrow" aria-label="activity informs">→</span>
+        <div class="v-flow-node"><div class="v-mini-screen" aria-hidden="true"><div class="v-screen-bar"><i></i><i></i><i></i></div><div class="v-mini-content"><Icon name="insight" /><div class="v-chart"><i></i><i></i><i></i><i></i></div><div class="v-mini-status">Traffic · Search · Reviews</div></div></div><strong>Marketing insight</strong></div>
+      </div>
+      <div class="v-feedback"><span>↶ Insight feeds the next business decision</span></div>
+      <figcaption class="v-caption">Illustrated connection · Example from our client work, not live metrics</figcaption>
+    </figure>
+    <div class="v-actions"><a href="/contact" class="button button--ink">Talk with us ↗</a><a href="#selected-work" class="text-link">See it in practice ↓</a></div>
+    <details class="v-detail"><summary>What does “working together” mean?</summary><div><p>Record information once. Use it where it belongs. Bring the response back into view. We connect the tools your team already uses and build custom software where the gaps are.</p><p><a href="/services">Explore how we help ↗</a></p></div></details>
   </section>
-  <section class="work-strip"><div class="page-shell"><span>Good work, connected.</span><p>Business systems <span aria-hidden="true">/</span> Practical AI <span aria-hidden="true">/</span> Custom software</p></div></section>
-  <section class="constraint page-shell">
-    <div><p class="section-label"><span class="index">01</span>The work between the work</p><h2>Someone always<br />holds it all together.</h2></div>
-    <div class="constraint-copy"><p>They know which spreadsheet is right. Why the quote changed. Who needs a call before anything moves.</p><p>As the business grows, more work passes through the same few people. We connect your information and build around how your team actually works—so the context travels with the job.</p></div>
-  </section>
-  <section id="selected-work" class="selected-work"><div class="page-shell">
-    <div class="section-heading"><p class="section-label"><span class="index">02</span>Selected work</p><a href="/work" class="text-link">Explore the work <span aria-hidden="true">↗</span></a></div>
-    <div class="cs-home-feature">
-      <div class="cs-home-intro"><h3>Your business.<br />Connected.</h3><p>Business records feed the public website. Website and marketing activity come back into the staff system. Explore how the pieces fit.</p></div>
-      <CornerstoneSystem id="home-system" compact />
-      <a href="/work/cornerstone" class="text-link">Take a closer look at the software <span aria-hidden="true">↗</span></a>
+  <section id="selected-work" class="v-chapter v-proof"><div class="v-shell">
+    <div class="v-chapter-heading"><p class="v-eyebrow">Built by Hyphos</p><h2>Behind the website.<br /><em>A connected business.</em></h2></div>
+    <div class="v-proof-display">
+      <figure><div class="v-portal-frame"><img src="/work/cornerstone/staff-portal.png" width="2912" height="2340" alt="Actual client staff portal, showing its calendar and business navigation" loading="lazy" /></div><figcaption class="v-caption">Actual client software · Staff portal</figcaption></figure>
+      <div class="v-proof-points"><div class="v-proof-point"><Icon name="people" /><div><strong>The team</strong><span>Records & daily work</span></div></div><div class="v-proof-point"><Icon name="website" /><div><strong>The customer</strong><span>Website & publishing</span></div></div><div class="v-proof-point"><Icon name="insight" /><div><strong>The next decision</strong><span>Marketing & reporting</span></div></div></div>
     </div>
-    <div class="case-grid">
-      <article class="case-story"><span class="case-number">01 / Connected operations</span><h2>Connected software.<br />Built around the business.</h2><p>From family communications and scheduling to documents and accounting: one connected platform, shaped around the people caring for families.</p><div class="case-facts"><div><span>The challenge</span><p>Information scattered across systems and people.</p></div><div><span>The work</span><p>Bring the website, staff tools and business operations together.</p></div></div><a href="/work/cornerstone" class="text-link">Explore the connected platform <span aria-hidden="true">↗</span></a></article>
-      <article class="wander-story"><div class="wander-visual"><img src="/work/wander/wander-find.webp" width="640" height="1388" alt="Wander map showing nearby parks and playgrounds" loading="lazy" /><img src="/work/wander/wander-check.webp" width="640" height="1388" alt="Wander park details with photos, reviews and amenities" loading="lazy" /></div><div class="wander-caption"><div><span class="case-number">02 / A product from the ground up</span><h3>Wander</h3><p>Less planning. More time outside.</p><p>Now available on the App Store.</p></div><a href="/work#wander" class="circle-link" aria-label="Read the Wander case study">↗</a></div><div class="wander-links"><a href={wanderAppStoreUrl} class="text-link" target="_blank" rel="noopener">Download on the App Store ↗</a><a href={wanderWebsiteUrl} class="text-link" target="_blank" rel="noopener">Visit Wander ↗</a></div></article>
-    </div>
+    <details class="v-detail"><summary>See how the pieces connect</summary><div><p>For client Cornerstone Funeral Home, service records can supply website content. The public site reads published information, while website activity and available marketing signals feed staff reporting.</p><p><a href="/work/cornerstone">Explore the connected software ↗</a></p></div></details>
+    <div class="v-work-links"><a href="/work/cornerstone" class="text-link">Take a closer look ↗</a></div>
   </div></section>
-  <section class="help-section page-shell"><div class="section-heading"><p class="section-label"><span class="index">03</span>How we help</p><h2>Start with the constraint.<br />Build what the work needs.</h2></div>
-    <div class="help-row"><span>01</span><h3>Connect what you have.</h3><p>Your accounting, website, scheduling and customer information should work together. We close the gaps that people are bridging by hand.</p><a href="/services#build" aria-label="Read about connecting existing systems">↗</a></div>
-    <div class="help-row"><span>02</span><h3>Build around your business.</h3><p>When the tools don't fit, we design and build software around the workflow, the exceptions and the people who use it.</p><a href="/services" aria-label="Read about custom software">↗</a></div>
-    <div class="help-row"><span>03</span><h3>Put your knowledge to work.</h3><p>Make decisions, documents and experience useful beyond the person who remembers them. This is the thinking behind Hyphos.</p><a href={productUrl} aria-label="Explore the Hyphos knowledge product">↗</a></div>
-  </section>
-  <section class="founder-section"><div class="page-shell founder-grid"><div><p class="section-label">A conversation, to start.</p><h2>Tell me where<br />the work gets stuck.</h2></div><div><p class="founder-quote">The first step is to understand the work. What's happening, who holds the context, and where things start to slip.</p><p class="founder-name">Daniel Newton <span>Hyphos Inc.</span></p><p class="founder-body">Bring a process that's taking too much time. We'll talk through the problem and whether there's a useful way to help.</p><a href="/contact" class="button button--gold">Start a conversation <span aria-hidden="true">↗</span></a></div></div></section>
-  <section class="product-bridge page-shell"><span class="section-label">Also from Hyphos Inc.</span><p>What if the knowledge<br />stayed with the work?</p><a href={productUrl} class="text-link">Meet Hyphos <span aria-hidden="true">↗</span></a></section>
+  <section class="v-chapter v-wander"><div class="v-shell">
+    <div class="v-chapter-heading"><p class="v-eyebrow">Wander · Live on the App Store</p><h2>From “let’s go outside”<br /><em>to out the door.</em></h2><p>A real product, built from the ground up.</p></div>
+    <div class="v-wander-shots"><img src="/work/wander/wander-find.webp" width="640" height="1388" alt="Wander map showing nearby parks and playgrounds" loading="lazy" /><img src="/work/wander/wander-check.webp" width="640" height="1388" alt="Wander park details with photos, reviews and amenities" loading="lazy" /><img src="/work/wander/wander-go.webp" width="640" height="1388" alt="Wander event creation for planning an outing" loading="lazy" /></div>
+    <div class="v-actions"><a href={wanderAppStoreUrl} class="button button--ink" target="_blank" rel="noopener">Get Wander ↗</a><a href={wanderWebsiteUrl} class="text-link" target="_blank" rel="noopener">Visit Wander ↗</a></div>
+    <details class="v-detail"><summary>What we built for Wander</summary><div><p>App development, park discovery, reviews, the public website and the App Store launch. A product partnership from the first idea through release.</p><p><a href="/work#wander">Explore the project ↗</a></p></div></details>
+  </div></section>
+  <section class="v-chapter"><div class="v-shell">
+    <div class="v-chapter-heading"><p class="v-eyebrow">Where we can help</p><h2>Start where the work<br /><em>gets stuck.</em></h2></div>
+    <div class="v-capabilities"><article><Icon name="records" /><h3>Connect your systems.</h3><p>Less copying. Fewer gaps.</p></article><article><Icon name="website" /><h3>Build the missing piece.</h3><p>Software that fits the work.</p></article><article><Icon name="people" /><h3>Put knowledge to work.</h3><p>AI chats, meetings & documents.</p></article></div>
+    <div class="v-work-links"><a href="/services" class="text-link">Explore how we help ↗</a></div>
+  </div></section>
+  <section class="v-closing v-shell"><h2>What could work<br /><em>better together?</em></h2><p>Bring one problem. We’ll start there.</p><div class="v-actions"><a href="/contact" class="button button--ink">Talk with us ↗</a></div></section>
+  <div class="v-bridge v-shell"><span>Also from Hyphos Inc.</span><a href={productUrl}>Hyphos & Domas: shaped around your business ↗</a></div>
+</div>
 </BaseLayout>
