@@ -1,0 +1,13 @@
+/* Shared look for the course pages. Light on purpose: these are read on a
+   phone in full sun on a fairway, and on a clubhouse TV. */
+:root { color-scheme: light; --ink: #16181b; --soft: #5d636b; --rule: #e3e1dc; --gold: #b0894f; --gold-deep: #8f6c3a; --paper: #fbfaf7; --card: #ffffff; --ok: #2f6b4a; --bad: #a2432f; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--rule); background: var(--card); position: sticky; top: 0; z-index: 2; }
+.brand { display: inline-flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; font-weight: 500; font-size: 17px; }
+.brand img { width: 26px; height: 26px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--gold); color: var(--gold-deep); background: #fff; border-radius: 999px; padding: 8px 14px; font: 600 14px 'Inter', system-ui, sans-serif; text-decoration: none; white-space: nowrap; }
+.pill .dot { width: 8px; height: 8px; border-radius: 50%; background: #d64a3a; box-shadow: 0 0 0 0 rgba(214,74,58,.6); animation: pulse 1.6s infinite; }
+@keyframes pulse { 70% { box-shadow: 0 0 0 7px rgba(214,74,58,0); } 100% { box-shadow: 0 0 0 0 rgba(214,74,58,0); } }
+.kicker { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--gold-deep); font-weight: 600; margin: 0 0 6px; }
+.muted { color: var(--soft); }
+@media (prefers-reduced-motion: reduce) { .pill .dot { animation: none; } }

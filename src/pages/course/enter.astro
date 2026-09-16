@@ -1,0 +1,179 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import roster from '../../data/roster.json';
+import './_theme.css';
+
+/**
+ * Phone form behind the QR on each contest sign. Pace of play first: the
+ * name is remembered after the first entry, so every later contest is the
+ * number and one tap. Reached as /c/CTP etc, which logs the scan and lands
+ * here with ?c=<contest id>.
+ */
+const rosterJson = JSON.stringify(roster).replace(/</g, '\\u003c');
+---
+
+<BaseLayout title="Post a result" noindex minimal>
+  <header class="bar">
+    <a class="brand" href="/course/"><img src="/golf/knot.png" alt="" /> hyphos</a>
+    <a class="pill" href="/course/"><span class="dot"></span> Live board</a>
+  </header>
+
+  <main class="wrap">
+    <!-- chooser, shown if the contest is missing or unknown -->
+    <section id="pick" hidden>
+      <p class="kicker">Springs Men's Golf Classic</p>
+      <h1>Which contest?</h1>
+      <div id="pick-list" class="stack"></div>
+    </section>
+
+    <form id="form" hidden autocomplete="off">
+      <p class="kicker" id="c-hole"></p>
+      <h1 id="c-title"></h1>
+      <p class="muted how" id="c-rule"></p>
+
+      <label class="field">
+        <span>Your name</span>
+        <input id="player" name="player" list="names" required autocapitalize="words" enterkeyhint="next" placeholder="Start typing your name" />
+        <datalist id="names"></datalist>
+        <small id="team-note" class="muted"></small>
+      </label>
+
+      <div id="measure" class="field" hidden>
+        <span>Distance</span>
+        <div class="dist">
+          <label><input id="feet" type="number" inputmode="numeric" min="0" max="300" step="1" placeholder="0" /><b>ft</b></label>
+          <label><select id="inches">
+            <option value="0">0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+            <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option>
+          </select><b>in</b></label>
+        </div>
+      </div>
+
+      <div class="hp" aria-hidden="true"><input id="website" type="text" tabindex="-1" autocomplete="off" /></div>
+
+      <button id="submit" type="submit" class="go"></button>
+      <p id="err" class="err" role="alert"></p>
+    </form>
+
+    <section id="done" hidden>
+      <p class="kicker">Posted</p>
+      <h1 id="done-title">You're on the board.</h1>
+      <p class="muted" id="done-sub"></p>
+      <a class="go link" href="/course/"><span class="dot"></span> See the live board</a>
+      <button id="again" type="button" class="ghost">Fix my entry</button>
+    </section>
+  </main>
+
+  <footer class="foot muted">Honour system, same as the sheet. Powered by <a href="/go/course">Hyphos</a>.</footer>
+
+  <script type="application/json" id="roster" set:html={rosterJson}></script>
+
+  <style is:global>
+    .wrap { max-width: 520px; margin: 0 auto; padding: 22px 16px 40px; }
+    h1 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 500; font-size: 34px; line-height: 1.08; margin: 0 0 8px; }
+    .how { margin: 0 0 22px; font-size: 16px; line-height: 1.45; }
+    .field { display: flex; flex-direction: column; gap: 8px; margin: 0 0 18px; font-weight: 600; font-size: 15px; }
+    input, select { font: 400 20px 'Inter', system-ui, sans-serif; padding: 14px; border: 1.5px solid #cfccc5; border-radius: 10px; background: #fff; color: var(--ink); width: 100%; box-sizing: border-box; }
+    input:focus, select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(176,137,79,.2); }
+    .dist { display: grid; grid-template-columns: 1.4fr 1fr; gap: 10px; }
+    .dist label { display: flex; align-items: center; gap: 8px; }
+    .dist b { font-weight: 500; color: var(--soft); }
+    .go { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 18px; border: 0; border-radius: 12px; background: var(--ink); color: #fff; font: 600 19px 'Inter', system-ui, sans-serif; cursor: pointer; text-decoration: none; margin-top: 8px; }
+    .go:disabled { opacity: .5; }
+    .go.link { background: var(--gold); color: #16181b; }
+    .go .dot { width: 9px; height: 9px; border-radius: 50%; background: #d64a3a; }
+    .ghost { width: 100%; margin-top: 12px; padding: 14px; background: none; border: 1px solid var(--rule); border-radius: 12px; font: 500 16px 'Inter', system-ui, sans-serif; color: var(--soft); }
+    .err { color: var(--bad); min-height: 1.4em; margin: 10px 0 0; font-weight: 500; }
+    .stack { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+    .stack a { display: block; padding: 16px; border: 1px solid var(--rule); border-radius: 12px; background: #fff; color: var(--ink); text-decoration: none; font-weight: 600; font-size: 18px; }
+    .stack a small { display: block; color: var(--soft); font-weight: 400; font-size: 14px; margin-top: 3px; }
+    .hp { position: absolute; left: -9999px; }
+    .foot { text-align: center; font-size: 13px; padding: 0 16px 28px; }
+    .foot a { color: var(--gold-deep); }
+  </style>
+
+  <script>
+    import { CONTESTS, CONTEST_BY_ID, isMeasured, formatInches } from '../../data/contests.js';
+
+    const $ = (id) => document.getElementById(id);
+    const NAME_KEY = 'hyphos-course-name';
+    const roster = JSON.parse($('roster').textContent || '[]');
+    const byName = new Map(roster.map((r) => [r.name.toLowerCase(), r]));
+    const contest = CONTEST_BY_ID[new URLSearchParams(location.search).get('c') || ''];
+
+    const holeLabel = (c) => (c.hole ? `Hole ${c.hole}` : 'On course') + (c.sponsor ? ` · ${c.sponsor}` : '');
+
+    if (!contest) {
+      $('pick').hidden = false;
+      $('pick-list').replaceChildren(...CONTESTS.map((c) => {
+        const a = document.createElement('a'); a.href = `?c=${c.id}`; a.textContent = c.title;
+        const s = document.createElement('small'); s.textContent = holeLabel(c); a.append(s); return a;
+      }));
+    } else {
+      const form = $('form'); form.hidden = false;
+      $('c-hole').textContent = holeLabel(contest);
+      $('c-title').textContent = contest.title;
+      $('c-rule').textContent = contest.rule;
+      $('measure').hidden = !isMeasured(contest);
+      $('submit').textContent = contest.mode === 'list' ? "I'm in the square" : contest.mode === 'latest' ? 'I moved the marker' : 'Post my distance';
+
+      const dl = $('names');
+      roster.forEach((r) => { const o = document.createElement('option'); o.value = r.name; if (r.team) o.label = r.team; dl.append(o); });
+
+      const player = $('player');
+      const syncTeam = () => {
+        const hit = byName.get(player.value.trim().toLowerCase());
+        $('team-note').textContent = hit ? (hit.team || `Group ${hit.group}`) : player.value.trim() ? 'Not on the roster? That is fine, post it anyway.' : '';
+      };
+      player.addEventListener('input', syncTeam);
+      try { const saved = localStorage.getItem(NAME_KEY); if (saved) { player.value = saved; syncTeam(); } } catch {}
+      (player.value ? (isMeasured(contest) ? $('feet') : $('submit')) : player).focus({ preventScroll: true });
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        $('err').textContent = '';
+        const name = player.value.trim().replace(/\s+/g, ' ');
+        if (name.length < 2) { $('err').textContent = 'Pick your name.'; return; }
+        const hit = byName.get(name.toLowerCase());
+        const payload = { contest: contest.id, player: hit ? hit.name : name, team: hit ? (hit.team || `Group ${hit.group}`) : '', website: $('website').value };
+        if (isMeasured(contest)) {
+          payload.feet = Number($('feet').value || 0); payload.inches = Number($('inches').value || 0);
+          if (payload.feet * 12 + payload.inches <= 0) { $('err').textContent = 'Enter the distance.'; return; }
+        }
+        const btn = $('submit'); btn.disabled = true;
+        try {
+          const res = await fetch('/api/course/entry', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
+          const out = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(out.error || 'Could not post. Try again.');
+          try { localStorage.setItem(NAME_KEY, payload.player); } catch {}
+          await showDone(payload);
+        } catch (err) {
+          $('err').textContent = err.message || 'No signal? Try again in a moment, or write it on the sheet.';
+        } finally { btn.disabled = false; }
+      });
+
+      $('again').addEventListener('click', () => { $('done').hidden = true; form.hidden = false; });
+    }
+
+    async function showDone(payload) {
+      $('form').hidden = true; $('done').hidden = false;
+      $('done-title').textContent = "You're on the board.";
+      $('done-sub').textContent = '';
+      try {
+        const res = await fetch('/api/course/board', { cache: 'no-store' });
+        const board = await res.json();
+        const c = board.contests.find((x) => x.id === contest.id);
+        const i = c.entries.findIndex((x) => x.player.toLowerCase() === payload.player.toLowerCase());
+        if (i < 0) return;
+        const me = c.entries[i];
+        if (contest.mode === 'list') { $('done-title').textContent = "You're in the draw."; $('done-sub').textContent = `${c.count} in so far.`; }
+        else if (contest.mode === 'latest') { $('done-title').textContent = "You're the new leader."; $('done-sub').textContent = 'Until someone passes you.'; }
+        else {
+          $('done-title').textContent = i === 0 ? "You're leading." : `You're ${ordinal(i + 1)}.`;
+          $('done-sub').textContent = i === 0 ? `${formatInches(me.value)}. Hold on to it.` : `${formatInches(me.value)}. The leader is at ${formatInches(c.entries[0].value)}.`;
+        }
+      } catch {}
+    }
+    function ordinal(n) { const s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
+  </script>
+</BaseLayout>

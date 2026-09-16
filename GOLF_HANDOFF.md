@@ -21,6 +21,10 @@ Technical detail is in `INFRASTRUCTURE.md` under "Golf tournament entry form".
 | `/golf/live` | Dinner screen, keyboard-driven draw |
 | `/api/golf/summary` | Text readout: groups, both draws, verbatims, "THE LINE" |
 | `/api/golf/entries` | CSV export |
+| `/golf/prizes` | **Full tournament prize draw** for the dinner: paste the attendee list and prize table, strike the score winners, draw every prize with the Hyphos frame on screen. Local-only; winners export as CSV. `?demo=1` to rehearse. |
+| `/course` | **Live on-course contest board.** Replaces the pinned sheets. Phone and clubhouse TV. `?demo=1` sample data, `?admin=1` adds remove buttons (needs the screen sign-in). |
+| `/c/<CODE>` | QR on each contest sign (`/C/CTP`, `/C/LD`, `/C/LP`, `/C/SQ`). Logs the scan, opens the entry form. Contests and hole numbers live in `src/data/contests.js`. Needs `migrations/2026-09-16-course-entries.sql` applied remotely once. |
+| `/go/<tag>` | QR tracking redirect. Printed codes carry `/GO/BAG`, `/GO/HAND`, `/GO/HOLE`, `/GO/TABLE`, `/GO/SCREEN`; each hit is logged then sent to the homepage. Counts at `/api/golf/scans` (same gate as the screens). Needs `migrations/2026-09-16-scan-log.sql` applied remotely once. |
 
 Add `?demo=1` to either screen to rehearse with sample data and no API call.
 

@@ -1,0 +1,188 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import './_theme.css';
+
+/**
+ * Live board for every on-course contest. The same page works on a phone
+ * (one column) and on the clubhouse TV (a grid with the Hyphos footer and
+ * QR). Refreshes every 15 seconds while visible.
+ *
+ * ?admin=1 adds a remove button on each entry for the committee. The server
+ * checks the screen password cookie from /golf/enter, so the flag on its own
+ * does nothing.
+ * ?demo=1 fills the board with sample entries and no network.
+ */
+---
+
+<BaseLayout title="Live contest board" noindex minimal>
+  <header class="bar">
+    <a class="brand" href="/course/"><img src="/golf/knot.png" alt="" /> hyphos</a>
+    <p class="line"><span class="l1">Stop being the admin.</span> <span class="l2">Focus on what matters.</span></p>
+    <span class="pill live"><span class="dot"></span> Live</span>
+  </header>
+
+  <main class="wrap">
+    <div class="head">
+      <div>
+        <p class="kicker">Springs Men's Golf Classic · D'Arcy Ranch</p>
+        <h1>On-course contests</h1>
+      </div>
+      <p class="muted updated" id="updated">Loading…</p>
+    </div>
+    <div id="grid" class="grid"></div>
+  </main>
+
+  <footer class="tv">
+    <div>
+      <p class="kicker">This board replaced the paper sheet</p>
+      <p class="pitch">What else in your business still runs on a clipboard?</p>
+    </div>
+    <div class="qr">
+      <img src="/golf/qr-screen.png" alt="QR code for hyphosconsulting.com" width="120" height="120" />
+      <p>hyphosconsulting.com<br /><span>Whole business, AI connected</span></p>
+    </div>
+  </footer>
+
+  <style is:global>
+    .bar .line { margin: 0; font-size: 15px; text-align: center; display: none; }
+    .bar .l1 { font-weight: 300; } .bar .l2 { font-weight: 600; color: var(--gold-deep); }
+    .live { cursor: default; }
+    .wrap { max-width: 1400px; margin: 0 auto; padding: 20px 16px 28px; }
+    .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    h1 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 500; font-size: clamp(30px, 4vw, 54px); margin: 0; line-height: 1.05; }
+    .updated { margin: 0; font-size: 13px; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    .cb-card { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; min-width: 0; }
+    .cb-card h2 { margin: 0; font-size: 21px; font-weight: 600; }
+    .cb-card .meta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 14px; }
+    .cb-card .count { font-size: 13px; color: var(--soft); white-space: nowrap; }
+    .leader { border-top: 2px solid var(--gold); padding-top: 12px; margin-bottom: 8px; }
+    .leader .who { font-family: 'Source Serif 4', Georgia, serif; font-size: clamp(26px, 2.6vw, 40px); line-height: 1.1; margin: 2px 0; overflow-wrap: anywhere; }
+    .leader .num { font-size: clamp(22px, 2.2vw, 34px); font-weight: 700; color: var(--gold-deep); font-variant-numeric: tabular-nums; }
+    .team { font-size: 14px; color: var(--soft); }
+    .empty { color: var(--soft); font-style: italic; padding: 12px 0; }
+    ol { list-style: none; padding: 0; margin: 0; }
+    ol li { display: grid; grid-template-columns: 1.8em 1fr auto; gap: 8px; align-items: baseline; padding: 8px 0; border-top: 1px solid var(--rule); font-size: 16px; }
+    ol li .rank { color: var(--soft); font-variant-numeric: tabular-nums; }
+    ol li .n { font-weight: 600; font-variant-numeric: tabular-nums; }
+    ol li .t { display: block; font-size: 13px; color: var(--soft); }
+    .enter { margin-top: auto; padding-top: 14px; }
+    .enter a { display: block; text-align: center; padding: 12px; border-radius: 10px; border: 1px solid var(--ink); color: var(--ink); text-decoration: none; font-weight: 600; }
+    .fresh { animation: flash 2.4s ease; }
+    @keyframes flash { 0% { background: rgba(176,137,79,.28); } 100% { background: transparent; } }
+    .rm { border: 0; background: none; color: var(--bad); font-size: 13px; cursor: pointer; padding: 0 0 0 6px; }
+    footer.tv { display: none; }
+
+    @media (min-width: 760px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1200px) {
+      .grid { grid-template-columns: repeat(4, 1fr); }
+      .bar .line { display: block; }
+      footer.tv { display: flex; justify-content: space-between; align-items: center; gap: 24px; max-width: 1400px; margin: 0 auto; padding: 16px 16px 28px; border-top: 1px solid var(--rule); }
+      footer.tv .pitch { margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-size: 28px; }
+      footer.tv .qr { display: flex; align-items: center; gap: 14px; }
+      footer.tv .qr img { width: 110px; height: 110px; }
+      footer.tv .qr p { margin: 0; color: var(--gold-deep); font-weight: 600; font-size: 18px; line-height: 1.35; }
+      footer.tv .qr span { color: var(--soft); font-weight: 500; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+    }
+    @media (prefers-reduced-motion: reduce) { .fresh { animation: none; } }
+  </style>
+
+  <script>
+    import { formatInches } from '../../data/contests.js';
+
+    const params = new URLSearchParams(location.search);
+    const ADMIN = params.has('admin');
+    const DEMO = params.has('demo');
+    const $ = (id) => document.getElementById(id);
+    const seen = new Set();
+    let first = true;
+
+    const DEMO_BOARD = () => {
+      const t = (m) => new Date(Date.now() - m * 60000).toISOString();
+      const e = (id, player, team, value, m) => ({ id, player, team, value, at: t(m) });
+      return { updated_at: new Date().toISOString(), contests: [
+        { id: 'ctp', hole: 3, mode: 'latest', title: 'Closest to the pin', count: 5, entries: [e(1,'Brad Beckett','Lights Out',null,12), e(2,'Chris Karam','Rip It',null,40), e(3,'Ed Huculak','The Hucksters',null,55), e(4,'Ben Alleckna','Fix Auto',null,70), e(5,'Kyle Shortt','Rip It',null,90)] },
+        { id: 'drive', hole: null, mode: 'latest', title: 'Longest drive', count: 3, entries: [e(6,'Darcy Schinnour','East Side Dodge',null,8), e(7,'Joe Wensink','Lights Out',null,33), e(8,'Cam Davidson','The Hucksters',null,61)] },
+        { id: 'putt', hole: null, mode: 'latest', title: 'Longest putt', count: 2, entries: [e(9,'Steve Mott','Lights Out',null,20), e(10,'Dale Bateman','The Hucksters',null,47)] },
+        { id: 'square', hole: null, mode: 'list', title: 'Hit the square', sponsor: 'Hyphos Consulting', count: 4, entries: [e(11,'Gerry Desmarais','Rip It',null,80), e(12,'Taylor Boyse','Fix Auto',null,52), e(13,'Mark Aebig','Kaizen Auto',null,30), e(14,'Ryan Bellows','Fix Auto',null,6)] },
+      ]};
+    };
+
+    const time = (iso) => new Date(iso).toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Edmonton' });
+    const txt = (tag, cls, s) => { const n = document.createElement(tag); if (cls) n.className = cls; n.textContent = s; return n; };
+
+    function removeButton(entry) {
+      if (!ADMIN) return null;
+      const b = txt('button', 'rm', 'remove');
+      b.addEventListener('click', async () => {
+        if (!confirm(`Remove ${entry.player}?`)) return;
+        const res = await fetch(`/api/course/entry?id=${entry.id}`, { method: 'DELETE' });
+        if (res.status === 401) { alert('Sign in first at /golf/enter, then come back.'); return; }
+        refresh();
+      });
+      return b;
+    }
+
+    function card(c) {
+      const el = document.createElement('section'); el.className = 'cb-card';
+      const meta = document.createElement('div'); meta.className = 'meta';
+      const left = document.createElement('div');
+      left.append(txt('p', 'kicker', (c.hole ? `Hole ${c.hole}` : 'On course') + (c.sponsor ? ` · ${c.sponsor}` : '')), txt('h2', '', c.title));
+      meta.append(left, txt('span', 'count', c.mode === 'list' ? `${c.count} in the draw` : `${c.count} ${c.count === 1 ? 'entry' : 'entries'}`));
+      el.append(meta);
+
+      const measured = c.mode === 'low' || c.mode === 'high';
+      if (!c.entries.length) {
+        el.append(txt('p', 'empty', 'No entries yet.'));
+      } else if (c.mode === 'list') {
+        const ol = document.createElement('ol');
+        [...c.entries].reverse().slice(0, 10).forEach((e) => {
+          const li = document.createElement('li'); if (!first && !seen.has(e.id)) li.classList.add('fresh');
+          const name = txt('span', '', e.player); if (e.team) name.append(txt('span', 't', e.team));
+          const rb = removeButton(e); const right = txt('span', 'rank', time(e.at)); if (rb) right.append(rb);
+          li.append(txt('span', 'rank', '✓'), name, right); ol.append(li);
+        });
+        el.append(ol);
+      } else {
+        const lead = c.entries[0];
+        const box = document.createElement('div'); box.className = 'leader'; if (!first && !seen.has(lead.id)) box.classList.add('fresh');
+        box.append(txt('p', 'kicker', c.mode === 'latest' ? 'Current leader' : 'Leading'), txt('p', 'who', lead.player));
+        const sub = document.createElement('p'); sub.style.margin = '0';
+        if (measured) sub.append(txt('span', 'num', formatInches(lead.value) + '  '));
+        sub.append(txt('span', 'team', lead.team || '')); const rb = removeButton(lead); if (rb) sub.append(rb);
+        box.append(sub); el.append(box);
+
+        const ol = document.createElement('ol');
+        c.entries.slice(1, 7).forEach((e, i) => {
+          const li = document.createElement('li'); if (!first && !seen.has(e.id)) li.classList.add('fresh');
+          const name = txt('span', '', e.player); if (e.team) name.append(txt('span', 't', e.team));
+          const right = txt('span', measured ? 'n' : 'rank', measured ? formatInches(e.value) : time(e.at));
+          const rb2 = removeButton(e); if (rb2) right.append(rb2);
+          li.append(txt('span', 'rank', c.mode === 'latest' ? '' : String(i + 2)), name, right); ol.append(li);
+        });
+        if (c.mode === 'latest' && c.entries.length > 1) el.append(txt('p', 'kicker', 'Held the marker before'));
+        el.append(ol);
+      }
+
+      const enter = document.createElement('div'); enter.className = 'enter';
+      const a = txt('a', '', 'Post a result'); a.href = `/course/enter/?c=${c.id}`; enter.append(a); el.append(enter);
+      return el;
+    }
+
+    async function refresh() {
+      try {
+        const board = DEMO ? DEMO_BOARD() : await (await fetch('/api/course/board', { cache: 'no-store' })).json();
+        $('grid').replaceChildren(...board.contests.map(card));
+        board.contests.forEach((c) => c.entries.forEach((e) => seen.add(e.id)));
+        first = false;
+        $('updated').textContent = `Updated ${time(board.updated_at)} · refreshes every 15 seconds`;
+      } catch {
+        $('updated').textContent = 'Reconnecting…';
+      }
+    }
+
+    refresh();
+    setInterval(() => { if (!document.hidden) refresh(); }, 15000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+  </script>
+</BaseLayout>

@@ -1,0 +1,410 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Mark from '../../components/Mark.astro';
+
+/**
+ * The full prize draw for the tournament, run from the Hyphos laptop.
+ *
+ * The committee hands over the attendee list and the prize table; the
+ * score-based winners are struck off first; then every remaining prize is
+ * drawn one keypress at a time with the Hyphos frame around it the whole
+ * way. Nothing here touches the network: the lists are pasted in on this
+ * device, kept in localStorage so a reload mid-evening loses nothing, and the
+ * winners come out as a CSV for the organisers at the end.
+ *
+ * A winner is chosen the moment you press space, before the reel starts, and
+ * is removed from the pool so nobody wins twice. R redraws the same prize if
+ * the winner has gone home (the name goes back in the pool for later prizes).
+ * U undoes the last draw. S opens setup, which is also where the export lives.
+ *
+ * ?demo=1 loads sample names so the whole run can be rehearsed.
+ */
+---
+
+<BaseLayout title="Prize draw" noindex minimal>
+  <canvas id="fx"></canvas>
+
+  <!-- ── Setup: paste the lists, strike the score winners, start ── -->
+  <div id="setup">
+    <div class="setup-head">
+      <div class="brand"><Mark size={28} color="#c9a46a" /> <span>hyphos · prize draw</span></div>
+      <p class="setup-note">Paste the two lists, tick anyone who already won on score, then start. Everything stays on this laptop.</p>
+    </div>
+    <div class="setup-grid">
+      <label>
+        <span>Attendees, one per line. Optional second column is the team: <em>Name, Team</em></span>
+        <textarea id="in-attendees" rows="14" spellcheck="false" placeholder="Marc Dube, Dube Excavating&#10;Jen Kwan, Foothills Dental"></textarea>
+      </label>
+      <label>
+        <span>Prizes in draw order, one per line: <em>Prize — Sponsor</em></span>
+        <textarea id="in-prizes" rows="14" spellcheck="false" placeholder="$100 Pro Shop card — D'Arcy Ranch&#10;Rangefinder — Tidal Insurance"></textarea>
+      </label>
+    </div>
+    <div class="setup-row">
+      <button id="btn-parse" type="button">Load lists</button>
+      <span id="parse-note" class="muted"></span>
+    </div>
+
+    <div id="exclude-wrap" hidden>
+      <h2>Already won on score</h2>
+      <p class="muted">Tick a team to strike the whole team, or tick people one at a time. Struck names never come up in the draw.</p>
+      <div id="exclude-list"></div>
+    </div>
+
+    <div id="winners-wrap" hidden>
+      <h2>Winners so far</h2>
+      <ol id="winners-list"></ol>
+    </div>
+
+    <div class="setup-row">
+      <button id="btn-start" type="button" class="primary" disabled>Start the draw</button>
+      <button id="btn-export" type="button" disabled>Export winners CSV</button>
+      <button id="btn-reset" type="button" class="danger">Reset everything</button>
+      <span class="muted">On the screen: space = draw / next · R = redraw · U = undo · S = back here</span>
+    </div>
+  </div>
+
+  <!-- ── Stage: what the room sees ── -->
+  <div id="stage" hidden>
+    <header class="frame-top">
+      <div class="brand"><Mark size={34} color="#c9a46a" /> <span>hyphos</span></div>
+      <p class="line"><span class="l1">Stop being the admin.</span> <span class="l2">Focus on what matters.</span></p>
+    </header>
+
+    <main id="centre">
+      <section id="s-title" class="screen on">
+        <p class="kicker">Springs Men's Golf Classic</p>
+        <h1 class="huge">The prize draw.</h1>
+        <p class="sub"><span id="t-prizes">0</span> prizes · <span id="t-names">0</span> names in the hat</p>
+      </section>
+
+      <section id="s-prize" class="screen">
+        <p class="kicker" id="p-sponsor"></p>
+        <h1 class="prize" id="p-name"></h1>
+        <div id="reel">Ready</div>
+        <p class="sub" id="p-sub">Press space to draw.</p>
+      </section>
+
+      <section id="s-done" class="screen">
+        <p class="kicker">That's every prize</p>
+        <h1 class="huge">Thanks for a great day.</h1>
+        <p class="sub">Daniel is at table six. The list is hitting your inbox tonight.</p>
+      </section>
+    </main>
+
+    <footer class="frame-bottom">
+      <p class="count" id="counter"></p>
+      <div class="qr">
+        <img src="/golf/qr-screen.png" alt="QR code for hyphosconsulting.com" width="220" height="220" />
+        <p>hyphosconsulting.com<br /><span>Whole business, AI connected</span></p>
+      </div>
+    </footer>
+  </div>
+
+  <style is:global>
+    :root { color-scheme: dark; --gold: #c9a46a; --paper: #faf8f4; --muted: #9aa3b2; --bg: #101214; --panel: #171a1e; --rule: #2a2f36; }
+    body { background: var(--bg); color: var(--paper); font-family: 'Inter', system-ui, sans-serif; margin: 0; }
+    [hidden] { display: none !important; }
+
+    /* setup */
+    #setup { max-width: 1100px; margin: 0 auto; padding: 32px 24px 80px; }
+    .setup-head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 500; letter-spacing: .02em; }
+    .brand span { font-size: 18px; }
+    .setup-note, .muted { color: var(--muted); font-size: 14px; margin: 0; }
+    .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .setup-grid label { display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--muted); }
+    .setup-grid em { color: var(--gold); font-style: normal; }
+    textarea { width: 100%; box-sizing: border-box; background: var(--panel); color: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; font: 14px/1.45 ui-monospace, Menlo, monospace; }
+    .setup-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 18px 0; }
+    button { background: var(--panel); color: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 9px 14px; font: 500 14px 'Inter', system-ui, sans-serif; cursor: pointer; }
+    button.primary { background: var(--gold); color: #141414; border-color: var(--gold); }
+    button.danger { color: #e08a7a; }
+    button:disabled { opacity: .45; cursor: default; }
+    #setup h2 { font-size: 15px; letter-spacing: .16em; text-transform: uppercase; color: var(--gold); margin: 26px 0 6px; font-weight: 600; }
+    #exclude-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px 22px; margin-top: 12px; }
+    .team { border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; }
+    .team-head { display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 6px; }
+    .person { display: flex; align-items: center; gap: 8px; font-size: 14px; padding: 3px 0; }
+    .person.out, .team.out .person { color: var(--muted); text-decoration: line-through; }
+    #winners-list { padding-left: 20px; margin: 8px 0 0; font-size: 14px; line-height: 1.6; }
+    #winners-list span { color: var(--muted); }
+
+    /* stage */
+    #stage { position: fixed; inset: 0; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; }
+    .frame-top, .frame-bottom { display: flex; justify-content: space-between; align-items: center; padding: 3vmin 4vmin; }
+    .frame-top { border-bottom: 1px solid var(--rule); }
+    .frame-top .brand span { font-size: clamp(18px, 2.2vw, 36px); }
+    .frame-top .line { margin: 0; font-size: clamp(14px, 1.9vw, 32px); letter-spacing: .01em; }
+    .frame-top .l1 { font-weight: 300; color: var(--paper); }
+    .frame-top .l2 { font-weight: 600; color: var(--gold); }
+    .frame-bottom { border-top: 1px solid var(--rule); align-items: flex-end; }
+    .count { margin: 0; color: var(--muted); font-size: clamp(14px, 1.6vw, 28px); letter-spacing: .06em; text-transform: uppercase; }
+    .qr { display: flex; align-items: center; gap: 2vmin; }
+    .qr img { width: clamp(90px, 12vmin, 200px); height: auto; border-radius: 6px; }
+    .qr p { margin: 0; text-align: left; font-size: clamp(14px, 1.7vw, 30px); color: var(--gold); font-weight: 500; line-height: 1.3; }
+    .qr p span { color: var(--muted); font-weight: 400; font-size: .72em; letter-spacing: .12em; text-transform: uppercase; }
+
+    #centre { display: grid; place-items: center; text-align: center; padding: 2vmin 4vmin; min-height: 0; }
+    .screen { display: none; max-width: 92vw; }
+    .screen.on { display: block; animation: rise .5s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(2vmin); } to { opacity: 1; transform: none; } }
+    .kicker { font-size: clamp(14px, 1.7vw, 30px); letter-spacing: .28em; text-transform: uppercase; color: var(--gold); margin: 0 0 2.5vmin; font-weight: 600; min-height: 1.2em; }
+    .huge { font-family: 'Source Serif 4', Georgia, serif; font-weight: 500; font-size: clamp(40px, 7.5vw, 140px); line-height: 1.02; margin: 0; }
+    .prize { font-family: 'Source Serif 4', Georgia, serif; font-weight: 500; font-size: clamp(30px, 5vw, 90px); line-height: 1.08; margin: 0; color: var(--paper); max-width: 24ch; margin-inline: auto; }
+    .sub { font-size: clamp(16px, 2vw, 36px); color: var(--muted); margin: 3vmin 0 0; }
+    #reel { font-family: 'Source Serif 4', Georgia, serif; font-weight: 500; font-size: clamp(38px, 7.5vw, 132px); line-height: 1.05; min-height: 1.2em; margin: 3vmin 0 0; color: var(--gold); }
+    #reel.spinning { color: #6b7280; }
+    #reel .co { display: block; font-family: 'Inter', system-ui, sans-serif; font-size: clamp(16px, 2.2vw, 38px); color: var(--muted); margin-top: 1.5vmin; }
+    #reel.landed { animation: pop .55s cubic-bezier(.2,1.5,.3,1) both; }
+    @keyframes pop { 0% { transform: scale(.86); opacity: .4; } 100% { transform: scale(1); opacity: 1; } }
+    #fx { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+    @media (prefers-reduced-motion: reduce) { .screen.on, #reel.landed { animation: none; } }
+  </style>
+
+  <script>
+    const KEY = 'hyphos-golf-prizes-v1';
+    const el = (id) => document.getElementById(id);
+    const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const DEMO = new URLSearchParams(location.search).has('demo');
+
+    // state ---------------------------------------------------------------
+    // attendees: [{id, name, team}], prizes: [{prize, sponsor}],
+    // excluded: Set of ids (score winners), winners: [{prizeIndex, id, name, team, prize, sponsor, at}],
+    // index: which prize is up, phase: 'title' | 'prize' | 'done'
+    let S = { attendees: [], prizes: [], excluded: [], winners: [], index: 0, phase: 'title', started: false };
+    let landed = false;   // the current prize has a winner on screen
+
+    const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} };
+    const loadState = () => { try { const raw = localStorage.getItem(KEY); if (raw) S = { ...S, ...JSON.parse(raw) }; } catch {} };
+
+    // parsing ---------------------------------------------------------------
+    // Accepts "Name, Team", "Name<tab>Team" or "Name". Blank lines and a
+    // header row that literally says "name" are ignored.
+    function parseAttendees(text) {
+      const out = [];
+      text.split(/\r?\n/).forEach((line, i) => {
+        const cells = line.split(/\t|,/).map((c) => c.trim()).filter(Boolean);
+        if (!cells.length) return;
+        if (i === 0 && /^name$/i.test(cells[0])) return;
+        out.push({ id: out.length + 1, name: cells[0], team: cells[1] || '' });
+      });
+      return out;
+    }
+    function parsePrizes(text) {
+      return text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).map((line) => {
+        const m = line.split(/\s+[—–-]\s+|\s*\|\s*/);
+        return { prize: m[0].trim(), sponsor: (m[1] || '').trim() };
+      });
+    }
+
+    // random ----------------------------------------------------------------
+    function pick(arr) {
+      const buf = new Uint32Array(1);
+      crypto.getRandomValues(buf);
+      return arr[buf[0] % arr.length];
+    }
+    const wonIds = () => new Set(S.winners.map((w) => w.id));
+    function pool() {
+      const ex = new Set(S.excluded), won = wonIds();
+      return S.attendees.filter((a) => !ex.has(a.id) && !won.has(a.id));
+    }
+
+    // setup UI --------------------------------------------------------------
+    function renderExclude() {
+      const wrap = el('exclude-list'); wrap.replaceChildren();
+      const ex = new Set(S.excluded);
+      const teams = new Map();
+      S.attendees.forEach((a) => { const k = a.team || '(no team)'; if (!teams.has(k)) teams.set(k, []); teams.get(k).push(a); });
+      teams.forEach((members, team) => {
+        const box = document.createElement('div'); box.className = 'team';
+        const allOut = members.every((m) => ex.has(m.id));
+        if (allOut) box.classList.add('out');
+        const head = document.createElement('label'); head.className = 'team-head';
+        const tcb = document.createElement('input'); tcb.type = 'checkbox'; tcb.checked = allOut;
+        tcb.addEventListener('change', () => {
+          const set = new Set(S.excluded);
+          members.forEach((m) => tcb.checked ? set.add(m.id) : set.delete(m.id));
+          S.excluded = [...set]; save(); renderExclude(); updateStart();
+        });
+        head.append(tcb, document.createTextNode(team));
+        box.append(head);
+        members.forEach((m) => {
+          const row = document.createElement('label'); row.className = 'person' + (ex.has(m.id) ? ' out' : '');
+          const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = ex.has(m.id);
+          cb.addEventListener('change', () => {
+            const set = new Set(S.excluded); cb.checked ? set.add(m.id) : set.delete(m.id);
+            S.excluded = [...set]; save(); renderExclude(); updateStart();
+          });
+          row.append(cb, document.createTextNode(m.name));
+          box.append(row);
+        });
+        wrap.append(box);
+      });
+      el('exclude-wrap').hidden = !S.attendees.length;
+    }
+    function renderWinners() {
+      const ol = el('winners-list'); ol.replaceChildren();
+      S.winners.forEach((w) => {
+        const li = document.createElement('li');
+        li.textContent = `${w.name}${w.team ? ' · ' + w.team : ''} `;
+        const s = document.createElement('span'); s.textContent = `— ${w.prize}${w.sponsor ? ' (' + w.sponsor + ')' : ''}`;
+        li.append(s); ol.append(li);
+      });
+      el('winners-wrap').hidden = !S.winners.length;
+      el('btn-export').disabled = !S.winners.length;
+    }
+    function updateStart() {
+      const n = pool().length;
+      el('btn-start').disabled = !(S.prizes.length && n);
+      el('parse-note').textContent = S.attendees.length
+        ? `${S.attendees.length} names, ${S.excluded.length} struck, ${n} in the hat · ${S.prizes.length} prizes`
+        : '';
+    }
+
+    el('btn-parse').addEventListener('click', () => {
+      S.attendees = parseAttendees(el('in-attendees').value);
+      S.prizes = parsePrizes(el('in-prizes').value);
+      S.excluded = []; S.winners = []; S.index = 0; S.phase = 'title'; S.started = false;
+      save(); renderExclude(); renderWinners(); updateStart();
+    });
+    el('btn-start').addEventListener('click', () => { S.started = true; save(); showStage(); });
+    el('btn-reset').addEventListener('click', () => {
+      if (!confirm('Clear the lists and every winner drawn so far?')) return;
+      localStorage.removeItem(KEY); location.href = location.pathname;
+    });
+    el('btn-export').addEventListener('click', () => {
+      const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      const rows = [['order', 'prize', 'sponsor', 'winner', 'team', 'drawn_at'].join(',')]
+        .concat(S.winners.map((w, i) => [i + 1, w.prize, w.sponsor, w.name, w.team, w.at].map(esc).join(',')));
+      const blob = new Blob([rows.join('\n') + '\n'], { type: 'text/csv' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = `springs-golf-prize-winners-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+    });
+
+    // stage -----------------------------------------------------------------
+    const show = (id) => { document.querySelectorAll('.screen').forEach((s) => s.classList.remove('on')); el(id).classList.add('on'); };
+    function showSetup() { el('stage').hidden = true; el('setup').hidden = false; renderExclude(); renderWinners(); updateStart(); }
+    function showStage() {
+      el('setup').hidden = true; el('stage').hidden = false;
+      document.activeElement?.blur?.();   // keep space away from the Start button
+      el('t-prizes').textContent = String(S.prizes.length);
+      el('t-names').textContent = String(pool().length);
+      paintPrize();
+    }
+    function nameNode(node, person) {
+      node.replaceChildren(document.createTextNode(person.name));
+      if (person.team) { const co = document.createElement('span'); co.className = 'co'; co.textContent = person.team; node.append(co); }
+    }
+    function paintPrize() {
+      el('counter').textContent = S.prizes.length
+        ? `Prize ${Math.min(S.index + 1, S.prizes.length)} of ${S.prizes.length} · ${pool().length} names in the hat`
+        : '';
+      if (S.phase === 'title') { show('s-title'); return; }
+      if (S.phase === 'done' || S.index >= S.prizes.length) { S.phase = 'done'; show('s-done'); return; }
+      const p = S.prizes[S.index];
+      el('p-sponsor').textContent = p.sponsor ? `Donated by ${p.sponsor}` : 'Prize';
+      el('p-name').textContent = p.prize;
+      const existing = S.winners.find((w) => w.prizeIndex === S.index);
+      const reel = el('reel'); reel.classList.remove('spinning', 'landed');
+      if (existing) { nameNode(reel, existing); reel.classList.add('landed'); landed = true; el('p-sub').textContent = 'Space for the next prize · R if they have left · U to undo'; }
+      else { reel.textContent = 'Ready'; landed = false; el('p-sub').textContent = 'Press space to draw.'; }
+      show('s-prize');
+    }
+
+    let spinning = false;
+    function spin(redraw = false) {
+      if (spinning) return;
+      const candidates = pool();
+      const reel = el('reel');
+      if (!candidates.length) { reel.textContent = 'Nobody left in the hat.'; el('p-sub').textContent = ''; return; }
+      if (redraw) S.winners = S.winners.filter((w) => w.prizeIndex !== S.index);   // absent: back in the pool
+      const winner = pick(candidates);
+      const p = S.prizes[S.index];
+      S.winners.push({ prizeIndex: S.index, id: winner.id, name: winner.name, team: winner.team, prize: p.prize, sponsor: p.sponsor, at: new Date().toISOString() });
+      save();
+      // Only names still in the hat flash past: someone who already won or
+      // was struck for a score prize should never appear on the reel again.
+      const names = candidates.map((a) => a.name);
+      el('p-sub').textContent = '';
+      spinning = true; let delay = 38;
+      const tick = () => {
+        if (delay > 620 || REDUCED) {
+          reel.classList.remove('spinning'); reel.classList.add('landed');
+          nameNode(reel, winner); celebrate(reel);
+          landed = true; spinning = false;
+          el('p-sub').textContent = 'Space for the next prize · R if they have left · U to undo';
+          el('counter').textContent = `Prize ${S.index + 1} of ${S.prizes.length} · ${pool().length} names in the hat`;
+          return;
+        }
+        reel.classList.add('spinning'); reel.classList.remove('landed');
+        reel.textContent = names[Math.floor(Math.random() * names.length)];
+        delay *= 1.152; setTimeout(tick, delay);
+      };
+      tick();
+    }
+    function advance() {
+      if (S.phase === 'title') { S.phase = 'prize'; S.index = 0; save(); paintPrize(); return; }
+      if (S.phase === 'prize') {
+        if (!landed) return spin();
+        S.index += 1; if (S.index >= S.prizes.length) S.phase = 'done';
+        save(); paintPrize();
+      }
+    }
+    function back() {
+      if (S.phase === 'done') { S.phase = 'prize'; S.index = S.prizes.length - 1; }
+      else if (S.phase === 'prize' && S.index > 0) S.index -= 1;
+      else if (S.phase === 'prize') S.phase = 'title';
+      save(); paintPrize();
+    }
+    function undo() {
+      if (S.phase !== 'prize' || !landed || spinning) return;
+      S.winners = S.winners.filter((w) => w.prizeIndex !== S.index); save(); paintPrize();
+    }
+
+    addEventListener('keydown', (e) => {
+      if (el('stage').hidden) { if (e.key === 'Escape') return; return; }
+      const k = e.key.toLowerCase();
+      // Older key names (Return, Right, Left) come from some remotes and clickers.
+      if (e.key === ' ' || e.code === 'Space' || e.key === 'Enter' || e.key === 'Return' || e.key === 'ArrowRight' || e.key === 'Right' || e.key === 'PageDown') { e.preventDefault(); advance(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'Left' || e.key === 'PageUp') { e.preventDefault(); back(); }
+      else if (k === 'r' && S.phase === 'prize' && landed && !spinning) { e.preventDefault(); spin(true); }
+      else if (k === 'u') { e.preventDefault(); undo(); }
+      else if (k === 's' || e.key === 'Escape') { e.preventDefault(); showSetup(); }
+    });
+
+    // fireworks (same recipe as the live deck) ------------------------------
+    const canvas = el('fx'); const ctx = canvas.getContext('2d'); const sparks = [];
+    const HUES = ['#c9a46a', '#faf8f4', '#e6c58a', '#9aa3b2'];
+    function sizeCanvas() { canvas.width = innerWidth * devicePixelRatio; canvas.height = innerHeight * devicePixelRatio; ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0); }
+    sizeCanvas(); addEventListener('resize', sizeCanvas);
+    function shell(x, y) {
+      const n = 46 + Math.floor(Math.random() * 24); const colour = HUES[Math.floor(Math.random() * HUES.length)];
+      for (let i = 0; i < n; i++) { const a = (Math.PI * 2 * i) / n + Math.random() * 0.3; const sp = 2.4 + Math.random() * 4.4;
+        sparks.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1.4, life: 1, decay: 0.008 + Math.random() * 0.012, colour, size: 1.6 + Math.random() * 2.4 }); }
+    }
+    let drawing = false;
+    function frame() {
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      for (let i = sparks.length - 1; i >= 0; i--) { const p = sparks[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.055; p.vx *= 0.988; p.life -= p.decay;
+        if (p.life <= 0) { sparks.splice(i, 1); continue; } ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = p.colour; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); }
+      ctx.globalAlpha = 1; if (sparks.length) requestAnimationFrame(frame); else drawing = false;
+    }
+    function celebrate(target) {
+      if (REDUCED) return; const r = target.getBoundingClientRect(); const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      [[cx, cy, 0], [cx - r.width * 0.34, cy - 40, 260], [cx + r.width * 0.34, cy - 20, 480], [cx, cy - 70, 760]].forEach(([x, y, t]) =>
+        setTimeout(() => { shell(x, y); if (!drawing) { drawing = true; requestAnimationFrame(frame); } }, t));
+    }
+
+    // boot ------------------------------------------------------------------
+    loadState();
+    if (DEMO && !S.attendees.length) {
+      el('in-attendees').value = ['Marc Dube, Dube Excavating', 'Jen Kwan, Foothills Dental', 'Rob Fenn, Fenn HVAC', 'Tara Nolan, Nolan Bakery', 'Amrit Singh, Singh Landscaping', 'Dale Ross, Ross Electric', 'Sam Doyle, Doyle Roofing', 'Pat Miller, Miller Plumbing', 'Chris Bell, Bell Auto Glass', 'Lena Ortiz, Ortiz Physio', 'Kyle Brenner, Brenner Concrete', 'Nina Faust, Faust Realty'].join('\n');
+      el('in-prizes').value = ['$500 gift card — Hyphos Consulting', 'Rangefinder — Tidal Insurance', '$100 Pro Shop card — D\'Arcy Ranch', 'Dozen Pro V1s — Springs Church', 'Golf bag — Foothills Dental'].join('\n');
+    } else if (S.attendees.length) {
+      el('in-attendees').value = S.attendees.map((a) => a.team ? `${a.name}, ${a.team}` : a.name).join('\n');
+      el('in-prizes').value = S.prizes.map((p) => p.sponsor ? `${p.prize} — ${p.sponsor}` : p.prize).join('\n');
+    }
+    if (S.started && S.attendees.length) showStage(); else showSetup();
+  </script>
+</BaseLayout>
