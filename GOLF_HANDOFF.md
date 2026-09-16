@@ -45,7 +45,18 @@ Add `?demo=1` to either screen to rehearse with sample data and no API call.
 - **The judged winner is chosen at `/golf/judge` on the presentation device.**
   The choice is stored only on that device and the live deck sends you back to
   the judge page if this step was skipped. Answer length never silently chooses
-  the winner.
+  the winner. **Judge on the laptop that will run the projector**, not a phone.
+  Every answer is eligible, not only ones with a follow-up: the follow-up is
+  optional and fails open, so requiring it excluded people who never saw one.
+  `/golf/judge?demo=1` saves to a separate key, so rehearsing never replaces the
+  real pick.
+- **The course roster never ships to the browser.** `src/data/roster.json` is
+  the church's full team sheet. Only the worker imports it: players type their
+  name and the worker matches it to the roster spelling and team. Any page that
+  imports it publishes the whole list to anyone with the link.
+- **Prize draw: R marks the winner absent for the rest of the night.** They do
+  not go back in the hat, so someone who left is not called again on a later
+  prize. Reset from setup clears it.
 - **Draw order is a `draw_key` written when each person enters.** It cannot be
   rerolled by reloading, and the dinner screen's reel reveals an already-settled
   result. Within one page load the winner never changes; that is deliberate.

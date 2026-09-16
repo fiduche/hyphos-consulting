@@ -90,3 +90,60 @@ test('on-course contests: config, routes and one row per person per contest', ()
   insert.run('Brad Beckett');
   assert.throws(() => insert.run('brad beckett'), 'same person, different case, must collide');
 });
+
+// A minimal D1 stand-in over node:sqlite, enough to drive the real worker
+// routes end to end: prepare(sql).bind(...).run() / .all(), numbered params.
+function d1(db) {
+  const statement = (sql, args = []) => ({
+    bind: (...next) => statement(sql, next),
+    run: async () => db.prepare(sql).run(...args),
+    all: async () => ({ results: db.prepare(sql).all(...args) }),
+  });
+  return { prepare: (sql) => statement(sql) };
+}
+
+test('course entry: the roster stays on the server and names resolve to it', async () => {
+  const { default: worker } = await import('../src/worker.js');
+  const roster = JSON.parse(await readFile(new URL('../src/data/roster.json', import.meta.url), 'utf8'));
+  const known = roster.find((r) => r.team && r.name.length > 6);
+
+  const db = new DatabaseSync(':memory:');
+  db.exec(schema);
+  const env = { DB: d1(db) };
+  const post = (body) => worker.fetch(new Request('https://x.test/api/course/entry', {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
+  }), env, {});
+
+  // Typed in lower case with extra spaces: stored under the roster spelling and team.
+  const typed = known.name.toLowerCase().replace(' ', '  ');
+  const res = await post({ contest: 'ctp', player: typed, team: 'Spoofed Team', website: '' });
+  assert.equal(res.status, 200);
+  assert.equal((await res.json()).player, known.name);
+  const row = db.prepare('SELECT player, team FROM course_entries').get();
+  assert.equal(row.player, known.name);
+  assert.equal(row.team, known.team, 'team comes from the roster, never from the client');
+
+  // Not on the roster still posts, with no team.
+  assert.equal((await post({ contest: 'ctp', player: 'Visiting Guest', website: '' })).status, 200);
+  assert.equal(db.prepare("SELECT team FROM course_entries WHERE player = 'Visiting Guest'").get().team, '');
+
+  // Honeypot is silently accepted and stores nothing.
+  const before = db.prepare('SELECT COUNT(*) AS n FROM course_entries').get().n;
+  assert.equal((await post({ contest: 'ctp', player: 'Bot Name', website: 'http://spam' })).status, 200);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM course_entries').get().n, before);
+
+  // Delete needs a session.
+  const del = await worker.fetch(new Request('https://x.test/api/course/entry?id=1', { method: 'DELETE' }), { ...env, GOLF_EXPORT_KEY: 'k' }, {});
+  assert.equal(del.status, 401);
+
+  // And the public entry page does not carry the roster.
+  const page = await readFile(new URL('../src/pages/course/enter.astro', import.meta.url), 'utf8');
+  assert.doesNotMatch(page, /roster\.json/);
+});
+
+test('judging: every answer is eligible and rehearsal never touches the real pick', async () => {
+  const judge = await readFile(new URL('../src/pages/golf/judge.astro', import.meta.url), 'utf8');
+  assert.match(judge, /DEMO_MODE \? 'hyphos-golf-best-pick-demo' : 'hyphos-golf-best-pick'/);
+  assert.doesNotMatch(workerSource, /wish_detail \|\| ''\)\.trim\(\)\.length > 12/);
+  assert.match(workerSource, /best: candidates\.map/);
+});

@@ -35,7 +35,7 @@ export const CONTESTS = [
   {
     id: 'square', code: 'SQ', hole: null, mode: 'list',
     title: 'Hit the square',
-    sponsor: 'Hyphos Consulting',
+    sponsor: 'Hyphos Inc.',
     rule: 'Land in the marked square and you are in the draw for a $500 gift card.',
   },
 ];

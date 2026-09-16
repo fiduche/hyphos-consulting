@@ -22,18 +22,21 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     <div id="actions" class="hidden sticky bottom-4 mt-8 rounded-xl border border-ink-200 bg-cream-50/95 p-4 shadow-lg backdrop-blur">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <p id="chosen" class="text-sm font-semibold text-ink-900"></p>
-        <a href="/golf/live" class="btn-primary justify-center">Open dinner screen</a>
+        <a id="open-live" href="/golf/live" class="btn-primary justify-center">Open dinner screen</a>
       </div>
     </div>
   </section>
 
   <script>
-    const PICK_KEY = 'hyphos-golf-best-pick';
     const status = document.getElementById('status')!;
     const answers = document.getElementById('answers')!;
     const actions = document.getElementById('actions')!;
     const chosen = document.getElementById('chosen')!;
     const DEMO_MODE = new URLSearchParams(location.search).has('demo');
+    // Rehearsal keeps its own key. Sharing the real one meant a practice run on
+    // the presentation laptop silently replaced the actual judged pick, and the
+    // dinner screen then bounced back to this page in front of the room.
+    const PICK_KEY = DEMO_MODE ? 'hyphos-golf-best-pick-demo' : 'hyphos-golf-best-pick';
     const DEMO_CANDIDATES = [
       { id: 1, name: 'Dale Ross', company: 'Ross Electric', wish: 'invoicing', detail: 'Two full evenings a month I will never get back.' },
       { id: 2, name: 'Sam Doyle', company: 'Doyle Roofing', wish: 'quotes', detail: 'I write them at 10pm after the kids are down.' },
@@ -81,11 +84,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
     const renderCandidates = (candidates: Array<{ id: number; name: string; company?: string; wish: string; detail?: string }>) => {
       if (!candidates.length) {
-        status.textContent = 'No detailed bonus answers are available yet.';
+        status.textContent = 'No bonus answers yet.';
         return;
       }
 
-      status.textContent = `${candidates.length} detailed answer${candidates.length === 1 ? '' : 's'}. Choose one; answer length does not decide the prize.`;
+      status.textContent = `${candidates.length} answer${candidates.length === 1 ? '' : 's'}, longest first. Choose one; length does not decide the prize.`;
       const saved = Number(localStorage.getItem(PICK_KEY));
 
       for (const entry of candidates) {
@@ -119,6 +122,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         if (entry.id === saved) select(entry);
       }
     };
+
+    // In rehearsal, carry demo mode through so the practice run stays practice.
+    if (DEMO_MODE) document.getElementById('open-live')?.setAttribute('href', '/golf/live?demo=1');
 
     load();
   </script>

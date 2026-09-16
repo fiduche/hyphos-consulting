@@ -172,7 +172,7 @@ import Mark from '../../components/Mark.astro';
     // attendees: [{id, name, team}], prizes: [{prize, sponsor}],
     // excluded: Set of ids (score winners), winners: [{prizeIndex, id, name, team, prize, sponsor, at}],
     // index: which prize is up, phase: 'title' | 'prize' | 'done'
-    let S = { attendees: [], prizes: [], excluded: [], winners: [], index: 0, phase: 'title', started: false };
+    let S = { attendees: [], prizes: [], excluded: [], absent: [], winners: [], index: 0, phase: 'title', started: false };
     let landed = false;   // the current prize has a winner on screen
 
     const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} };
@@ -206,7 +206,10 @@ import Mark from '../../components/Mark.astro';
     }
     const wonIds = () => new Set(S.winners.map((w) => w.id));
     function pool() {
-      const ex = new Set(S.excluded), won = wonIds();
+      // Absent winners stay out for the rest of the night. Returning them to
+      // the pool meant someone who went home could be called again and again
+      // across thirty-odd prizes.
+      const ex = new Set([...S.excluded, ...(S.absent || [])]), won = wonIds();
       return S.attendees.filter((a) => !ex.has(a.id) && !won.has(a.id));
     }
 
@@ -265,7 +268,7 @@ import Mark from '../../components/Mark.astro';
     el('btn-parse').addEventListener('click', () => {
       S.attendees = parseAttendees(el('in-attendees').value);
       S.prizes = parsePrizes(el('in-prizes').value);
-      S.excluded = []; S.winners = []; S.index = 0; S.phase = 'title'; S.started = false;
+      S.excluded = []; S.absent = []; S.winners = []; S.index = 0; S.phase = 'title'; S.started = false;
       save(); renderExclude(); renderWinners(); updateStart();
     });
     el('btn-start').addEventListener('click', () => { S.started = true; save(); showStage(); });
@@ -318,7 +321,11 @@ import Mark from '../../components/Mark.astro';
       const candidates = pool();
       const reel = el('reel');
       if (!candidates.length) { reel.textContent = 'Nobody left in the hat.'; el('p-sub').textContent = ''; return; }
-      if (redraw) S.winners = S.winners.filter((w) => w.prizeIndex !== S.index);   // absent: back in the pool
+      if (redraw) {
+        const gone = S.winners.find((w) => w.prizeIndex === S.index);
+        if (gone) S.absent = [...new Set([...(S.absent || []), gone.id])];
+        S.winners = S.winners.filter((w) => w.prizeIndex !== S.index);
+      }
       const winner = pick(candidates);
       const p = S.prizes[S.index];
       S.winners.push({ prizeIndex: S.index, id: winner.id, name: winner.name, team: winner.team, prize: p.prize, sponsor: p.sponsor, at: new Date().toISOString() });

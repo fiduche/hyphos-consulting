@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import roster from '../../data/roster.json';
 import './_theme.css';
 
 /**
@@ -8,8 +7,12 @@ import './_theme.css';
  * name is remembered after the first entry, so every later contest is the
  * number and one tap. Reached as /c/CTP etc, which logs the scan and lands
  * here with ?c=<contest id>.
+ *
+ * The roster is deliberately NOT on this page. It is the church's full team
+ * sheet, and this page is public: anything shipped here is readable by anyone
+ * with the link. The worker matches the typed name against the roster instead
+ * and fills in the team, so the list never leaves the server.
  */
-const rosterJson = JSON.stringify(roster).replace(/</g, '\\u003c');
 ---
 
 <BaseLayout title="Post a result" noindex minimal>
@@ -33,9 +36,7 @@ const rosterJson = JSON.stringify(roster).replace(/</g, '\\u003c');
 
       <label class="field">
         <span>Your name</span>
-        <input id="player" name="player" list="names" required autocapitalize="words" enterkeyhint="next" placeholder="Start typing your name" />
-        <datalist id="names"></datalist>
-        <small id="team-note" class="muted"></small>
+        <input id="player" name="player" required autocomplete="name" autocapitalize="words" enterkeyhint="next" placeholder="First and last name" />
       </label>
 
       <div id="measure" class="field" hidden>
@@ -66,8 +67,6 @@ const rosterJson = JSON.stringify(roster).replace(/</g, '\\u003c');
 
   <footer class="foot muted">Honour system, same as the sheet. Powered by <a href="/go/course">Hyphos</a>.</footer>
 
-  <script type="application/json" id="roster" set:html={rosterJson}></script>
-
   <style is:global>
     .wrap { max-width: 520px; margin: 0 auto; padding: 22px 16px 40px; }
     h1 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 500; font-size: 34px; line-height: 1.08; margin: 0 0 8px; }
@@ -97,8 +96,6 @@ const rosterJson = JSON.stringify(roster).replace(/</g, '\\u003c');
 
     const $ = (id) => document.getElementById(id);
     const NAME_KEY = 'hyphos-course-name';
-    const roster = JSON.parse($('roster').textContent || '[]');
-    const byName = new Map(roster.map((r) => [r.name.toLowerCase(), r]));
     const contest = CONTEST_BY_ID[new URLSearchParams(location.search).get('c') || ''];
 
     const holeLabel = (c) => (c.hole ? `Hole ${c.hole}` : 'On course') + (c.sponsor ? ` · ${c.sponsor}` : '');
@@ -117,16 +114,8 @@ const rosterJson = JSON.stringify(roster).replace(/</g, '\\u003c');
       $('measure').hidden = !isMeasured(contest);
       $('submit').textContent = contest.mode === 'list' ? "I'm in the square" : contest.mode === 'latest' ? 'I moved the marker' : 'Post my distance';
 
-      const dl = $('names');
-      roster.forEach((r) => { const o = document.createElement('option'); o.value = r.name; if (r.team) o.label = r.team; dl.append(o); });
-
       const player = $('player');
-      const syncTeam = () => {
-        const hit = byName.get(player.value.trim().toLowerCase());
-        $('team-note').textContent = hit ? (hit.team || `Group ${hit.group}`) : player.value.trim() ? 'Not on the roster? That is fine, post it anyway.' : '';
-      };
-      player.addEventListener('input', syncTeam);
-      try { const saved = localStorage.getItem(NAME_KEY); if (saved) { player.value = saved; syncTeam(); } } catch {}
+      try { const saved = localStorage.getItem(NAME_KEY); if (saved) player.value = saved; } catch {}
       (player.value ? (isMeasured(contest) ? $('feet') : $('submit')) : player).focus({ preventScroll: true });
 
       form.addEventListener('submit', async (e) => {
@@ -134,8 +123,7 @@ const rosterJson = JSON.stringify(roster).replace(/</g, '\\u003c');
         $('err').textContent = '';
         const name = player.value.trim().replace(/\s+/g, ' ');
         if (name.length < 2) { $('err').textContent = 'Pick your name.'; return; }
-        const hit = byName.get(name.toLowerCase());
-        const payload = { contest: contest.id, player: hit ? hit.name : name, team: hit ? (hit.team || `Group ${hit.group}`) : '', website: $('website').value };
+        const payload = { contest: contest.id, player: name, website: $('website').value };
         if (isMeasured(contest)) {
           payload.feet = Number($('feet').value || 0); payload.inches = Number($('inches').value || 0);
           if (payload.feet * 12 + payload.inches <= 0) { $('err').textContent = 'Enter the distance.'; return; }
@@ -145,6 +133,9 @@ const rosterJson = JSON.stringify(roster).replace(/</g, '\\u003c');
           const res = await fetch('/api/course/entry', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) });
           const out = await res.json().catch(() => ({}));
           if (!res.ok) throw new Error(out.error || 'Could not post. Try again.');
+          // The server returns the roster spelling when the name matched, so
+          // later contests post under one consistent name.
+          if (out.player) payload.player = out.player;
           try { localStorage.setItem(NAME_KEY, payload.player); } catch {}
           await showDone(payload);
         } catch (err) {

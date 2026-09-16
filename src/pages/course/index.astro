@@ -101,10 +101,13 @@ import './_theme.css';
       const t = (m) => new Date(Date.now() - m * 60000).toISOString();
       const e = (id, player, team, value, m) => ({ id, player, team, value, at: t(m) });
       return { updated_at: new Date().toISOString(), contests: [
-        { id: 'ctp', hole: 3, mode: 'latest', title: 'Closest to the pin', count: 5, entries: [e(1,'Brad Beckett','Lights Out',null,12), e(2,'Chris Karam','Rip It',null,40), e(3,'Ed Huculak','The Hucksters',null,55), e(4,'Ben Alleckna','Fix Auto',null,70), e(5,'Kyle Shortt','Rip It',null,90)] },
-        { id: 'drive', hole: null, mode: 'latest', title: 'Longest drive', count: 3, entries: [e(6,'Darcy Schinnour','East Side Dodge',null,8), e(7,'Joe Wensink','Lights Out',null,33), e(8,'Cam Davidson','The Hucksters',null,61)] },
-        { id: 'putt', hole: null, mode: 'latest', title: 'Longest putt', count: 2, entries: [e(9,'Steve Mott','Lights Out',null,20), e(10,'Dale Bateman','The Hucksters',null,47)] },
-        { id: 'square', hole: null, mode: 'list', title: 'Hit the square', sponsor: 'Hyphos Consulting', count: 4, entries: [e(11,'Gerry Desmarais','Rip It',null,80), e(12,'Taylor Boyse','Fix Auto',null,52), e(13,'Mark Aebig','Kaizen Auto',null,30), e(14,'Ryan Bellows','Fix Auto',null,6)] },
+        // Invented names and teams only. Demo mode goes up on screens and in
+        // rehearsals, and real players should never appear with results they
+        // did not post.
+        { id: 'ctp', hole: 3, mode: 'latest', title: 'Closest to the pin', count: 5, entries: [e(1,'Sample Player A','Team One',null,12), e(2,'Sample Player B','Team Two',null,40), e(3,'Sample Player C','Team Three',null,55), e(4,'Sample Player D','Team Four',null,70), e(5,'Sample Player E','Team Two',null,90)] },
+        { id: 'drive', hole: null, mode: 'latest', title: 'Longest drive', count: 3, entries: [e(6,'Sample Player F','Team Five',null,8), e(7,'Sample Player G','Team One',null,33), e(8,'Sample Player H','Team Three',null,61)] },
+        { id: 'putt', hole: null, mode: 'latest', title: 'Longest putt', count: 2, entries: [e(9,'Sample Player I','Team One',null,20), e(10,'Sample Player J','Team Three',null,47)] },
+        { id: 'square', hole: null, mode: 'list', title: 'Hit the square', sponsor: 'Hyphos Inc.', count: 4, entries: [e(11,'Sample Player K','Team Two',null,80), e(12,'Sample Player L','Team Four',null,52), e(13,'Sample Player M','Team Six',null,30), e(14,'Sample Player N','Team Four',null,6)] },
       ]};
     };
 

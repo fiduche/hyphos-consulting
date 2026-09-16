@@ -16,6 +16,11 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { CONTESTS, CONTEST_BY_ID, CONTEST_BY_CODE, isMeasured } from './data/contests.js';
+// Server-side only. The worker bundle is not a public asset, unlike anything a
+// page imports, so this is where the attendee list lives.
+import ROSTER from './data/roster.json' with { type: 'json' };
+
+const ROSTER_BY_NAME = new Map(ROSTER.map((r) => [r.name.toLowerCase(), r]));
 
 // Haiku for the follow-up: it is one short question on a phone with one bar of
 // signal, so time-to-answer matters far more than depth.
@@ -568,10 +573,13 @@ These get read by the person who wrote them, standing next to the screen.`,
 
   // ── Best answer ─────────────────────────────────────────────────────────
   // Judged, not computed. The endpoint shortlists; the choice is the owner's.
-  const shortlist = answered
-    .filter((r) => (r.wish_detail || '').trim().length > 12)
-    .sort((a, b) => (b.wish_detail || '').length - (a.wish_detail || '').length)
-    .slice(0, 12);
+  // Every answer is eligible. The follow-up question is optional and fails
+  // open (no signal, slow model, spend cap), so filtering on the follow-up
+  // shut out people who never saw one from a prize advertised as "best answer".
+  // Longest combined answer first is only a reading order for the judge.
+  const written = (r) => `${r.wish || ''} ${r.wish_detail || ''}`.trim().length;
+  const candidates = [...answered].sort((a, b) => written(b) - written(a));
+  const shortlist = candidates.slice(0, 5);
 
   if (shortlist.length) {
     lines.push('');
@@ -669,7 +677,7 @@ These get read by the person who wrote them, standing next to the screen.`,
           name: `${r.first_name} ${r.last_name}`,
           company: r.company,
         })),
-        best: shortlist.map((r) => ({
+        best: candidates.map((r) => ({
           id: r.id,
           name: `${r.first_name} ${r.last_name}`,
           company: r.company,
@@ -803,9 +811,13 @@ async function handleCourseEntry(request, env) {
   if (!contest) return json({ error: 'Unknown contest.' }, 400);
 
   // Collapse runs of spaces so "Joe  Wensink" and "Joe Wensink" are one person.
-  const player = clean(body.player, 60).replace(/\s+/g, ' ');
-  if (player.length < 2) return json({ error: 'Pick your name.' }, 400);
-  const team = clean(body.team, 60);
+  const typed = clean(body.player, 60).replace(/\s+/g, ' ');
+  if (typed.length < 2) return json({ error: 'Enter your name.' }, 400);
+  // Roster match gives the canonical spelling and the team. No match is fine:
+  // guests and late swaps still post, just without a team.
+  const hit = ROSTER_BY_NAME.get(typed.toLowerCase());
+  const player = hit ? hit.name : typed;
+  const team = hit ? (hit.team || (hit.group ? `Group ${hit.group}` : '')) : '';
 
   let value = null;
   if (isMeasured(contest)) {
@@ -840,7 +852,7 @@ async function handleCourseEntry(request, env) {
   } catch {
     return json({ error: 'Could not save. Try again.' }, 500);
   }
-  return json({ ok: true });
+  return json({ ok: true, player });
 }
 
 async function readBoard(env) {

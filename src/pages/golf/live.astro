@@ -302,7 +302,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       // The Pro V1s are a judged prize. The judge page stores the chosen entry
       // on this presentation device; do not silently substitute "longest
       // answer" for judgment if that step was skipped.
-      const selectedId = Number(localStorage.getItem('hyphos-golf-best-pick'));
+      let selectedId = 0;
+      try { selectedId = Number(localStorage.getItem('hyphos-golf-best-pick')); } catch { /* storage blocked: treated as no pick */ }
       const selectedIndex = data.best?.findIndex((entry) => entry.id === selectedId) ?? -1;
       if (data.best?.length && selectedIndex < 0) {
         location.href = '/golf/judge';

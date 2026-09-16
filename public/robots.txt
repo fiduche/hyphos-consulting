@@ -1,6 +1,9 @@
 User-agent: *
 Allow: /
 Disallow: /golf
+Disallow: /course
+Disallow: /c/
+Disallow: /go
 Disallow: /api/
 
 Sitemap: https://hyphosconsulting.com/sitemap-index.xml
