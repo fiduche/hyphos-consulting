@@ -39,13 +39,24 @@ test('fresh schema matches the current export contract', () => {
   assert.doesNotMatch(workerSource, /probe_question, category/);
 });
 
-test('judged winner selection is explicit and same-device', async () => {
+test('one dinner screen awards the contest prizes from the judged pick and the entries', async () => {
   const judge = await readFile(new URL('../src/pages/golf/judge.astro', import.meta.url), 'utf8');
+  const prizes = await readFile(new URL('../src/pages/golf/prizes.astro', import.meta.url), 'utf8');
   const live = await readFile(new URL('../src/pages/golf/live.astro', import.meta.url), 'utf8');
 
   assert.match(judge, /hyphos-golf-best-pick/);
-  assert.match(live, /hyphos-golf-best-pick/);
-  assert.match(live, /location\.href = '\/golf\/judge'/);
+  assert.match(prizes, /hyphos-golf-best-pick/);
+  assert.match(judge, /href="\/golf\/prizes"/);
+  for (const tag of ['best answer', 'entry draw', 'square']) assert.match(prizes, new RegExp(`'${tag}'`));
+  assert.match(prizes, /\/api\/golf\/summary\?format=json/);
+  assert.match(prizes, /\/api\/course\/board/);
+  // Rehearsal never shares storage with the real draw.
+  assert.match(prizes, /DEMO \? 'hyphos-golf-prizes-demo' : 'hyphos-golf-prizes-v1'/);
+  // The retired deck only forwards.
+  assert.match(live, /location\.replace/);
+  assert.doesNotMatch(live, /\/api\/golf/);
+  // The judged prize is not decided by length: the draw full order is sent.
+  assert.match(workerSource, /draw: fullDrawOrder\.map/);
 });
 
 test('QR scan tracking: /go/<tag> is routed and the schema can store it', () => {

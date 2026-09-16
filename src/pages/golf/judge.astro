@@ -13,7 +13,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     <h1 class="display text-3xl sm:text-4xl text-ink-900">Choose the best answer.</h1>
     <p class="mt-4 text-ink-600 leading-relaxed max-w-2xl">
       This is the judged Pro V1s prize. Read the answers, choose one deliberately,
-      then open the dinner screen on this same device. Your choice stays on this device.
+      then open the prize draw on this same laptop. Your choice stays on this device.
     </p>
 
     <div id="status" class="mt-8 card p-5 text-sm text-ink-600">Loading answers…</div>
@@ -22,7 +22,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     <div id="actions" class="hidden sticky bottom-4 mt-8 rounded-xl border border-ink-200 bg-cream-50/95 p-4 shadow-lg backdrop-blur">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <p id="chosen" class="text-sm font-semibold text-ink-900"></p>
-        <a id="open-live" href="/golf/live" class="btn-primary justify-center">Open dinner screen</a>
+        <a id="open-live" href="/golf/prizes" class="btn-primary justify-center">Open prize draw</a>
       </div>
     </div>
   </section>
@@ -124,7 +124,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     };
 
     // In rehearsal, carry demo mode through so the practice run stays practice.
-    if (DEMO_MODE) document.getElementById('open-live')?.setAttribute('href', '/golf/live?demo=1');
+    if (DEMO_MODE) document.getElementById('open-live')?.setAttribute('href', '/golf/prizes?demo=1');
 
     load();
   </script>

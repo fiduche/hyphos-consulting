@@ -17,11 +17,11 @@ Technical detail is in `INFRASTRUCTURE.md` under "Golf tournament entry form".
 | `/ai` | The "10 ways" piece the form promises **(draft, unreviewed)** |
 | `/golf/enter` | Sign in once; mints a 14h HttpOnly cookie |
 | `/golf/board` | Hole screen, all day, hotspot, auto-refresh |
-| `/golf/judge` | Choose the judged Pro V1s winner on the presentation device |
-| `/golf/live` | Dinner screen, keyboard-driven draw |
+| `/golf/judge` | Choose the judged Pro V1s winner, on the dinner laptop |
+| `/golf/live` | Retired. Forwards to `/golf/prizes` |
 | `/api/golf/summary` | Text readout: groups, both draws, verbatims, "THE LINE" |
 | `/api/golf/entries` | CSV export |
-| `/golf/prizes` | **Full tournament prize draw** for the dinner: paste the attendee list and prize table, strike the score winners, draw every prize with the Hyphos frame on screen. Local-only; winners export as CSV. `?demo=1` to rehearse. |
+| `/golf/prizes` | **The one dinner screen.** Paste the attendee list and prize table, strike the score winners, draw every prize. Tag the contest prizes on their lines: `Dozen Pro V1s \| Hyphos Inc. \| best answer` (judged pick, answer read out first), `Rangefinder \| Tidal Insurance \| entry draw` (people who entered at `/golf`, order fixed at entry), `$500 gift card \| Hyphos Inc. \| square` (people who posted in the square). Press **Load contest entries** once, signed in, close to dinner; after that it runs offline. Winners export as CSV. `?demo=1` rehearses under separate storage. |
 | `/course` | **Live on-course contest board.** Replaces the pinned sheets. Phone and clubhouse TV. `?demo=1` sample data, `?admin=1` adds remove buttons (needs the screen sign-in). |
 | `/c/<CODE>` | QR on each contest sign (`/C/CTP`, `/C/LD`, `/C/LP`, `/C/SQ`). Logs the scan, opens the entry form. Contests and hole numbers live in `src/data/contests.js`. Needs `migrations/2026-09-16-course-entries.sql` applied remotely once. |
 | `/go/<tag>` | QR tracking redirect. Printed codes carry `/GO/BAG`, `/GO/HAND`, `/GO/HOLE`, `/GO/TABLE`, `/GO/SCREEN`; each hit is logged then sent to the homepage. Counts at `/api/golf/scans` (same gate as the screens). Needs `migrations/2026-09-16-scan-log.sql` applied remotely once. |
@@ -54,9 +54,16 @@ Add `?demo=1` to either screen to rehearse with sample data and no API call.
   the church's full team sheet. Only the worker imports it: players type their
   name and the worker matches it to the roster spelling and team. Any page that
   imports it publishes the whole list to anyone with the link.
-- **Prize draw: R marks the winner absent for the rest of the night.** They do
-  not go back in the hat, so someone who left is not called again on a later
-  prize. Reset from setup clears it.
+- **Prize draw: R marks the winner absent for the rest of the night** and moves
+  straight to the next person for that prize. Nobody wins twice across any
+  prize, contest prizes included, matched by name. Reset from setup clears it.
+- **Dinner run order:** sign in at `/golf/enter` on the dinner laptop, judge at
+  `/golf/judge` on that same laptop, open `/golf/prizes`, paste both lists, tick
+  score winners, **Load contest entries**, Start. Put the contest prizes early in
+  the list so their winners are still in the room. Loading closes the contests:
+  anything posted after the load is not in the draw.
+- **The pitch lives in the footer only**, small, matching the hole signage. The
+  big header line and the "What Hyphos does" slide were removed.
 - **Draw order is a `draw_key` written when each person enters.** It cannot be
   rerolled by reloading, and the dinner screen's reel reveals an already-settled
   result. Within one page load the winner never changes; that is deliberate.

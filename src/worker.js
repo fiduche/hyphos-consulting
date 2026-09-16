@@ -557,10 +557,13 @@ These get read by the person who wrote them, standing next to the screen.`,
   // Order comes from a random key assigned to each entry when it was created,
   // so it never changes as new people enter and cannot be rerolled by
   // refreshing. A raffle you can reshuffle is not a raffle.
-  const drawOrder = [...rows]
+  // Full order for the dinner screen, which skips anyone who already won
+  // another prize or has gone home, so five names can run out. The text
+  // readout still prints only the first five.
+  const fullDrawOrder = [...rows]
     .filter((r) => typeof r.draw_key === 'number')
-    .sort((a, b) => a.draw_key - b.draw_key)
-    .slice(0, 5);
+    .sort((a, b) => a.draw_key - b.draw_key);
+  const drawOrder = fullDrawOrder.slice(0, 5);
 
   if (drawOrder.length) {
     lines.push('');
@@ -640,7 +643,7 @@ These get read by the person who wrote them, standing next to the screen.`,
     }
   }
 
-  // ?format=json feeds the on-screen draw at /golf/live, which loads once and
+  // ?format=json feeds the prize draw at /golf/prizes, which loads once and
   // then runs entirely offline. Same numbers, same order, same source.
   const format = url.searchParams.get('format');
 
@@ -673,7 +676,7 @@ These get read by the person who wrote them, standing next to the screen.`,
         groups: (groups || [])
           .filter((g) => g.members.length)
           .map((g) => ({ label: g.label, count: g.members.length })),
-        draw: drawOrder.map((r) => ({
+        draw: fullDrawOrder.map((r) => ({
           name: `${r.first_name} ${r.last_name}`,
           company: r.company,
         })),

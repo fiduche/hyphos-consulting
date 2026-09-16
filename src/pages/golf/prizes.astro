@@ -12,12 +12,26 @@ import Mark from '../../components/Mark.astro';
  * device, kept in localStorage so a reload mid-evening loses nothing, and the
  * winners come out as a CSV for the organisers at the end.
  *
- * A winner is chosen the moment you press space, before the reel starts, and
- * is removed from the pool so nobody wins twice. R redraws the same prize if
- * the winner has gone home (the name goes back in the pool for later prizes).
- * U undoes the last draw. S opens setup, which is also where the export lives.
+ * This is the one dinner screen. Most prizes are drawn from everyone in the
+ * hat, but three follow the rules they were advertised with, and a tag on the
+ * prize line says which:
  *
- * ?demo=1 loads sample names so the whole run can be rehearsed.
+ *   Dozen Pro V1s | Hyphos Inc. | best answer   judged at /golf/judge; the
+ *                                               answer is read out first, then
+ *                                               the name
+ *   Rangefinder | Tidal Insurance | entry draw  people who entered at /golf, in
+ *                                               the order fixed when they entered
+ *   $500 gift card | Hyphos Inc. | square       people who posted "in the square"
+ *
+ * Those three need "Load contest entries" once, signed in, before dinner. After
+ * that the screen runs offline like everything else here.
+ *
+ * Nobody wins twice across any prize, matched by name. R marks the winner
+ * absent for the rest of the night and moves to the next person for that
+ * prize. U undoes the current prize's winner. S opens setup and the export.
+ *
+ * ?demo=1 rehearses with sample data under its own storage key, so practising
+ * on the presentation laptop never touches the real lists or winners.
  */
 ---
 
@@ -36,13 +50,23 @@ import Mark from '../../components/Mark.astro';
         <textarea id="in-attendees" rows="14" spellcheck="false" placeholder="Marc Dube, Dube Excavating&#10;Jen Kwan, Foothills Dental"></textarea>
       </label>
       <label>
-        <span>Prizes in draw order, one per line: <em>Prize — Sponsor</em></span>
-        <textarea id="in-prizes" rows="14" spellcheck="false" placeholder="$100 Pro Shop card — D'Arcy Ranch&#10;Rangefinder — Tidal Insurance"></textarea>
+        <span>Prizes in draw order, one per line: <em>Prize | Sponsor</em>. Add <em>| best answer</em>, <em>| entry draw</em> or <em>| square</em> for the contest prizes.</span>
+        <textarea id="in-prizes" rows="14" spellcheck="false" placeholder="$100 Pro Shop card | D'Arcy Ranch&#10;Dozen Pro V1s | Hyphos Inc. | best answer&#10;Rangefinder | Tidal Insurance | entry draw"></textarea>
       </label>
     </div>
     <div class="setup-row">
       <button id="btn-parse" type="button">Load lists</button>
       <span id="parse-note" class="muted"></span>
+    </div>
+
+    <div id="contest-wrap" hidden>
+      <h2>Contest prizes</h2>
+      <p class="muted">These draw from the contests, not the hat. Load once on this laptop, signed in, close to dinner so late entries are included.</p>
+      <div class="setup-row">
+        <button id="btn-contest" type="button">Load contest entries</button>
+        <span id="contest-note" class="muted"></span>
+      </div>
+      <p id="judge-note" class="warn" hidden></p>
     </div>
 
     <div id="exclude-wrap" hidden>
@@ -66,10 +90,6 @@ import Mark from '../../components/Mark.astro';
 
   <!-- ── Stage: what the room sees ── -->
   <div id="stage" hidden>
-    <header class="frame-top">
-      <div class="brand"><Mark size={34} color="#c9a46a" /> <span>hyphos</span></div>
-      <p class="line"><span class="l1">Stop being the admin.</span> <span class="l2">Focus on what matters.</span></p>
-    </header>
 
     <main id="centre">
       <section id="s-title" class="screen on">
@@ -81,6 +101,10 @@ import Mark from '../../components/Mark.astro';
       <section id="s-prize" class="screen">
         <p class="kicker" id="p-sponsor"></p>
         <h1 class="prize" id="p-name"></h1>
+        <div id="quote" hidden>
+          <p id="q-wish"></p>
+          <p id="q-detail"></p>
+        </div>
         <div id="reel">Ready</div>
         <p class="sub" id="p-sub">Press space to draw.</p>
       </section>
@@ -92,11 +116,15 @@ import Mark from '../../components/Mark.astro';
       </section>
     </main>
 
+    <!-- Small, like the footer on the hole signage: the prizes are the show. -->
     <footer class="frame-bottom">
-      <p class="count" id="counter"></p>
-      <div class="qr">
+      <div class="foot-left">
+        <div class="brand"><Mark size={26} color="#c9a46a" /> <span>hyphos</span></div>
+        <p class="count" id="counter"></p>
+      </div>
+      <div class="foot-right">
+        <p class="line"><span class="l1">Stop being the admin.</span> <span class="l2">Focus on what matters.</span><br /><span class="url">hyphosconsulting.com</span></p>
         <img src="/golf/qr-screen.png" alt="QR code for hyphosconsulting.com" width="220" height="220" />
-        <p>hyphosconsulting.com<br /><span>Whole business, AI connected</span></p>
       </div>
     </footer>
   </div>
@@ -131,19 +159,22 @@ import Mark from '../../components/Mark.astro';
     #winners-list span { color: var(--muted); }
 
     /* stage */
-    #stage { position: fixed; inset: 0; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; }
-    .frame-top, .frame-bottom { display: flex; justify-content: space-between; align-items: center; padding: 3vmin 4vmin; }
-    .frame-top { border-bottom: 1px solid var(--rule); }
-    .frame-top .brand span { font-size: clamp(18px, 2.2vw, 36px); }
-    .frame-top .line { margin: 0; font-size: clamp(14px, 1.9vw, 32px); letter-spacing: .01em; }
-    .frame-top .l1 { font-weight: 300; color: var(--paper); }
-    .frame-top .l2 { font-weight: 600; color: var(--gold); }
-    .frame-bottom { border-top: 1px solid var(--rule); align-items: flex-end; }
-    .count { margin: 0; color: var(--muted); font-size: clamp(14px, 1.6vw, 28px); letter-spacing: .06em; text-transform: uppercase; }
-    .qr { display: flex; align-items: center; gap: 2vmin; }
-    .qr img { width: clamp(90px, 12vmin, 200px); height: auto; border-radius: 6px; }
-    .qr p { margin: 0; text-align: left; font-size: clamp(14px, 1.7vw, 30px); color: var(--gold); font-weight: 500; line-height: 1.3; }
-    .qr p span { color: var(--muted); font-weight: 400; font-size: .72em; letter-spacing: .12em; text-transform: uppercase; }
+    #stage { position: fixed; inset: 0; display: grid; grid-template-rows: 1fr auto; overflow: hidden; }
+    .frame-bottom { display: flex; justify-content: space-between; align-items: center; gap: 3vmin; padding: 1.8vmin 4vmin; border-top: 1px solid var(--rule); }
+    .foot-left { display: flex; align-items: center; gap: 3vmin; }
+    .foot-left .brand span { font-size: clamp(14px, 1.5vw, 24px); }
+    .count { margin: 0; color: var(--muted); font-size: clamp(11px, 1.05vw, 18px); letter-spacing: .08em; text-transform: uppercase; }
+    .foot-right { display: flex; align-items: center; gap: 2vmin; text-align: right; }
+    .foot-right .line { margin: 0; font-size: clamp(12px, 1.15vw, 20px); line-height: 1.35; }
+    .foot-right .l1 { font-weight: 300; color: var(--paper); }
+    .foot-right .l2 { font-weight: 600; color: var(--gold); }
+    .foot-right .url { color: var(--muted); font-size: .8em; }
+    .foot-right img { width: clamp(56px, 8vmin, 120px); height: auto; border-radius: 4px; }
+    .warn { color: #e6c58a; font-size: 14px; margin: 6px 0 0; }
+    .warn a { color: var(--gold); }
+    #quote { max-width: min(86vw, 1300px); margin: 3vmin auto 0; }
+    #q-wish { font-family: 'Source Serif 4', Georgia, serif; font-size: clamp(26px, 4vw, 72px); line-height: 1.12; margin: 0; color: var(--paper); max-width: 22ch; margin-inline: auto; }
+    #q-detail { font-size: clamp(15px, 1.8vw, 32px); color: var(--muted); font-style: italic; line-height: 1.4; margin: 2.2vmin auto 0; max-width: 42ch; }
 
     #centre { display: grid; place-items: center; text-align: center; padding: 2vmin 4vmin; min-height: 0; }
     .screen { display: none; max-width: 92vw; }
@@ -163,20 +194,35 @@ import Mark from '../../components/Mark.astro';
   </style>
 
   <script>
-    const KEY = 'hyphos-golf-prizes-v1';
+    const DEMO = new URLSearchParams(location.search).has('demo');
+    // Rehearsal gets its own storage. Sharing one key meant ?demo=1 on the
+    // presentation laptop resumed, and recorded winners into, the real draw.
+    const KEY = DEMO ? 'hyphos-golf-prizes-demo' : 'hyphos-golf-prizes-v1';
+    const PICK_KEY = DEMO ? 'hyphos-golf-best-pick-demo' : 'hyphos-golf-best-pick';
     const el = (id) => document.getElementById(id);
     const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const DEMO = new URLSearchParams(location.search).has('demo');
+    const norm = (name) => String(name || '').trim().replace(/\s+/g, ' ').toLowerCase();
 
     // state ---------------------------------------------------------------
-    // attendees: [{id, name, team}], prizes: [{prize, sponsor}],
-    // excluded: Set of ids (score winners), winners: [{prizeIndex, id, name, team, prize, sponsor, at}],
-    // index: which prize is up, phase: 'title' | 'prize' | 'done'
-    let S = { attendees: [], prizes: [], excluded: [], absent: [], winners: [], index: 0, phase: 'title', started: false };
-    let landed = false;   // the current prize has a winner on screen
+    // attendees: [{id, name, team}]
+    // prizes:    [{prize, sponsor, kind}]  kind: hat | judged | entries | square
+    // excluded:  attendee ids struck for score prizes
+    // absent:    normalised names called but not in the room, out for the night
+    // winners:   [{prizeIndex, name, team, prize, sponsor, kind, at}]
+    // contest:   snapshot of the contest data, so the draw runs offline
+    let S = { attendees: [], prizes: [], excluded: [], absent: [], winners: [], contest: null, index: 0, phase: 'title', started: false };
+    let landed = false;      // the current prize has a winner on screen
+    let quoteUp = false;     // judged prize: the answer is showing, name not yet
 
     const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} };
-    const loadState = () => { try { const raw = localStorage.getItem(KEY); if (raw) S = { ...S, ...JSON.parse(raw) }; } catch {} };
+    const loadState = () => {
+      try {
+        const raw = localStorage.getItem(KEY);
+        if (raw) S = { ...S, ...JSON.parse(raw) };
+        // Earlier builds stored absent people by attendee id.
+        S.absent = (S.absent || []).filter((a) => typeof a === 'string');
+      } catch {}
+    };
 
     // parsing ---------------------------------------------------------------
     // Accepts "Name, Team", "Name<tab>Team" or "Name". Blank lines and a
@@ -191,26 +237,57 @@ import Mark from '../../components/Mark.astro';
       });
       return out;
     }
+
+    const TAGS = {
+      'best answer': 'judged', judged: 'judged',
+      'entry draw': 'entries', entries: 'entries', 'golf entries': 'entries',
+      square: 'square', 'in the square': 'square',
+    };
+    // "Prize | Sponsor | tag". A dash with spaces around it also separates, so
+    // lists pasted from elsewhere still work.
     function parsePrizes(text) {
       return text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).map((line) => {
-        const m = line.split(/\s+[—–-]\s+|\s*\|\s*/);
-        return { prize: m[0].trim(), sponsor: (m[1] || '').trim() };
+        const parts = line.split(/\s+[—–-]\s+|\s*\|\s*/).map((x) => x.trim()).filter(Boolean);
+        let kind = 'hat';
+        if (parts.length > 1 && TAGS[parts[parts.length - 1].toLowerCase()]) kind = TAGS[parts.pop().toLowerCase()];
+        return { prize: parts[0] || '', sponsor: parts[1] || '', kind };
       });
     }
+    const hasContestPrizes = () => S.prizes.some((p) => p.kind !== 'hat');
 
-    // random ----------------------------------------------------------------
+    // who can still win -----------------------------------------------------
     function pick(arr) {
       const buf = new Uint32Array(1);
       crypto.getRandomValues(buf);
       return arr[buf[0] % arr.length];
     }
-    const wonIds = () => new Set(S.winners.map((w) => w.id));
-    function pool() {
-      // Absent winners stay out for the rest of the night. Returning them to
-      // the pool meant someone who went home could be called again and again
-      // across thirty-odd prizes.
-      const ex = new Set([...S.excluded, ...(S.absent || [])]), won = wonIds();
-      return S.attendees.filter((a) => !ex.has(a.id) && !won.has(a.id));
+    // Names that cannot win this prize: already won another prize, gone home,
+    // or struck for a score prize. By name, because contest entrants typed
+    // their own names and are not rows in the attendee list.
+    function blocked() {
+      const out = new Set(S.absent);
+      S.winners.forEach((w) => { if (w.prizeIndex !== S.index) out.add(norm(w.name)); });
+      const ex = new Set(S.excluded);
+      S.attendees.forEach((a) => { if (ex.has(a.id)) out.add(norm(a.name)); });
+      return out;
+    }
+    const pool = () => { const b = blocked(); return S.attendees.filter((a) => !b.has(norm(a.name))); };
+    const teamFor = (name, fallback = '') => S.attendees.find((a) => norm(a.name) === norm(name))?.team || fallback;
+
+    function judgedOrder() {
+      const best = S.contest?.best || [];
+      let pickId = NaN;
+      try { pickId = Number(localStorage.getItem(PICK_KEY)); } catch {}
+      const i = best.findIndex((b) => b.id === pickId);
+      return { chosen: i >= 0, list: i > 0 ? [best[i], ...best.filter((_, j) => j !== i)] : best };
+    }
+    // Candidates for the current prize, in the order they would be chosen.
+    function candidatesFor(prize) {
+      const b = blocked();
+      if (prize.kind === 'judged') return judgedOrder().list.filter((x) => !b.has(norm(x.name)));
+      if (prize.kind === 'entries') return (S.contest?.draw || []).filter((x) => !b.has(norm(x.name)));
+      if (prize.kind === 'square') return (S.contest?.square || []).filter((x) => !b.has(norm(x.name)));
+      return pool();
     }
 
     // setup UI --------------------------------------------------------------
@@ -251,18 +328,84 @@ import Mark from '../../components/Mark.astro';
       S.winners.forEach((w) => {
         const li = document.createElement('li');
         li.textContent = `${w.name}${w.team ? ' · ' + w.team : ''} `;
-        const s = document.createElement('span'); s.textContent = `— ${w.prize}${w.sponsor ? ' (' + w.sponsor + ')' : ''}`;
+        const s = document.createElement('span'); s.textContent = `: ${w.prize}${w.sponsor ? ' (' + w.sponsor + ')' : ''}`;
         li.append(s); ol.append(li);
       });
       el('winners-wrap').hidden = !S.winners.length;
       el('btn-export').disabled = !S.winners.length;
     }
+    function renderContest() {
+      el('contest-wrap').hidden = !hasContestPrizes();
+      const c = S.contest;
+      el('contest-note').textContent = c
+        ? `Loaded ${new Date(c.loadedAt).toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit' })}: ${c.best.length} bonus answers, ${c.draw.length} entry draw names, ${c.square.length} in the square`
+        : 'Not loaded yet.';
+      const note = el('judge-note');
+      const needsJudge = S.prizes.some((p) => p.kind === 'judged');
+      note.replaceChildren();
+      note.hidden = true;
+      if (needsJudge && c && c.best.length && !judgedOrder().chosen) {
+        note.hidden = false;
+        note.append(document.createTextNode('No judged winner chosen on this laptop yet. '));
+        const a = document.createElement('a'); a.href = DEMO ? '/golf/judge?demo=1' : '/golf/judge'; a.textContent = 'Choose the best answer';
+        note.append(a, document.createTextNode(', then come back. Nothing here is lost.'));
+      }
+    }
     function updateStart() {
       const n = pool().length;
-      el('btn-start').disabled = !(S.prizes.length && n);
+      const contestReady = !hasContestPrizes() || !!S.contest;
+      el('btn-start').disabled = !(S.prizes.length && n && contestReady);
+      const tagged = S.prizes.filter((p) => p.kind !== 'hat').length;
       el('parse-note').textContent = S.attendees.length
-        ? `${S.attendees.length} names, ${S.excluded.length} struck, ${n} in the hat · ${S.prizes.length} prizes`
+        ? `${S.attendees.length} names, ${S.excluded.length} struck, ${n} in the hat · ${S.prizes.length} prizes${tagged ? `, ${tagged} from contests` : ''}${contestReady ? '' : ' · load contest entries to start'}`
         : '';
+      renderContest();
+    }
+
+    async function loadContest() {
+      el('contest-note').textContent = 'Loading…';
+      if (DEMO) {
+        S.contest = {
+          loadedAt: new Date().toISOString(),
+          // Same ids as the judge page's demo answers, so a rehearsal pick there works here.
+          best: [
+            { id: 1, name: 'Dale Ross', company: 'Ross Electric', wish: 'invoicing', detail: 'Two full evenings a month I will never get back.' },
+            { id: 2, name: 'Sam Doyle', company: 'Doyle Roofing', wish: 'quotes', detail: 'I write them at 10pm after the kids are down.' },
+            { id: 3, name: 'Chris Bell', company: 'Bell Auto Glass', wish: 'the schedule', detail: 'One cancellation and I rebuild the whole week by hand.' },
+          ],
+          draw: [
+            { name: 'Nina Faust', company: 'Faust Realty' }, { name: 'Rob Fenn', company: 'Fenn HVAC' },
+            { name: 'Visiting Guest', company: '' }, { name: 'Tara Nolan', company: 'Nolan Bakery' },
+          ],
+          square: [{ name: 'Kyle Brenner', team: 'Brenner Concrete' }, { name: 'Jen Kwan', team: 'Foothills Dental' }, { name: 'Lena Ortiz', team: 'Ortiz Physio' }],
+        };
+        save(); updateStart(); return;
+      }
+      try {
+        const [summaryRes, boardRes] = await Promise.all([
+          fetch('/api/golf/summary?format=json', { cache: 'no-store' }),
+          fetch('/api/course/board', { cache: 'no-store' }),
+        ]);
+        if (summaryRes.status === 401) {
+          el('contest-note').replaceChildren(document.createTextNode('Not signed in on this laptop. '));
+          const a = document.createElement('a'); a.href = '/golf/enter'; a.textContent = 'Sign in'; a.style.color = 'var(--gold)';
+          el('contest-note').append(a, document.createTextNode(', then load again.'));
+          return;
+        }
+        if (!summaryRes.ok || !boardRes.ok) throw new Error('load');
+        const summary = await summaryRes.json();
+        const board = await boardRes.json();
+        const square = board.contests?.find((c) => c.mode === 'list')?.entries || [];
+        S.contest = {
+          loadedAt: new Date().toISOString(),
+          best: (summary.best || []).map((b) => ({ id: b.id, name: b.name, company: b.company || '', wish: b.wish || '', detail: b.detail || '' })),
+          draw: (summary.draw || []).map((d) => ({ name: d.name, company: d.company || '' })),
+          square: square.map((e) => ({ name: e.player, team: e.team || '' })),
+        };
+        save(); updateStart();
+      } catch {
+        el('contest-note').textContent = 'Could not load. Check the connection and try again. Anything loaded before is kept.';
+      }
     }
 
     el('btn-parse').addEventListener('click', () => {
@@ -271,15 +414,18 @@ import Mark from '../../components/Mark.astro';
       S.excluded = []; S.absent = []; S.winners = []; S.index = 0; S.phase = 'title'; S.started = false;
       save(); renderExclude(); renderWinners(); updateStart();
     });
+    el('btn-contest').addEventListener('click', loadContest);
     el('btn-start').addEventListener('click', () => { S.started = true; save(); showStage(); });
     el('btn-reset').addEventListener('click', () => {
       if (!confirm('Clear the lists and every winner drawn so far?')) return;
-      localStorage.removeItem(KEY); location.href = location.pathname;
+      try { localStorage.removeItem(KEY); } catch {}
+      location.href = location.pathname + location.search;
     });
     el('btn-export').addEventListener('click', () => {
       const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-      const rows = [['order', 'prize', 'sponsor', 'winner', 'team', 'drawn_at'].join(',')]
-        .concat(S.winners.map((w, i) => [i + 1, w.prize, w.sponsor, w.name, w.team, w.at].map(esc).join(',')));
+      const rows = [['order', 'prize', 'sponsor', 'how', 'winner', 'team', 'drawn_at'].join(',')]
+        .concat(S.winners.slice().sort((a, b) => a.prizeIndex - b.prizeIndex)
+          .map((w) => [w.prizeIndex + 1, w.prize, w.sponsor, w.kind || 'hat', w.name, w.team, w.at].map(esc).join(',')));
       const blob = new Blob([rows.join('\n') + '\n'], { type: 'text/csv' });
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
       a.download = `springs-golf-prize-winners-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
@@ -299,51 +445,81 @@ import Mark from '../../components/Mark.astro';
       node.replaceChildren(document.createTextNode(person.name));
       if (person.team) { const co = document.createElement('span'); co.className = 'co'; co.textContent = person.team; node.append(co); }
     }
+    const SUB_LANDED = 'Space for the next prize · R if they have left · U to undo';
+    const counterText = () => `Prize ${Math.min(S.index + 1, S.prizes.length)} of ${S.prizes.length} · ${pool().length} names in the hat`;
     function paintPrize() {
-      el('counter').textContent = S.prizes.length
-        ? `Prize ${Math.min(S.index + 1, S.prizes.length)} of ${S.prizes.length} · ${pool().length} names in the hat`
-        : '';
+      el('counter').textContent = S.prizes.length ? counterText() : '';
       if (S.phase === 'title') { show('s-title'); return; }
       if (S.phase === 'done' || S.index >= S.prizes.length) { S.phase = 'done'; show('s-done'); return; }
       const p = S.prizes[S.index];
       el('p-sponsor').textContent = p.sponsor ? `Donated by ${p.sponsor}` : 'Prize';
       el('p-name').textContent = p.prize;
+      el('quote').hidden = true; quoteUp = false;
       const existing = S.winners.find((w) => w.prizeIndex === S.index);
       const reel = el('reel'); reel.classList.remove('spinning', 'landed');
-      if (existing) { nameNode(reel, existing); reel.classList.add('landed'); landed = true; el('p-sub').textContent = 'Space for the next prize · R if they have left · U to undo'; }
-      else { reel.textContent = 'Ready'; landed = false; el('p-sub').textContent = 'Press space to draw.'; }
+      if (existing) {
+        if (existing.wish) showQuote(existing);
+        nameNode(reel, existing); reel.classList.add('landed'); landed = true; el('p-sub').textContent = SUB_LANDED;
+      } else {
+        reel.textContent = 'Ready'; landed = false;
+        el('p-sub').textContent = p.kind === 'judged' ? 'Press space to read the best answer.' : 'Press space to draw.';
+      }
       show('s-prize');
+    }
+    function showQuote(entry) {
+      el('q-wish').textContent = `“${entry.wish}”`;
+      el('q-detail').textContent = entry.detail || '';
+      el('quote').hidden = false;
+    }
+    function record(person, extra = {}) {
+      const p = S.prizes[S.index];
+      const w = { prizeIndex: S.index, name: person.name, team: teamFor(person.name, person.team || person.company || ''), prize: p.prize, sponsor: p.sponsor, kind: p.kind, at: new Date().toISOString(), ...extra };
+      S.winners.push(w); save();
+      return w;
+    }
+    function land(winner) {
+      const reel = el('reel');
+      reel.classList.remove('spinning'); reel.classList.add('landed');
+      nameNode(reel, winner); celebrate(reel);
+      landed = true; spinning = false;
+      el('p-sub').textContent = SUB_LANDED;
+      el('counter').textContent = counterText();
     }
 
     let spinning = false;
-    function spin(redraw = false) {
+    function spin() {
       if (spinning) return;
-      const candidates = pool();
-      const reel = el('reel');
-      if (!candidates.length) { reel.textContent = 'Nobody left in the hat.'; el('p-sub').textContent = ''; return; }
-      if (redraw) {
-        const gone = S.winners.find((w) => w.prizeIndex === S.index);
-        if (gone) S.absent = [...new Set([...(S.absent || []), gone.id])];
-        S.winners = S.winners.filter((w) => w.prizeIndex !== S.index);
-      }
-      const winner = pick(candidates);
       const p = S.prizes[S.index];
-      S.winners.push({ prizeIndex: S.index, id: winner.id, name: winner.name, team: winner.team, prize: p.prize, sponsor: p.sponsor, at: new Date().toISOString() });
-      save();
-      // Only names still in the hat flash past: someone who already won or
-      // was struck for a score prize should never appear on the reel again.
-      const names = candidates.map((a) => a.name);
+      const reel = el('reel');
+      const candidates = candidatesFor(p);
+      if (p.kind !== 'hat' && !S.contest) { reel.textContent = 'Contest entries not loaded.'; el('p-sub').textContent = 'Press S, then Load contest entries.'; return; }
+      if (!candidates.length) { reel.textContent = p.kind === 'hat' ? 'Nobody left in the hat.' : 'Nobody left for this prize.'; el('p-sub').textContent = 'Space to move on.'; landed = true; return; }
+
+      // Judged: first space reads the answer out, second reveals who wrote it.
+      if (p.kind === 'judged') {
+        const entry = candidates[0];
+        if (!quoteUp) {
+          showQuote(entry); quoteUp = true;
+          reel.textContent = ' ';
+          el('p-sub').textContent = 'Space to reveal who wrote it.';
+          return;
+        }
+        const w = record(entry, { wish: entry.wish, detail: entry.detail });
+        quoteUp = false;
+        land(w);
+        return;
+      }
+
+      // Entry draw keeps the order fixed when people entered; the square and
+      // the hat are drawn now.
+      const chosen = p.kind === 'entries' ? candidates[0] : pick(candidates);
+      const w = record(chosen);
+      // Only people still eligible for this prize flash past.
+      const names = candidates.map((c) => c.name);
       el('p-sub').textContent = '';
       spinning = true; let delay = 38;
       const tick = () => {
-        if (delay > 620 || REDUCED) {
-          reel.classList.remove('spinning'); reel.classList.add('landed');
-          nameNode(reel, winner); celebrate(reel);
-          landed = true; spinning = false;
-          el('p-sub').textContent = 'Space for the next prize · R if they have left · U to undo';
-          el('counter').textContent = `Prize ${S.index + 1} of ${S.prizes.length} · ${pool().length} names in the hat`;
-          return;
-        }
+        if (delay > 620 || REDUCED) return land(w);
         reel.classList.add('spinning'); reel.classList.remove('landed');
         reel.textContent = names[Math.floor(Math.random() * names.length)];
         delay *= 1.152; setTimeout(tick, delay);
@@ -359,10 +535,22 @@ import Mark from '../../components/Mark.astro';
       }
     }
     function back() {
+      if (spinning) return;
       if (S.phase === 'done') { S.phase = 'prize'; S.index = S.prizes.length - 1; }
       else if (S.phase === 'prize' && S.index > 0) S.index -= 1;
       else if (S.phase === 'prize') S.phase = 'title';
       save(); paintPrize();
+    }
+    // Not in the room: out for the rest of the night, and straight on to the
+    // next person for this same prize.
+    function absent() {
+      const gone = S.winners.find((w) => w.prizeIndex === S.index);
+      if (!gone) return;
+      S.absent = [...new Set([...S.absent, norm(gone.name)])];
+      S.winners = S.winners.filter((w) => w.prizeIndex !== S.index);
+      landed = false; quoteUp = false; el('quote').hidden = true;
+      save();
+      spin();
     }
     function undo() {
       if (S.phase !== 'prize' || !landed || spinning) return;
@@ -370,12 +558,12 @@ import Mark from '../../components/Mark.astro';
     }
 
     addEventListener('keydown', (e) => {
-      if (el('stage').hidden) { if (e.key === 'Escape') return; return; }
+      if (el('stage').hidden) return;
       const k = e.key.toLowerCase();
       // Older key names (Return, Right, Left) come from some remotes and clickers.
       if (e.key === ' ' || e.code === 'Space' || e.key === 'Enter' || e.key === 'Return' || e.key === 'ArrowRight' || e.key === 'Right' || e.key === 'PageDown') { e.preventDefault(); advance(); }
       else if (e.key === 'ArrowLeft' || e.key === 'Left' || e.key === 'PageUp') { e.preventDefault(); back(); }
-      else if (k === 'r' && S.phase === 'prize' && landed && !spinning) { e.preventDefault(); spin(true); }
+      else if (k === 'r' && S.phase === 'prize' && landed && !spinning) { e.preventDefault(); absent(); }
       else if (k === 'u') { e.preventDefault(); undo(); }
       else if (k === 's' || e.key === 'Escape') { e.preventDefault(); showSetup(); }
     });
@@ -407,10 +595,11 @@ import Mark from '../../components/Mark.astro';
     loadState();
     if (DEMO && !S.attendees.length) {
       el('in-attendees').value = ['Marc Dube, Dube Excavating', 'Jen Kwan, Foothills Dental', 'Rob Fenn, Fenn HVAC', 'Tara Nolan, Nolan Bakery', 'Amrit Singh, Singh Landscaping', 'Dale Ross, Ross Electric', 'Sam Doyle, Doyle Roofing', 'Pat Miller, Miller Plumbing', 'Chris Bell, Bell Auto Glass', 'Lena Ortiz, Ortiz Physio', 'Kyle Brenner, Brenner Concrete', 'Nina Faust, Faust Realty'].join('\n');
-      el('in-prizes').value = ['$500 gift card — Hyphos Consulting', 'Rangefinder — Tidal Insurance', '$100 Pro Shop card — D\'Arcy Ranch', 'Dozen Pro V1s — Springs Church', 'Golf bag — Foothills Dental'].join('\n');
+      el('in-prizes').value = ['Dozen Pro V1s | Hyphos Inc. | best answer', 'Rangefinder | Tidal Insurance | entry draw', '$500 gift card | Hyphos Inc. | square', "$100 Pro Shop card | D'Arcy Ranch", 'Golf bag | Foothills Dental'].join('\n');
     } else if (S.attendees.length) {
+      const TAG_LABEL = { judged: 'best answer', entries: 'entry draw', square: 'square' };
       el('in-attendees').value = S.attendees.map((a) => a.team ? `${a.name}, ${a.team}` : a.name).join('\n');
-      el('in-prizes').value = S.prizes.map((p) => p.sponsor ? `${p.prize} — ${p.sponsor}` : p.prize).join('\n');
+      el('in-prizes').value = S.prizes.map((p) => [p.prize, p.sponsor, TAG_LABEL[p.kind]].filter(Boolean).join(' | ')).join('\n');
     }
     if (S.started && S.attendees.length) showStage(); else showSetup();
   </script>
