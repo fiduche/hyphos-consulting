@@ -15,6 +15,7 @@
 // Everything else falls straight through to ASSETS exactly as before.
 
 import Anthropic from '@anthropic-ai/sdk';
+import { CONTESTS, CONTEST_BY_ID, CONTEST_BY_CODE, isMeasured } from './data/contests.js';
 
 // Haiku for the follow-up: it is one short question on a phone with one bar of
 // signal, so time-to-answer matters far more than depth.
@@ -687,9 +688,228 @@ These get read by the person who wrote them, standing next to the screen.`,
   });
 }
 
+
+// ---------------------------------------------------------------------------
+// QR scan tracking: /go/<tag>
+//
+// Every printed QR code carries a short path instead of the bare homepage, so
+// the site can count where a scan came from before sending the person on.
+// /go/bag, /go/card, /go/hole, /go/table, /go/hand are the sticker placements
+// for the golf tournament; a bare /go counts as "other". One row per hit, then
+// a 302 to the homepage with UTM parameters so any analytics sees it too.
+//
+// Counting is best effort: if the write fails the redirect still happens. The
+// tag is whitelisted to a short slug so the log cannot be filled with junk.
+
+// Case-insensitive on purpose: an all-caps URL packs into a smaller QR code
+// (alphanumeric mode), so the printed codes are HTTPS://HYPHOSCONSULTING.COM/GO/BAG.
+const GO_PATH = /^\/go(?:\/([a-z0-9-]{1,32}))?\/?$/i;
+const GO_CAMPAIGN = 'springs-golf-2026';
+
+async function handleGo(request, env, ctx, tag) {
+  const target = new URL('/', request.url);
+  target.searchParams.set('utm_source', 'qr');
+  target.searchParams.set('utm_medium', 'print');
+  target.searchParams.set('utm_campaign', GO_CAMPAIGN);
+  target.searchParams.set('utm_content', tag);
+
+  if (env.DB) {
+    const write = env.DB.prepare(
+      'INSERT INTO scan_log (created_at, tag, user_agent, country) VALUES (?1, ?2, ?3, ?4)'
+    )
+      .bind(
+        new Date().toISOString(),
+        tag,
+        (request.headers.get('user-agent') || '').slice(0, 200),
+        request.cf?.country || null
+      )
+      .run()
+      .catch(() => {});
+    if (ctx?.waitUntil) ctx.waitUntil(write);
+    else await write;
+  }
+
+  return new Response(null, {
+    status: 302,
+    headers: {
+      location: target.toString(),
+      'cache-control': 'no-store',
+      'x-robots-tag': 'noindex, nofollow',
+    },
+  });
+}
+
+// GET /api/golf/scans: scans per tag, total and last hour. Same gate as the
+// other read endpoints (screen cookie or bearer key).
+async function handleScans(request, env) {
+  if (!env.DB) return json({ error: 'Storage is not configured.' }, 503);
+  if (!(await hasSession(request, env))) return json({ error: 'Unauthorized.' }, 401);
+
+  const hourAgo = new Date(Date.now() - 3600 * 1000).toISOString();
+  const { results } = await env.DB.prepare(
+    `SELECT tag,
+            COUNT(*)                                   AS total,
+            SUM(CASE WHEN created_at >= ?1 THEN 1 ELSE 0 END) AS last_hour,
+            MIN(created_at)                            AS first_scan,
+            MAX(created_at)                            AS last_scan
+       FROM scan_log
+      GROUP BY tag
+      ORDER BY total DESC`
+  )
+    .bind(hourAgo)
+    .all();
+
+  const total = results.reduce((n, r) => n + r.total, 0);
+  return json({ total, by_tag: results });
+}
+
+// ---------------------------------------------------------------------------
+// On-course contests: replaces the pinned paper sheets.
+//
+//   GET    /c/<CODE>              QR on the sign. Logs a scan, sends to the form.
+//   POST   /api/course/entry      public. { contest, player, feet, inches }
+//   GET    /api/course/board      public. Every contest, ranked, for the live board.
+//   DELETE /api/course/entry?id=  screen password. The committee's undo button.
+//
+// Honour system, same as paper. Guard rails are only against accidents: one
+// row per person per contest (a re-entry keeps their better number), a sanity
+// cap on distances, and the contest list comes from src/data/contests.js.
+
+const COURSE_CODE_PATH = /^\/c\/([a-z0-9]{1,8})\/?$/i;
+
+async function handleCourseCode(request, env, ctx, code) {
+  const contest = CONTEST_BY_CODE[code.toLowerCase()];
+  const target = new URL(contest ? `/course/enter/?c=${contest.id}` : '/course/', request.url);
+  if (contest && env.DB) {
+    const write = env.DB.prepare(
+      'INSERT INTO scan_log (created_at, tag, user_agent, country) VALUES (?1, ?2, ?3, ?4)'
+    )
+      .bind(new Date().toISOString(), `course-${contest.id}`,
+        (request.headers.get('user-agent') || '').slice(0, 200), request.cf?.country || null)
+      .run()
+      .catch(() => {});
+    if (ctx?.waitUntil) ctx.waitUntil(write); else await write;
+  }
+  return new Response(null, { status: 302, headers: { location: target.toString(), 'cache-control': 'no-store' } });
+}
+
+async function handleCourseEntry(request, env) {
+  if (!env.DB) return json({ error: 'Storage is not configured.' }, 503);
+  let body;
+  try { body = await request.json(); } catch { return json({ error: 'Could not read that.' }, 400); }
+  if (clean(body.website, 200)) return json({ ok: true });
+
+  const contest = CONTEST_BY_ID[clean(body.contest, 20)];
+  if (!contest) return json({ error: 'Unknown contest.' }, 400);
+
+  // Collapse runs of spaces so "Joe  Wensink" and "Joe Wensink" are one person.
+  const player = clean(body.player, 60).replace(/\s+/g, ' ');
+  if (player.length < 2) return json({ error: 'Pick your name.' }, 400);
+  const team = clean(body.team, 60);
+
+  let value = null;
+  if (isMeasured(contest)) {
+    const feet = Number(body.feet || 0);
+    const inches = Number(body.inches || 0);
+    if (!Number.isFinite(feet) || !Number.isFinite(inches) || feet < 0 || inches < 0 || inches >= 12) {
+      return json({ error: 'Check the distance.' }, 400);
+    }
+    value = Math.round(feet * 12 + inches);
+    if (value <= 0) return json({ error: 'Enter a distance.' }, 400);
+    if (value > (contest.maxFeet || 300) * 12) return json({ error: `That is over ${contest.maxFeet} feet. Check the number.` }, 400);
+  }
+
+  const now = new Date().toISOString();
+  // Better number wins on a re-entry; for the marker contest a re-entry moves
+  // you back to the top; for the square, a second tap changes nothing.
+  const onConflict = {
+    low: `value = MIN(course_entries.value, excluded.value),
+          created_at = CASE WHEN excluded.value < course_entries.value THEN excluded.created_at ELSE course_entries.created_at END`,
+    high: `value = MAX(course_entries.value, excluded.value),
+           created_at = CASE WHEN excluded.value > course_entries.value THEN excluded.created_at ELSE course_entries.created_at END`,
+    latest: 'created_at = excluded.created_at',
+    list: 'player = course_entries.player',
+  }[contest.mode];
+
+  try {
+    await env.DB.prepare(
+      `INSERT INTO course_entries (created_at, contest, player, team, value)
+       VALUES (?1, ?2, ?3, ?4, ?5)
+       ON CONFLICT(contest, lower(player)) DO UPDATE SET ${onConflict}`
+    ).bind(now, contest.id, player, team, value).run();
+  } catch {
+    return json({ error: 'Could not save. Try again.' }, 500);
+  }
+  return json({ ok: true });
+}
+
+async function readBoard(env) {
+  const { results } = await env.DB.prepare(
+    'SELECT id, created_at, contest, player, team, value FROM course_entries'
+  ).all();
+  const rows = results ?? [];
+  const contests = CONTESTS.map((c) => {
+    const mine = rows.filter((r) => r.contest === c.id);
+    const sorted = {
+      low: (a, b) => a.value - b.value || a.created_at.localeCompare(b.created_at),
+      high: (a, b) => b.value - a.value || a.created_at.localeCompare(b.created_at),
+      latest: (a, b) => b.created_at.localeCompare(a.created_at),
+      list: (a, b) => a.created_at.localeCompare(b.created_at),
+    }[c.mode];
+    mine.sort(sorted);
+    return {
+      id: c.id, code: c.code, hole: c.hole, mode: c.mode, title: c.title, rule: c.rule, sponsor: c.sponsor || '',
+      count: mine.length,
+      entries: mine.map(({ id, created_at, player, team, value }) => ({ id, at: created_at, player, team, value })),
+    };
+  });
+  return { updated_at: new Date().toISOString(), contests };
+}
+
+async function handleCourseBoard(request, env) {
+  if (!env.DB) return json({ error: 'Storage is not configured.' }, 503);
+  const board = await readBoard(env);
+  return new Response(JSON.stringify(board), {
+    headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
+  });
+}
+
+async function handleCourseDelete(request, env) {
+  if (!env.DB) return json({ error: 'Storage is not configured.' }, 503);
+  if (!(await hasSession(request, env))) return json({ error: 'Not authorized.' }, 401);
+  const id = Number(new URL(request.url).searchParams.get('id'));
+  if (!Number.isInteger(id) || id <= 0) return json({ error: 'Missing id.' }, 400);
+  await env.DB.prepare('DELETE FROM course_entries WHERE id = ?1').bind(id).run();
+  return json({ ok: true });
+}
+
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const { pathname } = new URL(request.url);
+
+    const go = pathname.match(GO_PATH);
+    if (go) return handleGo(request, env, ctx, (go[1] || 'other').toLowerCase());
+
+    const courseCode = pathname.match(COURSE_CODE_PATH);
+    if (courseCode) return handleCourseCode(request, env, ctx, courseCode[1]);
+
+    if (pathname === '/api/course/entry') {
+      if (request.method === 'POST') return handleCourseEntry(request, env);
+      if (request.method === 'DELETE') return handleCourseDelete(request, env);
+      return json({ error: 'Method not allowed.' }, 405);
+    }
+
+    if (pathname === '/api/course/board') {
+      return request.method === 'GET'
+        ? handleCourseBoard(request, env)
+        : json({ error: 'Method not allowed.' }, 405);
+    }
+
+    if (pathname === '/api/golf/scans') {
+      return request.method === 'GET'
+        ? handleScans(request, env)
+        : json({ error: 'Method not allowed.' }, 405);
+    }
 
     if (pathname === '/api/golf/entry') {
       return request.method === 'POST'

@@ -5,6 +5,8 @@
 
 DROP TABLE IF EXISTS golf_entries;
 DROP TABLE IF EXISTS probe_log;
+DROP TABLE IF EXISTS scan_log;
+DROP TABLE IF EXISTS course_entries;
 
 CREATE TABLE golf_entries (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -75,3 +77,32 @@ CREATE TABLE grouping_cache (
   entry_count  INTEGER NOT NULL,
   payload      TEXT NOT NULL
 );
+
+-- QR scan log for /go/<tag>. One row per scan of a printed code; the tag says
+-- which placement the code was printed for (bag, card, hole, table, hand).
+-- Read it with GET /api/golf/scans. Added after the entries table was already
+-- live, so apply migrations/2026-09-16-scan-log.sql remotely rather than this
+-- file: this file drops every table.
+CREATE TABLE scan_log (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  created_at  TEXT NOT NULL,
+  tag         TEXT NOT NULL,
+  user_agent  TEXT,
+  country     TEXT
+);
+
+CREATE INDEX idx_scan_log_tag ON scan_log(tag, created_at);
+
+-- On-course contests (closest to the pin, longest drive, longest putt, the
+-- square). Replaces the pinned paper sheets. value is total inches for
+-- measured contests and NULL otherwise. One row per person per contest.
+CREATE TABLE course_entries (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  created_at  TEXT NOT NULL,
+  contest     TEXT NOT NULL,
+  player      TEXT NOT NULL,
+  team        TEXT,
+  value       INTEGER
+);
+
+CREATE UNIQUE INDEX idx_course_entries_person ON course_entries(contest, lower(player));

@@ -4,9 +4,11 @@ import test from 'node:test';
 import { DatabaseSync } from 'node:sqlite';
 
 import { clean, looksLikeEmail, normaliseCell } from '../src/worker.js';
+import { CONTESTS, CONTEST_BY_CODE, formatInches } from '../src/data/contests.js';
 
 const schema = await readFile(new URL('../schema.sql', import.meta.url), 'utf8');
 const workerSource = await readFile(new URL('../src/worker.js', import.meta.url), 'utf8');
+const migrationSource = await readFile(new URL('../migrations/2026-09-16-scan-log.sql', import.meta.url), 'utf8');
 
 test('public text fields are trimmed and capped', () => {
   assert.equal(clean('  useful answer  ', 600), 'useful answer');
@@ -44,4 +46,47 @@ test('judged winner selection is explicit and same-device', async () => {
   assert.match(judge, /hyphos-golf-best-pick/);
   assert.match(live, /hyphos-golf-best-pick/);
   assert.match(live, /location\.href = '\/golf\/judge'/);
+});
+
+test('QR scan tracking: /go/<tag> is routed and the schema can store it', () => {
+  assert.match(workerSource, /pathname\.match\(GO_PATH\)/);
+  assert.match(workerSource, /INSERT INTO scan_log \(created_at, tag, user_agent, country\)/);
+  assert.match(workerSource, /'\/api\/golf\/scans'/);
+
+  const db = new DatabaseSync(':memory:');
+  db.exec(schema);
+  const columns = db.prepare('PRAGMA table_info(scan_log)').all().map((column) => column.name);
+  for (const expected of ['created_at', 'tag', 'user_agent', 'country']) {
+    assert.ok(columns.includes(expected), `scan_log is missing ${expected}`);
+  }
+
+  const migration = new DatabaseSync(':memory:');
+  migration.exec(schema);
+  // The migration must be safe to run on a database that already has the table.
+  migration.exec(readFileSyncMigration());
+});
+
+function readFileSyncMigration() {
+  return migrationSource;
+}
+
+test('on-course contests: config, routes and one row per person per contest', () => {
+  const ids = new Set(); const codes = new Set();
+  for (const c of CONTESTS) {
+    assert.ok(['low', 'high', 'latest', 'list'].includes(c.mode), `${c.id} has an unknown mode`);
+    assert.match(c.code, /^[A-Z0-9]{1,8}$/, `${c.id} code must be short and uppercase for a compact QR`);
+    assert.ok(!ids.has(c.id) && !codes.has(c.code), 'contest ids and codes must be unique');
+    ids.add(c.id); codes.add(c.code);
+    assert.equal(CONTEST_BY_CODE[c.code.toLowerCase()], c);
+  }
+  assert.equal(formatInches(150), '12\u2032 6\u2033');
+  assert.match(workerSource, /'\/api\/course\/entry'/);
+  assert.match(workerSource, /'\/api\/course\/board'/);
+  assert.match(workerSource, /ON CONFLICT\(contest, lower\(player\)\)/);
+
+  const db = new DatabaseSync(':memory:');
+  db.exec(schema);
+  const insert = db.prepare("INSERT INTO course_entries (created_at, contest, player) VALUES ('t', 'ctp', ?)");
+  insert.run('Brad Beckett');
+  assert.throws(() => insert.run('brad beckett'), 'same person, different case, must collide');
 });

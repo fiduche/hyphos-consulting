@@ -1,0 +1,582 @@
+[
+ {
+  "name": "David Craig",
+  "team": "",
+  "group": "1A"
+ },
+ {
+  "name": "Scott Craig",
+  "team": "",
+  "group": "1A"
+ },
+ {
+  "name": "Jordan Craig",
+  "team": "",
+  "group": "1A"
+ },
+ {
+  "name": "John Devlin",
+  "team": "",
+  "group": "1A"
+ },
+ {
+  "name": "Joe Wensink",
+  "team": "Lights Out",
+  "group": "1B"
+ },
+ {
+  "name": "Brad Beckett",
+  "team": "Lights Out",
+  "group": "1B"
+ },
+ {
+  "name": "Steve Mott",
+  "team": "Lights Out",
+  "group": "1B"
+ },
+ {
+  "name": "Rodger Champagne",
+  "team": "Lights Out",
+  "group": "1B"
+ },
+ {
+  "name": "Chris Karam",
+  "team": "Rip It",
+  "group": "2A"
+ },
+ {
+  "name": "Gerry Desmarais",
+  "team": "Rip It",
+  "group": "2A"
+ },
+ {
+  "name": "Chris Jr. Karam",
+  "team": "Rip It",
+  "group": "2A"
+ },
+ {
+  "name": "Kyle Shortt",
+  "team": "Rip It",
+  "group": "2A"
+ },
+ {
+  "name": "Mark Aebig",
+  "team": "Kaizen Auto",
+  "group": "2B"
+ },
+ {
+  "name": "Kaizen Auto",
+  "team": "Kaizen Auto",
+  "group": "2B"
+ },
+ {
+  "name": "Kaizen Auto",
+  "team": "Kaizen Auto",
+  "group": "2B"
+ },
+ {
+  "name": "Kaizen Auto",
+  "team": "Kaizen Auto",
+  "group": "2B"
+ },
+ {
+  "name": "Ed Huculak",
+  "team": "The Hucksters",
+  "group": "3A"
+ },
+ {
+  "name": "Cam Davidson",
+  "team": "The Hucksters",
+  "group": "3A"
+ },
+ {
+  "name": "Dale Bateman",
+  "team": "The Hucksters",
+  "group": "3A"
+ },
+ {
+  "name": "Dennis Mullen",
+  "team": "The Hucksters",
+  "group": "3A"
+ },
+ {
+  "name": "Ben Alleckna",
+  "team": "Fix Auto",
+  "group": "3B"
+ },
+ {
+  "name": "Taylor Boyse",
+  "team": "Fix Auto",
+  "group": "3B"
+ },
+ {
+  "name": "Ryan Bellows",
+  "team": "Fix Auto",
+  "group": "3B"
+ },
+ {
+  "name": "Brigham Alleckna",
+  "team": "Fix Auto",
+  "group": "3B"
+ },
+ {
+  "name": "Darcy Schinnour",
+  "team": "East Side Dodge",
+  "group": "4A"
+ },
+ {
+  "name": "East Side Dodge",
+  "team": "East Side Dodge",
+  "group": "4A"
+ },
+ {
+  "name": "East Side Dodge",
+  "team": "East Side Dodge",
+  "group": "4A"
+ },
+ {
+  "name": "East Side Dodge",
+  "team": "East Side Dodge",
+  "group": "4A"
+ },
+ {
+  "name": "Joe Strang",
+  "team": "Showcase AV",
+  "group": "4B"
+ },
+ {
+  "name": "Showcase AV",
+  "team": "Showcase AV",
+  "group": "4B"
+ },
+ {
+  "name": "Showcase AV",
+  "team": "Showcase AV",
+  "group": "4B"
+ },
+ {
+  "name": "Showcase AV",
+  "team": "Showcase AV",
+  "group": "4B"
+ },
+ {
+  "name": "Kyle Myketyn",
+  "team": "Prairie Glassworks",
+  "group": "5A"
+ },
+ {
+  "name": "Eric Myketyn",
+  "team": "Prairie Glassworks",
+  "group": "5A"
+ },
+ {
+  "name": "Don Mowat",
+  "team": "Prairie Glassworks",
+  "group": "5A"
+ },
+ {
+  "name": "Sean Carringan",
+  "team": "Prairie Glassworks",
+  "group": "5A"
+ },
+ {
+  "name": "Lyle Didginghorse",
+  "team": "The FORE Horseman",
+  "group": "5B"
+ },
+ {
+  "name": "Dallas Froese",
+  "team": "The FORE Horseman",
+  "group": "5B"
+ },
+ {
+  "name": "Nick Torry",
+  "team": "The FORE Horseman",
+  "group": "5B"
+ },
+ {
+  "name": "Cole Muys",
+  "team": "The FORE Horseman",
+  "group": "5B"
+ },
+ {
+  "name": "Jonathan Schnedar",
+  "team": "Windy Pines",
+  "group": "6A"
+ },
+ {
+  "name": "Warren Schnedar",
+  "team": "Windy Pines",
+  "group": "6A"
+ },
+ {
+  "name": "Marrett Alwood",
+  "team": "Windy Pines",
+  "group": "6A"
+ },
+ {
+  "name": "Tyrel Siki",
+  "team": "Windy Pines",
+  "group": "6A"
+ },
+ {
+  "name": "John DeBoer",
+  "team": "Team DeBoer",
+  "group": "6B"
+ },
+ {
+  "name": "Darryl DeBoer",
+  "team": "Team DeBoer",
+  "group": "6B"
+ },
+ {
+  "name": "David DeBoer",
+  "team": "Team DeBoer",
+  "group": "6B"
+ },
+ {
+  "name": "Chris Spyker",
+  "team": "Team DeBoer",
+  "group": "6B"
+ },
+ {
+  "name": "Dan Ramsey",
+  "team": "Rusty Golfers",
+  "group": "7A"
+ },
+ {
+  "name": "Kyle Hummel",
+  "team": "Rusty Golfers",
+  "group": "7A"
+ },
+ {
+  "name": "David Hummel",
+  "team": "Rusty Golfers",
+  "group": "7A"
+ },
+ {
+  "name": "Ralph Hummel",
+  "team": "Rusty Golfers",
+  "group": "7A"
+ },
+ {
+  "name": "Tanner Whitefish",
+  "team": "McClark Mechanical",
+  "group": "7B"
+ },
+ {
+  "name": "McClark Mechanical",
+  "team": "McClark Mechanical",
+  "group": "7B"
+ },
+ {
+  "name": "McClark Mechanical",
+  "team": "McClark Mechanical",
+  "group": "7B"
+ },
+ {
+  "name": "McClark Mechanical",
+  "team": "McClark Mechanical",
+  "group": "7B"
+ },
+ {
+  "name": "Brian Suderman",
+  "team": "JWH Concrete Works",
+  "group": "8A"
+ },
+ {
+  "name": "Jayden Suderman",
+  "team": "JWH Concrete Works",
+  "group": "8A"
+ },
+ {
+  "name": "JWH Concrete",
+  "team": "JWH Concrete Works",
+  "group": "8A"
+ },
+ {
+  "name": "JWH Concrete",
+  "team": "JWH Concrete Works",
+  "group": "8A"
+ },
+ {
+  "name": "Daniel Newton",
+  "team": "Hyphos Inc",
+  "group": "8B"
+ },
+ {
+  "name": "Laird Dyck",
+  "team": "Hyphos Inc",
+  "group": "8B"
+ },
+ {
+  "name": "Cyrus Azarcon",
+  "team": "Hyphos Inc",
+  "group": "8B"
+ },
+ {
+  "name": "Billy Martin",
+  "team": "Hyphos Inc",
+  "group": "8B"
+ },
+ {
+  "name": "Randy Marshall",
+  "team": "Encore Electrical",
+  "group": "9A"
+ },
+ {
+  "name": "Brett Neutzling",
+  "team": "Encore Electrical",
+  "group": "9A"
+ },
+ {
+  "name": "Ryan Blaine",
+  "team": "Encore Electrical",
+  "group": "9A"
+ },
+ {
+  "name": "Kale Kluthe",
+  "team": "Encore Electrical",
+  "group": "9A"
+ },
+ {
+  "name": "Ephraim Parcero",
+  "team": "Bogie Boys",
+  "group": "9B"
+ },
+ {
+  "name": "Zeke Parcero",
+  "team": "Bogie Boys",
+  "group": "9B"
+ },
+ {
+  "name": "Miah Parcero",
+  "team": "Bogie Boys",
+  "group": "9B"
+ },
+ {
+  "name": "Jalen Parcero",
+  "team": "Bogie Boys",
+  "group": "9B"
+ },
+ {
+  "name": "Jacob Harris",
+  "team": "Returning Champs",
+  "group": "10A"
+ },
+ {
+  "name": "Tristan Dearden",
+  "team": "Returning Champs",
+  "group": "10A"
+ },
+ {
+  "name": "Chris Jozsa",
+  "team": "Returning Champs",
+  "group": "10A"
+ },
+ {
+  "name": "Nick Vecchiarelli",
+  "team": "Returning Champs",
+  "group": "10A"
+ },
+ {
+  "name": "Derek Taylor",
+  "team": "Duffin Doggers",
+  "group": "10B"
+ },
+ {
+  "name": "Gurjot Bhullar",
+  "team": "Duffin Doggers",
+  "group": "10B"
+ },
+ {
+  "name": "Gino Davoli",
+  "team": "Duffin Doggers",
+  "group": "10B"
+ },
+ {
+  "name": "Tony Labrocca",
+  "team": "Duffin Doggers",
+  "group": "10B"
+ },
+ {
+  "name": "Dustin Block",
+  "team": "",
+  "group": "11A"
+ },
+ {
+  "name": "Jeremy Palmer",
+  "team": "",
+  "group": "11A"
+ },
+ {
+  "name": "Jesse Ashmore",
+  "team": "",
+  "group": "11A"
+ },
+ {
+  "name": "Jeff Simmons",
+  "team": "",
+  "group": "11A"
+ },
+ {
+  "name": "Chad Martin",
+  "team": "Team Martin",
+  "group": "11B"
+ },
+ {
+  "name": "Chad MxcMonagle",
+  "team": "Team Martin",
+  "group": "11B"
+ },
+ {
+  "name": "Dennis Peters",
+  "team": "Team Martin",
+  "group": "11B"
+ },
+ {
+  "name": "Drew Sitzman",
+  "team": "Team Martin",
+  "group": "11B"
+ },
+ {
+  "name": "Kendall Matieshin",
+  "team": "Divot & Goliath",
+  "group": "12A"
+ },
+ {
+  "name": "Kevin Matieshin",
+  "team": "Divot & Goliath",
+  "group": "12A"
+ },
+ {
+  "name": "Gregg Briggs",
+  "team": "Divot & Goliath",
+  "group": "12A"
+ },
+ {
+  "name": "Jesse Rememda",
+  "team": "Divot & Goliath",
+  "group": "12A"
+ },
+ {
+  "name": "Kendall Molvik",
+  "team": "Relatvie Distance",
+  "group": "12B"
+ },
+ {
+  "name": "Kutis Molvik",
+  "team": "Relatvie Distance",
+  "group": "12B"
+ },
+ {
+  "name": "Norm Molvik",
+  "team": "Relatvie Distance",
+  "group": "12B"
+ },
+ {
+  "name": "Gearret Stroshein",
+  "team": "Relatvie Distance",
+  "group": "12B"
+ },
+ {
+  "name": "Scott McAlpine",
+  "team": "Digby Duffers",
+  "group": "13A"
+ },
+ {
+  "name": "Jay  Smith",
+  "team": "",
+  "group": "13B"
+ },
+ {
+  "name": "Josh Comeau",
+  "team": "Digby Duffers",
+  "group": "13A"
+ },
+ {
+  "name": "Derek \"Chunk\" Spencer",
+  "team": "Digby Duffers",
+  "group": "13A"
+ },
+ {
+  "name": "Liam Sunstrum",
+  "team": "Yard Dawgs",
+  "group": "13B"
+ },
+ {
+  "name": "James Szojka",
+  "team": "Yard Dawgs",
+  "group": "13B"
+ },
+ {
+  "name": "Nathan Tobias",
+  "team": "Yard Dawgs",
+  "group": "13B"
+ },
+ {
+  "name": "Brett Edwards",
+  "team": "Yard Dawgs",
+  "group": "13B"
+ },
+ {
+  "name": "Brian Hoffman",
+  "team": "The Fab 4",
+  "group": "14A"
+ },
+ {
+  "name": "Curtis Kardash",
+  "team": "The Fab 4",
+  "group": "14A"
+ },
+ {
+  "name": "Bill Richards",
+  "team": "The Fab 4",
+  "group": "14A"
+ },
+ {
+  "name": "Scott Price",
+  "team": "The Fab 4",
+  "group": "14A"
+ },
+ {
+  "name": "Michael Lynes",
+  "team": "Team Lynes",
+  "group": "14B"
+ },
+ {
+  "name": "Michael Lynes",
+  "team": "Team Lynes",
+  "group": "14B"
+ },
+ {
+  "name": "Michael Lynes",
+  "team": "Team Lynes",
+  "group": "14B"
+ },
+ {
+  "name": "Chris Serger",
+  "team": "Team Lynes",
+  "group": "14B"
+ },
+ {
+  "name": "Carlos Tomaz",
+  "team": "",
+  "group": "15A"
+ },
+ {
+  "name": "Nick Pothier",
+  "team": "",
+  "group": "15A"
+ },
+ {
+  "name": "Sean Lacroix",
+  "team": "",
+  "group": "15A"
+ },
+ {
+  "name": "Manna Akpan",
+  "team": "",
+  "group": "15A"
+ }
+]
