@@ -1,7 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
-import sitemap from '@astrojs/sitemap';
 
 /**
  * hyphosconsulting.com — static marketing site.
@@ -11,7 +10,9 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   site: 'https://hyphosconsulting.com',
   output: 'static',
-  integrations: [sitemap({ filter: (page) => !page.includes('/golf') })],
+  // Every page left on this domain is a noindex tournament screen, so there is
+  // nothing to put in a sitemap. The marketing site's sitemap lives on hyphos.io.
+  integrations: [],
   vite: {
     plugins: [tailwindcss()],
   },

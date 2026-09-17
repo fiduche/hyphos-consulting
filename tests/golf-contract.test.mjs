@@ -158,3 +158,36 @@ test('judging: every answer is eligible and rehearsal never touches the real pic
   assert.doesNotMatch(workerSource, /wish_detail \|\| ''\)\.trim\(\)\.length > 12/);
   assert.match(workerSource, /best: candidates\.map/);
 });
+
+test('hyphosconsulting.com sends its old pages to hyphos.io and keeps the tournament routes', async () => {
+  const { default: worker } = await import('../src/worker.js');
+  const notFound = { fetch: async () => new Response('not found', { status: 404 }) };
+  const asset = { fetch: async () => new Response('<html>golf</html>', { status: 200 }) };
+  const get = (path, env = { ASSETS: notFound }) => worker.fetch(new Request(`https://hyphosconsulting.com${path}`), env, {});
+
+  for (const [from, to] of [
+    ['/', 'https://hyphos.io/'],
+    ['/work/', 'https://hyphos.io/work'],
+    ['/work/cornerstone/', 'https://hyphos.io/work/cornerstone/'],
+    ['/ai?utm_source=email', 'https://hyphos.io/field-notes/ten-ways-small-businesses-use-ai/?utm_source=email'],
+    ['/products', 'https://hyphos.io/'],
+    ['/something-old', 'https://hyphos.io/'],
+  ]) {
+    const res = await get(from);
+    assert.equal(res.status, 301, from);
+    assert.equal(res.headers.get('location'), to, from);
+  }
+
+  // Tournament pages are served, never redirected.
+  const golf = await get('/golf/', { ASSETS: asset });
+  assert.equal(golf.status, 200);
+
+  // QR scans still count here, then land on hyphos.io with the campaign tags.
+  const scan = await get('/GO/BAG', { ASSETS: notFound });
+  assert.equal(scan.status, 302);
+  assert.match(scan.headers.get('location'), /^https:\/\/hyphos\.io\/\?utm_source=qr&utm_medium=print&utm_campaign=springs-golf-2026&utm_content=bag$/);
+
+  // A POST to a missing path is not turned into a redirect.
+  const post = await worker.fetch(new Request('https://hyphosconsulting.com/contact', { method: 'POST' }), { ASSETS: notFound }, {});
+  assert.equal(post.status, 404);
+});

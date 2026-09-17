@@ -717,8 +717,36 @@ These get read by the person who wrote them, standing next to the screen.`,
 const GO_PATH = /^\/go(?:\/([a-z0-9-]{1,32}))?\/?$/i;
 const GO_CAMPAIGN = 'springs-golf-2026';
 
+// hyphos.io is the one Hyphos site. This domain keeps only what printed
+// material and the tournament depend on: /golf, /course, /c/, /go/ and their
+// APIs. Every other page redirects to its equivalent there. The QR stickers
+// already carry this domain, so scans are still counted here first.
+const MAIN_SITE = 'https://hyphos.io';
+const MOVED = {
+  '/': '/',
+  '/about': '/about',
+  '/services': '/services',
+  '/work': '/work',
+  '/work/cornerstone': '/work/cornerstone/',
+  '/ai': '/field-notes/ten-ways-small-businesses-use-ai/',
+  '/products': '/',
+  '/contact': '/contact',
+};
+
+function redirectToMainSite(request) {
+  const url = new URL(request.url);
+  const key = url.pathname.replace(/\/+$/, '') || '/';
+  const target = new URL(MOVED[key] ?? '/', MAIN_SITE);
+  target.search = url.search;
+  target.hash = url.hash;
+  return new Response(null, {
+    status: 301,
+    headers: { location: target.toString(), 'cache-control': 'public, max-age=3600' },
+  });
+}
+
 async function handleGo(request, env, ctx, tag) {
-  const target = new URL('/', request.url);
+  const target = new URL('/', MAIN_SITE);
   target.searchParams.set('utm_source', 'qr');
   target.searchParams.set('utm_medium', 'print');
   target.searchParams.set('utm_campaign', GO_CAMPAIGN);
@@ -957,6 +985,11 @@ export default {
     }
 
     const response = await env.ASSETS.fetch(request);
+    // Anything this domain no longer serves goes to hyphos.io. The tournament
+    // routes are all real assets or handled above, so they never reach here.
+    if (response.status === 404 && (request.method === 'GET' || request.method === 'HEAD')) {
+      return redirectToMainSite(request);
+    }
     if (pathname.startsWith('/golf')) {
       const headers = new Headers(response.headers);
       headers.set('x-robots-tag', 'noindex, nofollow, noarchive');
