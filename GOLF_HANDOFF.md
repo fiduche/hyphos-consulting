@@ -14,7 +14,8 @@ Technical detail is in `INFRASTRUCTURE.md` under "Golf tournament entry form".
 | URL | What |
 |---|---|
 | `/golf` | Entry form, reached by QR at the hole |
-| `/ai` | The "10 ways" piece the form promises **(draft, unreviewed)** |
+| `/ai` | Moved. The "10 ways" piece the form promises is now `hyphos.io/field-notes/ten-ways-small-businesses-use-ai/`; `/ai` redirects there. Link that URL in the follow-up email. |
+| Everything else | **This domain now only serves the tournament.** Marketing pages 301 to hyphos.io; `/go/<tag>` lands on the hyphos.io homepage after logging the scan. |
 | `/golf/enter` | Sign in once; mints a 14h HttpOnly cookie |
 | `/golf/board` | Hole screen, all day, hotspot, auto-refresh |
 | `/golf/judge` | Choose the judged Pro V1s winner, on the dinner laptop |
@@ -95,7 +96,7 @@ Add `?demo=1` to either screen to rehearse with sample data and no API call.
    prize run.
 2. **Confirm outside food and beverage** with D'Arcy Ranch directly.
 3. **Book two people** to staff the hole. Most likely item to fail late.
-4. **Write the "10 ways" piece** or approve the `/ai` draft; four open questions
+4. **Write the "10 ways" piece** or approve the draft, now at `hyphos.io/field-notes/ten-ways-small-businesses-use-ai/`; four open questions
    on it (naming the funeral group, the "Okotoks & Calgary" line, the 45-minute
    offer wording, and the CTA target).
 5. **Headshot** for the hole sign, currently a placeholder.
