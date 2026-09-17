@@ -219,8 +219,9 @@ import Mark from '../../components/Mark.astro';
       try {
         const raw = localStorage.getItem(KEY);
         if (raw) S = { ...S, ...JSON.parse(raw) };
-        // Earlier builds stored absent people by attendee id.
-        S.absent = (S.absent || []).filter((a) => typeof a === 'string');
+        // Absent entries are "a:<attendee id>" or "n:<name>". Older saves held
+        // bare names or bare ids.
+        S.absent = (S.absent || []).map((a) => typeof a === 'number' ? `a:${a}` : /^[an]:/.test(a) ? a : `n:${a}`);
       } catch {}
     };
 
@@ -261,18 +262,45 @@ import Mark from '../../components/Mark.astro';
       crypto.getRandomValues(buf);
       return arr[buf[0] % arr.length];
     }
-    // Names that cannot win this prize: already won another prize, gone home,
-    // or struck for a score prize. By name, because contest entrants typed
-    // their own names and are not rows in the attendee list.
-    function blocked() {
-      const out = new Set(S.absent);
-      S.winners.forEach((w) => { if (w.prizeIndex !== S.index) out.add(norm(w.name)); });
-      const ex = new Set(S.excluded);
-      S.attendees.forEach((a) => { if (ex.has(a.id)) out.add(norm(a.name)); });
-      return out;
+    // Who is out for this prize. Attendees are tracked by their row, not their
+    // name: the real roster repeats names (three "Kaizen Auto" rows, three
+    // "Michael Lynes"), and matching by name let one of them winning knock the
+    // others out of the hat. Contest entrants typed their own names, so they
+    // are matched to an attendee row only when exactly one row has that name.
+    function attendeeId(name) {
+      const hits = S.attendees.filter((a) => norm(a.name) === norm(name));
+      return hits.length === 1 ? hits[0].id : null;
     }
-    const pool = () => { const b = blocked(); return S.attendees.filter((a) => !b.has(norm(a.name))); };
-    const teamFor = (name, fallback = '') => S.attendees.find((a) => norm(a.name) === norm(name))?.team || fallback;
+    const others = () => S.winners.filter((w) => w.prizeIndex !== S.index);
+    function blockedIds() {
+      const ids = new Set(S.excluded);
+      others().forEach((w) => { if (w.attendee != null) ids.add(w.attendee); });
+      S.absent.forEach((a) => { if (a.startsWith('a:')) ids.add(Number(a.slice(2))); });
+      return ids;
+    }
+    // Names blocked for contest prizes, where entrants have no attendee row.
+    function blockedNames() {
+      const ids = blockedIds();
+      const names = new Set();
+      others().forEach((w) => names.add(norm(w.name)));
+      S.absent.forEach((a) => { if (a.startsWith('n:')) names.add(a.slice(2)); });
+      S.attendees.forEach((a) => { if (ids.has(a.id)) names.add(norm(a.name)); });
+      return names;
+    }
+    function pool() {
+      const ids = blockedIds();
+      // A contest winner with no attendee row still blocks the one row that
+      // uniquely carries their name.
+      const loose = new Set([
+        ...others().filter((w) => w.attendee == null).map((w) => norm(w.name)),
+        ...S.absent.filter((a) => a.startsWith('n:')).map((a) => a.slice(2)),
+      ]);
+      return S.attendees.filter((a) => !ids.has(a.id) && !(loose.has(norm(a.name)) && attendeeId(a.name) === a.id));
+    }
+    const teamFor = (name, fallback = '') => {
+      const id = attendeeId(name);
+      return (id != null && S.attendees.find((a) => a.id === id)?.team) || fallback;
+    };
 
     function judgedOrder() {
       const best = S.contest?.best || [];
@@ -283,7 +311,7 @@ import Mark from '../../components/Mark.astro';
     }
     // Candidates for the current prize, in the order they would be chosen.
     function candidatesFor(prize) {
-      const b = blocked();
+      const b = blockedNames();
       if (prize.kind === 'judged') return judgedOrder().list.filter((x) => !b.has(norm(x.name)));
       if (prize.kind === 'entries') return (S.contest?.draw || []).filter((x) => !b.has(norm(x.name)));
       if (prize.kind === 'square') return (S.contest?.square || []).filter((x) => !b.has(norm(x.name)));
@@ -473,7 +501,11 @@ import Mark from '../../components/Mark.astro';
     }
     function record(person, extra = {}) {
       const p = S.prizes[S.index];
-      const w = { prizeIndex: S.index, name: person.name, team: teamFor(person.name, person.team || person.company || ''), prize: p.prize, sponsor: p.sponsor, kind: p.kind, at: new Date().toISOString(), ...extra };
+      // Hat winners are attendee rows. Contest winners link to a row only when
+      // their typed name matches exactly one.
+      const attendee = p.kind === 'hat' ? person.id : attendeeId(person.name);
+      const team = p.kind === 'hat' ? person.team : teamFor(person.name, person.team || person.company || '');
+      const w = { prizeIndex: S.index, attendee, name: person.name, team, prize: p.prize, sponsor: p.sponsor, kind: p.kind, at: new Date().toISOString(), ...extra };
       S.winners.push(w); save();
       return w;
     }
@@ -546,7 +578,7 @@ import Mark from '../../components/Mark.astro';
     function absent() {
       const gone = S.winners.find((w) => w.prizeIndex === S.index);
       if (!gone) return;
-      S.absent = [...new Set([...S.absent, norm(gone.name)])];
+      S.absent = [...new Set([...S.absent, gone.attendee != null ? `a:${gone.attendee}` : `n:${norm(gone.name)}`])];
       S.winners = S.winners.filter((w) => w.prizeIndex !== S.index);
       landed = false; quoteUp = false; el('quote').hidden = true;
       save();
