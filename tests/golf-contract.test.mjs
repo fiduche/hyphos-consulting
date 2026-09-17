@@ -159,12 +159,16 @@ test('judging: every answer is eligible and rehearsal never touches the real pic
   assert.match(workerSource, /best: candidates\.map/);
 });
 
-test('hyphosconsulting.com sends its old pages to hyphos.io and keeps the tournament routes', async () => {
+test('hyphos.io serves the tournament; hyphosconsulting.com only redirects there', async () => {
   const { default: worker } = await import('../src/worker.js');
   const notFound = { fetch: async () => new Response('not found', { status: 404 }) };
   const asset = { fetch: async () => new Response('<html>golf</html>', { status: 200 }) };
-  const get = (path, env = { ASSETS: notFound }) => worker.fetch(new Request(`https://hyphosconsulting.com${path}`), env, {});
+  const on = (host) => (path, env = { ASSETS: notFound }, method = 'GET') =>
+    worker.fetch(new Request(`https://${host}${path}`, { method }), env, {});
+  const old = on('hyphosconsulting.com');
+  const main = on('hyphos.io');
 
+  // Old marketing pages go to their hyphos.io equivalents.
   for (const [from, to] of [
     ['/', 'https://hyphos.io/'],
     ['/work/', 'https://hyphos.io/work'],
@@ -173,21 +177,40 @@ test('hyphosconsulting.com sends its old pages to hyphos.io and keeps the tourna
     ['/products', 'https://hyphos.io/'],
     ['/something-old', 'https://hyphos.io/'],
   ]) {
-    const res = await get(from);
+    const res = await old(from);
     assert.equal(res.status, 301, from);
     assert.equal(res.headers.get('location'), to, from);
   }
 
-  // Tournament pages are served, never redirected.
-  const golf = await get('/golf/', { ASSETS: asset });
-  assert.equal(golf.status, 200);
+  // Tournament pages on the old domain move to the same path on hyphos.io,
+  // even though they are real assets there.
+  for (const [from, to] of [
+    ['/golf/', 'https://hyphos.io/golf/'],
+    ['/golf/board/', 'https://hyphos.io/golf/board/'],
+    ['/course/enter/?c=ctp', 'https://hyphos.io/course/enter/?c=ctp'],
+    ['/golf/qr-screen.png', 'https://hyphos.io/golf/qr-screen.png'],
+  ]) {
+    const res = await old(from, { ASSETS: asset });
+    assert.equal(res.status, 302, from);
+    assert.equal(res.headers.get('location'), to, from);
+  }
 
-  // QR scans still count here, then land on hyphos.io with the campaign tags.
-  const scan = await get('/GO/BAG', { ASSETS: notFound });
-  assert.equal(scan.status, 302);
-  assert.match(scan.headers.get('location'), /^https:\/\/hyphos\.io\/\?utm_source=qr&utm_medium=print&utm_campaign=springs-golf-2026&utm_content=bag$/);
+  // Reached through the hyphos.io service binding, the same pages are served.
+  assert.equal((await main('/golf/', { ASSETS: asset })).status, 200);
+  assert.equal((await main('/course/', { ASSETS: asset })).status, 200);
 
-  // A POST to a missing path is not turned into a redirect.
-  const post = await worker.fetch(new Request('https://hyphosconsulting.com/contact', { method: 'POST' }), { ASSETS: notFound }, {});
-  assert.equal(post.status, 404);
+  // Printed codes on either domain are counted, then land on hyphos.io.
+  for (const client of [old, main]) {
+    const scan = await client('/GO/BAG');
+    assert.equal(scan.status, 302);
+    assert.match(scan.headers.get('location'), /^https:\/\/hyphos\.io\/\?utm_source=qr&utm_medium=print&utm_campaign=springs-golf-2026&utm_content=bag$/);
+    const sign = await client('/C/CTP');
+    assert.equal(sign.status, 302);
+    assert.equal(sign.headers.get('location'), 'https://hyphos.io/course/enter/?c=ctp');
+  }
+
+  // Writes are never redirected: an old open page still posts.
+  const post = await old('/api/course/entry', { ASSETS: notFound, DB: null }, 'POST');
+  assert.notEqual(post.status, 301);
+  assert.notEqual(post.status, 302);
 });

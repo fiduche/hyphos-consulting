@@ -13,6 +13,9 @@ compatibility_flags = ["nodejs_compat"]
 [assets]
 directory = "./dist"
 binding = "ASSETS"
+# The worker runs first so requests on hyphosconsulting.com can be redirected
+# to hyphos.io even when the path is a real asset (the tournament pages).
+run_worker_first = true
 
 # D1 — entry storage for the golf tournament form at /golf. The worker handles
 # POST /api/golf/entry and GET /api/golf/entries; everything else still falls

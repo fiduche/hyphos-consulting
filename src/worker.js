@@ -717,11 +717,13 @@ These get read by the person who wrote them, standing next to the screen.`,
 const GO_PATH = /^\/go(?:\/([a-z0-9-]{1,32}))?\/?$/i;
 const GO_CAMPAIGN = 'springs-golf-2026';
 
-// hyphos.io is the one Hyphos site. This domain keeps only what printed
-// material and the tournament depend on: /golf, /course, /c/, /go/ and their
-// APIs. Every other page redirects to its equivalent there. The QR stickers
-// already carry this domain, so scans are still counted here first.
+// hyphos.io is the one Hyphos site, and the tournament is served there too:
+// the hyphos.io worker passes /golf, /course, /c/, /go/ and their APIs to this
+// worker over a service binding. Requests that arrive on hyphosconsulting.com
+// directly (old links, anything already printed) are redirected to the same
+// place on hyphos.io. /go/ and /c/ scans are still counted before redirecting.
 const MAIN_SITE = 'https://hyphos.io';
+const OLD_HOST = /(?:^|\.)hyphosconsulting\.com$/i;
 const MOVED = {
   '/': '/',
   '/about': '/about',
@@ -743,6 +745,12 @@ function redirectToMainSite(request) {
     status: 301,
     headers: { location: target.toString(), 'cache-control': 'public, max-age=3600' },
   });
+}
+
+function redirectTournament(request) {
+  const url = new URL(request.url);
+  const target = new URL(url.pathname + url.search, MAIN_SITE);
+  return new Response(null, { status: 302, headers: { location: target.toString(), 'cache-control': 'no-store' } });
 }
 
 async function handleGo(request, env, ctx, tag) {
@@ -818,7 +826,7 @@ const COURSE_CODE_PATH = /^\/c\/([a-z0-9]{1,8})\/?$/i;
 
 async function handleCourseCode(request, env, ctx, code) {
   const contest = CONTEST_BY_CODE[code.toLowerCase()];
-  const target = new URL(contest ? `/course/enter/?c=${contest.id}` : '/course/', request.url);
+  const target = new URL(contest ? `/course/enter/?c=${contest.id}` : '/course/', MAIN_SITE);
   if (contest && env.DB) {
     const write = env.DB.prepare(
       'INSERT INTO scan_log (created_at, tag, user_agent, country) VALUES (?1, ?2, ?3, ?4)'
@@ -928,7 +936,8 @@ async function handleCourseDelete(request, env) {
 
 export default {
   async fetch(request, env, ctx) {
-    const { pathname } = new URL(request.url);
+    const { pathname, hostname } = new URL(request.url);
+    const onOldHost = OLD_HOST.test(hostname);
 
     const go = pathname.match(GO_PATH);
     if (go) return handleGo(request, env, ctx, (go[1] || 'other').toLowerCase());
@@ -984,12 +993,19 @@ export default {
         : json({ error: 'Method not allowed.' }, 405);
     }
 
-    const response = await env.ASSETS.fetch(request);
-    // Anything this domain no longer serves goes to hyphos.io. The tournament
-    // routes are all real assets or handled above, so they never reach here.
-    if (response.status === 404 && (request.method === 'GET' || request.method === 'HEAD')) {
-      return redirectToMainSite(request);
+    const readOnly = request.method === 'GET' || request.method === 'HEAD';
+
+    // Tournament pages opened on the old domain move to the same path on
+    // hyphos.io. A 302, not a 301, so a cached redirect never outlives a
+    // change of plan. Other old pages go to their mapped hyphos.io page.
+    if (onOldHost && readOnly) {
+      return /^\/(?:golf|course|_astro)(?:\/|$)/i.test(pathname)
+        ? redirectTournament(request)
+        : redirectToMainSite(request);
     }
+
+    const response = await env.ASSETS.fetch(request);
+    if (response.status === 404 && readOnly) return redirectToMainSite(request);
     if (pathname.startsWith('/golf')) {
       const headers = new Headers(response.headers);
       headers.set('x-robots-tag', 'noindex, nofollow, noarchive');
