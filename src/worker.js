@@ -261,7 +261,9 @@ async function handleProbe(request, env) {
 // with a phone camera.
 
 const COOKIE = 'golf_session';
-const SESSION_HOURS = 14;
+// Long enough to sign in on the dinner laptop days ahead and not be asked
+// again. Changing GOLF_EXPORT_KEY signs every device out immediately.
+const SESSION_HOURS = 24 * 30;
 
 const enc = new TextEncoder();
 
@@ -327,6 +329,29 @@ async function handleAuth(request, env) {
       'content-type': 'application/json; charset=utf-8',
       'cache-control': 'no-store',
       'set-cookie': `${COOKIE}=${encodeURIComponent(token)}; Path=/; Max-Age=${SESSION_HOURS * 3600}; HttpOnly; Secure; SameSite=Strict`,
+    },
+  });
+}
+
+// GET /api/golf/session: whether this browser is signed in, and until when.
+// Returns nothing else, so it is safe to leave public: the sign-in page uses
+// it to skip the password box when a valid cookie is already there.
+async function handleSession(request, env) {
+  const signedIn = await hasSession(request, env);
+  const raw = (request.headers.get('cookie') || '').split(';').map((c) => c.trim()).find((c) => c.startsWith(`${COOKIE}=`));
+  const exp = signedIn && raw ? Number(decodeURIComponent(raw.slice(COOKIE.length + 1)).split('.')[0]) : null;
+  return new Response(JSON.stringify({ signedIn, expiresAt: exp && Number.isFinite(exp) ? new Date(exp).toISOString() : null }), {
+    headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
+  });
+}
+
+// POST /api/golf/logout: clear the cookie on this device.
+function handleLogout() {
+  return new Response(JSON.stringify({ ok: true }), {
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      'cache-control': 'no-store',
+      'set-cookie': `${COOKIE}=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict`,
     },
   });
 }
@@ -966,6 +991,18 @@ export default {
     if (pathname === '/api/golf/entry') {
       return request.method === 'POST'
         ? handleEntry(request, env)
+        : json({ error: 'Method not allowed.' }, 405);
+    }
+
+    if (pathname === '/api/golf/session') {
+      return request.method === 'GET'
+        ? handleSession(request, env)
+        : json({ error: 'Method not allowed.' }, 405);
+    }
+
+    if (pathname === '/api/golf/logout') {
+      return request.method === 'POST'
+        ? handleLogout()
         : json({ error: 'Method not allowed.' }, 405);
     }
 

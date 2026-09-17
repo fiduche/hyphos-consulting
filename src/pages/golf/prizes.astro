@@ -388,7 +388,7 @@ import Mark from '../../components/Mark.astro';
         ]);
         if (summaryRes.status === 401) {
           el('contest-note').replaceChildren(document.createTextNode('Not signed in on this laptop. '));
-          const a = document.createElement('a'); a.href = '/golf/enter'; a.textContent = 'Sign in'; a.style.color = 'var(--gold)';
+          const a = document.createElement('a'); a.href = '/golf/enter?next=' + encodeURIComponent(location.pathname + location.search); a.textContent = 'Sign in'; a.style.color = 'var(--gold)';
           el('contest-note').append(a, document.createTextNode(', then load again.'));
           return;
         }

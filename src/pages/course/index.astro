@@ -120,7 +120,7 @@ import './_theme.css';
       b.addEventListener('click', async () => {
         if (!confirm(`Remove ${entry.player}?`)) return;
         const res = await fetch(`/api/course/entry?id=${entry.id}`, { method: 'DELETE' });
-        if (res.status === 401) { alert('Sign in first at /golf/enter, then come back.'); return; }
+        if (res.status === 401) { location.href = '/golf/enter?next=' + encodeURIComponent(location.pathname + location.search); return; }
         refresh();
       });
       return b;

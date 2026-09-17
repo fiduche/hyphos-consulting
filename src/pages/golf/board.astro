@@ -290,7 +290,7 @@ import GolfQr from '../../components/GolfQr.astro';
       } catch {
         // Hold the last good screen. A hotspot blip should be invisible to the
         // room; only the dot changes.
-        if (!lastGood) location.href = '/golf/enter';
+        if (!lastGood) location.href = '/golf/enter?next=' + encodeURIComponent(location.pathname + location.search);
       }
       el('dot').classList.toggle('stale', Date.now() - lastGood > REFRESH_MS * 3);
       refreshTimer = setTimeout(tick, REFRESH_MS);

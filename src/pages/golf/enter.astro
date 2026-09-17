@@ -16,7 +16,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     <div class="eyebrow mb-3">Hyphos Inc.</div>
     <h1 class="display text-3xl text-ink-900">Tournament screens</h1>
     <p class="mt-3 text-ink-600 leading-relaxed">
-      Sign in once on this device. Stays valid for 14 hours, so do it before you set up.
+      Sign in once on this device and it stays signed in for 30 days.
     </p>
 
     <form id="f" class="card p-6 mt-8">
@@ -28,12 +28,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     </form>
 
     <div id="links" class="hidden mt-8 space-y-2">
-      <p class="text-sm text-ink-600">Signed in. No key needed in any URL now.</p>
+      <p id="signed-in" class="text-sm text-ink-600">Signed in on this device.</p>
       <p><a class="link" href="/golf/board">Hole Board</a>: leave running at the hole</p>
       <p><a class="link" href="/course/?admin=1">Contest Board</a>: remove a bad entry</p>
       <p><a class="link" href="/golf/judge">Choose The Judged Winner</a>: on the dinner laptop, before dinner</p>
       <p><a class="link" href="/golf/prizes">Prize Draw</a>: load contest entries, then plug into the projector</p>
       <p><a class="link" href="/api/golf/summary">Text Readout</a>: the backup</p>
+      <p class="pt-4"><button id="sign-out" type="button" class="text-sm text-ink-500 underline underline-offset-4">Sign out on this device</button></p>
     </div>
   </section>
 
@@ -41,6 +42,32 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     const form = document.getElementById('f') as HTMLFormElement;
     const pw = document.getElementById('pw') as HTMLInputElement;
     const err = document.getElementById('err')!;
+    const links = document.getElementById('links')!;
+    const note = document.getElementById('signed-in')!;
+
+    // Only return to a tournament page on this site, never to an arbitrary URL.
+    const next = new URLSearchParams(location.search).get('next') || '';
+    const safeNext = /^\/(golf|course)(\/|$|\?)/.test(next) ? next : '';
+
+    const showSignedIn = (expiresAt?: string | null) => {
+      form.classList.add('hidden');
+      links.classList.remove('hidden');
+      if (expiresAt) {
+        const until = new Date(expiresAt).toLocaleDateString('en-CA', { month: 'long', day: 'numeric' });
+        note.textContent = `Signed in on this device until ${until}.`;
+      }
+    };
+
+    // Already signed in? Skip the password box entirely.
+    fetch('/api/golf/session', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((s) => {
+        if (!s.signedIn) return;
+        if (safeNext) { location.replace(safeNext); return; }
+        showSignedIn(s.expiresAt);
+      })
+      .catch(() => {});
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       err.classList.add('hidden');
@@ -50,13 +77,22 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         body: JSON.stringify({ password: pw.value }),
       }).catch(() => null);
       if (res && res.ok) {
-        form.classList.add('hidden');
-        document.getElementById('links')!.classList.remove('hidden');
+        pw.value = '';
+        if (safeNext) { location.replace(safeNext); return; }
+        const s = await fetch('/api/golf/session', { cache: 'no-store' }).then((r) => r.json()).catch(() => ({}));
+        showSignedIn(s.expiresAt);
       } else {
         err.textContent = 'That password is not right.';
         err.classList.remove('hidden');
         pw.select();
       }
+    });
+
+    document.getElementById('sign-out')?.addEventListener('click', async () => {
+      await fetch('/api/golf/logout', { method: 'POST' }).catch(() => null);
+      links.classList.add('hidden');
+      form.classList.remove('hidden');
+      pw.focus();
     });
   </script>
 </BaseLayout>

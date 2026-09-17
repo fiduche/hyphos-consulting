@@ -214,3 +214,25 @@ test('hyphos.io serves the tournament; hyphosconsulting.com only redirects there
   assert.notEqual(post.status, 301);
   assert.notEqual(post.status, 302);
 });
+
+test('a signed-in browser stays signed in, and the sign-in page can tell', async () => {
+  const { default: worker } = await import('../src/worker.js');
+  const env = { GOLF_EXPORT_KEY: 'test-key', ASSETS: { fetch: async () => new Response('', { status: 404 }) } };
+  const call = (path, init = {}) => worker.fetch(new Request(`https://hyphos.io${path}`, init), env, {});
+
+  const before = await (await call('/api/golf/session')).json();
+  assert.equal(before.signedIn, false);
+
+  const auth = await call('/api/golf/auth', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ password: 'test-key' }) });
+  assert.equal(auth.status, 200);
+  const setCookie = auth.headers.get('set-cookie');
+  assert.match(setCookie, /Max-Age=2592000/, 'thirty days');
+  const cookie = setCookie.split(';')[0];
+
+  const after = await (await call('/api/golf/session', { headers: { cookie } })).json();
+  assert.equal(after.signedIn, true);
+  assert.ok(new Date(after.expiresAt) > new Date(Date.now() + 29 * 86400e3));
+
+  const out = await call('/api/golf/logout', { method: 'POST' });
+  assert.match(out.headers.get('set-cookie'), /Max-Age=0/);
+});
