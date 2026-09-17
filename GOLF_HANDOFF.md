@@ -15,7 +15,7 @@ Technical detail is in `INFRASTRUCTURE.md` under "Golf tournament entry form".
 |---|---|
 | `/golf` | Entry form, reached by QR at the hole |
 | `/ai` | Moved. The "10 ways" piece the form promises is now `hyphos.io/field-notes/ten-ways-small-businesses-use-ai/`; `/ai` redirects there. Link that URL in the follow-up email. |
-| Everything else | **This domain now only serves the tournament.** Marketing pages 301 to hyphos.io; `/go/<tag>` lands on the hyphos.io homepage after logging the scan. |
+| Everything else | **The tournament's public address is hyphos.io.** hyphos.io passes `/golf`, `/course`, `/c/`, `/go/` and their APIs to this worker over a service binding, so the code and D1 data stay here. On hyphosconsulting.com, tournament pages 302 to the same path on hyphos.io, other pages 301 to their mapped page, and `/go/` and `/c/` still count scans. Sign in at `hyphos.io/golf/enter`. The judged pick and prize draw setup are saved per address, so do them on hyphos.io. Print files with hyphos.io codes are in iCloud Desktop/Purchases/print-files-hyphos-io. |
 | `/golf/enter` | Sign in once; mints a 14h HttpOnly cookie |
 | `/golf/board` | Hole screen, all day, hotspot, auto-refresh |
 | `/golf/judge` | Choose the judged Pro V1s winner, on the dinner laptop |
