@@ -1,0 +1,136 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+/**
+ * Where each scan came from, so the QR placements can be judged rather than
+ * guessed. Reads /api/golf/scans, which needs the screen sign-in.
+ *
+ * Every printed code and both screens carry their own tag, so a row here means
+ * a phone actually opened that code. It counts scans, not entries: someone can
+ * scan and not fill the form in.
+ */
+const PLACEMENTS = [
+  { tag: 'bag', label: 'Gift Bag Sticker' },
+  { tag: 'card', label: 'Card Sticker' },
+  { tag: 'hand', label: 'Handout Sticker' },
+  { tag: 'hole', label: 'Hole Sticker' },
+  { tag: 'table', label: 'Sponsor Table Sticker' },
+  { tag: 'flyer', label: 'Half Page Flyer' },
+  { tag: 'board', label: 'Hole Board Screen' },
+  { tag: 'screen', label: 'Dinner Screen' },
+  { tag: 'course-ctp', label: 'Sign: Closest To The Pin' },
+  { tag: 'course-drive', label: 'Sign: Longest Drive' },
+  { tag: 'course-putt', label: 'Sign: Longest Putt' },
+  { tag: 'course-square', label: 'Sign: Hit The Square' },
+  { tag: 'other', label: 'Untagged' },
+];
+---
+
+<BaseLayout title="Scan Counts" noindex minimal>
+  <section class="mx-auto max-w-2xl px-5 pt-14 pb-24">
+    <div class="eyebrow mb-3">Hyphos Inc.</div>
+    <h1 class="display text-3xl text-ink-900">Where People Scanned</h1>
+    <p class="mt-3 text-ink-600 leading-relaxed">
+      One row per printed code and screen. Counts scans, not entries: someone can scan and not fill in the form.
+      Refreshes every 30 seconds.
+    </p>
+
+    <p id="summary" class="mt-8 text-sm text-ink-600">Loading…</p>
+    <ol id="rows" class="mt-4 space-y-1"></ol>
+    <p id="empty" class="hidden mt-6 text-sm text-ink-500">Nothing scanned yet.</p>
+
+    <p class="mt-10 text-sm text-ink-500">
+      <a class="link" href="/golf/enter">Back To The Screens</a>
+    </p>
+  </section>
+
+  <style is:global>
+    .scan-row { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 14px; padding: 11px 0; border-top: 1px solid var(--color-ink-200, #e5e7eb); }
+    .scan-row .bar { grid-column: 1 / -1; height: 5px; border-radius: 99px; background: #e5e7eb; overflow: hidden; }
+    .scan-row .bar i { display: block; height: 100%; background: #6b7280; }
+    .scan-count { font-variant-numeric: tabular-nums; font-weight: 600; }
+    .scan-hour { font-variant-numeric: tabular-nums; font-size: .8125rem; color: #6b7280; min-width: 7ch; text-align: right; }
+    .scan-unknown .scan-label { color: #6b7280; }
+  </style>
+
+  <script>
+    const PLACEMENTS = JSON.parse(document.getElementById('placements')!.textContent || '[]') as { tag: string; label: string }[];
+    const rows = document.getElementById('rows')!;
+    const summary = document.getElementById('summary')!;
+    const empty = document.getElementById('empty')!;
+
+    const text = (tag: string, cls: string, value: string) => {
+      const node = document.createElement(tag);
+      node.className = cls;
+      node.textContent = value;
+      return node;
+    };
+
+    const DEMO = new URLSearchParams(location.search).has('demo');
+    const DEMO_DATA = {
+      total: 63,
+      by_tag: [
+        { tag: 'bag', total: 24, last_hour: 3, last_scan: '' },
+        { tag: 'hole', total: 14, last_hour: 6, last_scan: '' },
+        { tag: 'course-ctp', total: 9, last_hour: 4, last_scan: '' },
+        { tag: 'board', total: 7, last_hour: 2, last_scan: '' },
+        { tag: 'table', total: 5, last_hour: 0, last_scan: '' },
+        { tag: 'course-square', total: 4, last_hour: 1, last_scan: '' },
+      ],
+    };
+
+    async function load() {
+      let data;
+      if (DEMO) { render(DEMO_DATA); return; }
+      try {
+        const res = await fetch('/api/golf/scans', { cache: 'no-store' });
+        if (res.status === 401) { location.href = '/golf/enter?next=' + encodeURIComponent(location.pathname); return; }
+        if (!res.ok) throw new Error(String(res.status));
+        data = await res.json();
+      } catch {
+        summary.textContent = 'Could not load the counts. Check the connection.';
+        return;
+      }
+      render(data);
+    }
+
+    function render(data: { total: number; by_tag: { tag: string; total: number; last_hour: number }[] }) {
+      const counts = new Map<string, { total: number; last_hour: number; last_scan: string }>();
+      for (const row of data.by_tag || []) counts.set(row.tag, row);
+      const known = new Set(PLACEMENTS.map((p) => p.label ? p.tag : p.tag));
+      const extras = (data.by_tag || []).filter((r: { tag: string }) => !known.has(r.tag)).map((r: { tag: string }) => ({ tag: r.tag, label: r.tag }));
+      const all = [...PLACEMENTS, ...extras];
+      const max = Math.max(1, ...all.map((p) => counts.get(p.tag)?.total || 0));
+
+      summary.textContent = `${data.total} scans in total · ${(data.by_tag || []).reduce((n: number, r: { last_hour: number }) => n + r.last_hour, 0)} in the last hour`;
+      empty.classList.toggle('hidden', (data.total || 0) > 0);
+
+      rows.replaceChildren(
+        ...all
+          .map((p) => ({ ...p, row: counts.get(p.tag) }))
+          .sort((a, b) => (b.row?.total || 0) - (a.row?.total || 0))
+          .map((p) => {
+            const li = document.createElement('li');
+            li.className = 'scan-row' + (p.row ? '' : ' scan-unknown');
+            li.append(
+              text('span', 'scan-label text-ink-900', p.label),
+              text('span', 'scan-count text-ink-900', String(p.row?.total || 0)),
+              text('span', 'scan-hour', p.row?.last_hour ? `${p.row.last_hour} this hour` : ''),
+            );
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            const fill = document.createElement('i');
+            fill.style.width = `${Math.round(((p.row?.total || 0) / max) * 100)}%`;
+            bar.append(fill);
+            li.append(bar);
+            return li;
+          }),
+      );
+    }
+
+    load();
+    setInterval(load, 30000);
+    addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') load(); });
+  </script>
+  <script type="application/json" id="placements" set:html={JSON.stringify(PLACEMENTS)}></script>
+</BaseLayout>

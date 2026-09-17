@@ -741,6 +741,10 @@ These get read by the person who wrote them, standing next to the screen.`,
 // (alphanumeric mode), so the printed codes are HTTPS://HYPHOSCONSULTING.COM/GO/BAG.
 const GO_PATH = /^\/go(?:\/([a-z0-9-]{1,32}))?\/?$/i;
 const GO_CAMPAIGN = 'springs-golf-2026';
+// Where each code lands after its scan is counted. Printed stickers introduce
+// Hyphos, so they go to the homepage; codes shown beside the contest go
+// straight to the entry form.
+const GO_DEST = { board: '/golf/', sign: '/golf/', enter: '/golf/' };
 
 // hyphos.io is the one Hyphos site, and the tournament is served there too:
 // the hyphos.io worker passes /golf, /course, /c/, /go/ and their APIs to this
@@ -779,7 +783,7 @@ function redirectTournament(request) {
 }
 
 async function handleGo(request, env, ctx, tag) {
-  const target = new URL('/', MAIN_SITE);
+  const target = new URL(GO_DEST[tag] ?? '/', MAIN_SITE);
   target.searchParams.set('utm_source', 'qr');
   target.searchParams.set('utm_medium', 'print');
   target.searchParams.set('utm_campaign', GO_CAMPAIGN);
