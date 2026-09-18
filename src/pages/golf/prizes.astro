@@ -126,6 +126,7 @@ import Mark from '../../components/Mark.astro';
 
     <main id="centre">
       <section id="s-title" class="screen on">
+        <img class="mos-lion" src="/golf/mos-lion.png" alt="Men of Springs" width="487" height="514" />
         <p class="kicker">Springs Men's Golf Classic</p>
         <h1 class="huge">The prize draw.</h1>
       </section>
@@ -142,6 +143,7 @@ import Mark from '../../components/Mark.astro';
       </section>
 
       <section id="s-done" class="screen">
+        <img class="mos-lion" src="/golf/mos-lion.png" alt="Men of Springs" width="487" height="514" />
         <p class="kicker">That's every prize</p>
         <h1 class="huge">Thanks for a great day.</h1>
         <p class="sub">Daniel is at table six. The list is hitting your inbox tonight.</p>
@@ -154,6 +156,7 @@ import Mark from '../../components/Mark.astro';
         <div class="brand"><Mark size={26} color="#c9a46a" /> <span>hyphos</span></div>
         <p class="count" id="counter"></p>
       </div>
+      <img class="foot-lion" src="/golf/mos-lion.png" alt="Men of Springs" width="487" height="514" />
       <div class="foot-right">
         <p class="line"><span class="l1">Stop being the admin.</span> <span class="l2">Focus on what matters.</span><br /><span class="url">hyphos.io</span></p>
         <img src="/golf/qr-screen.png" alt="QR code for hyphos.io" width="220" height="220" />
@@ -225,6 +228,9 @@ import Mark from '../../components/Mark.astro';
     .foot-left { display: flex; align-items: center; gap: 3vmin; }
     .foot-left .brand span { font-size: clamp(14px, 1.5vw, 24px); }
     .count { margin: 0; color: var(--muted); font-size: clamp(11px, 1.05vw, 18px); letter-spacing: .08em; text-transform: uppercase; }
+    .mos-lion { display: block; width: clamp(90px, 16vmin, 240px); height: auto; margin: 0 auto 3vmin; }
+    .frame-bottom { position: relative; }
+    .foot-lion { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: clamp(28px, 5vmin, 64px); height: auto; opacity: .9; }
     .foot-right { display: flex; align-items: center; gap: 2vmin; text-align: right; }
     .foot-right .line { margin: 0; font-size: clamp(12px, 1.15vw, 20px); line-height: 1.35; }
     .foot-right .l1 { font-weight: 300; color: var(--paper); }
