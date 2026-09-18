@@ -97,7 +97,6 @@ import Mark from '../../components/Mark.astro';
       <section id="s-title" class="screen on">
         <p class="kicker">Springs Men's Golf Classic</p>
         <h1 class="huge">The prize draw.</h1>
-        <p class="sub"><span id="t-names">0</span> names in the hat</p>
       </section>
 
       <section id="s-prize" class="screen">
@@ -507,7 +506,6 @@ import Mark from '../../components/Mark.astro';
     function showStage() {
       el('setup').hidden = true; el('stage').hidden = false;
       document.activeElement?.blur?.();   // keep space away from the Start button
-      el('t-names').textContent = String(pool().length);
       paintPrize();
     }
     function nameNode(node, person) {
@@ -516,7 +514,7 @@ import Mark from '../../components/Mark.astro';
     }
     const counterText = () => inFinale()
       ? `Hyphos draw · ${Math.min(S.index - S.finaleStart + 1, S.finale.length)} of ${S.finale.length}`
-      : `Draw ${S.index + 1} · ${pool().length} names in the hat`;
+      : `Draw ${S.index + 1}`;
     const subLanded = () => inFinale()
       ? 'Space for the next prize · R if they have left · U to undo'
       : 'Space for the next winner · R if they have left · U to undo · H twice for the Hyphos draw';
