@@ -63,6 +63,7 @@ import Mark from '../../components/Mark.astro';
         <button id="c-next" type="button" class="primary">Next</button>
         <button id="c-redraw" type="button">They Have Left, Redraw</button>
         <button id="c-undo" type="button">Undo</button>
+        <button id="c-title" type="button">Title Slide</button>
         <button id="c-end" type="button">End The Draw</button>
         <button id="c-open" type="button">Open Projector Window</button>
       </div>
@@ -683,6 +684,7 @@ import Mark from '../../components/Mark.astro';
       el('c-redraw').addEventListener('click', () => send('redraw'));
       el('c-undo').addEventListener('click', () => send('undo'));
       el('c-regular').addEventListener('click', () => send('regular'));
+      el('c-title').addEventListener('click', () => send('title'));
       el('c-end').addEventListener('click', () => { if (confirm('End the draw and show the thank-you slide? You can still switch back to a prize after.')) send('end'); });
       el('c-open').addEventListener('click', openProjector);
       el('c-here').addEventListener('click', (e) => { e.preventDefault(); location.href = `${location.pathname}?screen=1${DEMO ? '&demo=1' : ''}`; });
@@ -726,6 +728,7 @@ import Mark from '../../components/Mark.astro';
         else if (c === 'special') { insertSpecial(data.i); paintPrize(); }
         else if (c === 'regular') { insertRegular(); paintPrize(); }
         else if (c === 'end') { if (!spinning) { S.phase = 'done'; save(); paintPrize(); } }
+        else if (c === 'title') { if (!spinning) { S.phase = 'title'; quoteUp = false; save(); paintPrize(); } }
         else if (c === 'reload') { if (!spinning) { loadState(); paintPrize(); } }
       });
       // Changes made in the control window (removed teams, entries, Start).
@@ -879,7 +882,15 @@ import Mark from '../../components/Mark.astro';
       tick();
     }
     function advance() {
-      if (S.phase === 'title') { S.phase = 'prize'; S.index = Math.max(0, S.prizes.length - 1); save(); paintPrize(); return; }
+      if (S.phase === 'title') {
+        // Pick up where the night left off: the prize still at Ready if there
+        // is one, otherwise the next regular prize. Nothing already won is shown again.
+        S.phase = 'prize';
+        const last = S.prizes.length - 1;
+        if (last >= 0 && !S.winners.some((w) => w.prizeIndex === last)) S.index = last;
+        else { S.prizes.push(hatPrize()); S.index = S.prizes.length - 1; }
+        save(); paintPrize(); return;
+      }
       if (S.phase === 'prize') {
         if (!landed) return spin();
         const won = S.winners.some((w) => w.prizeIndex === S.index);
@@ -978,9 +989,9 @@ import Mark from '../../components/Mark.astro';
         if (!S.started || /^(TEXTAREA|INPUT|SELECT)$/.test(e.target?.tagName || '')) return;
         const next = [' ', 'Enter', 'Return', 'ArrowRight', 'Right', 'ArrowDown', 'Down', 'PageDown'].includes(e.key);
         const back = ['ArrowLeft', 'Left', 'ArrowUp', 'Up', 'PageUp'].includes(e.key);
-        if (next || back || k === 'r' || k === 'u' || k === 'h') {
+        if (next || back || k === 'r' || k === 'u' || k === 'h' || k === 't') {
           e.preventDefault();
-          send(next ? 'next' : back ? 'back' : k === 'r' ? 'redraw' : k);
+          send(next ? 'next' : back ? 'back' : k === 'r' ? 'redraw' : k === 't' ? 'title' : k);
         } else if (e.key === 'F5' || e.key === 'Escape' || k === 'b' || e.key === '.') e.preventDefault();
         return;
       }
@@ -996,6 +1007,7 @@ import Mark from '../../components/Mark.astro';
       else if (k === 'r' && S.phase === 'prize' && landed && !spinning) { e.preventDefault(); absent(); }
       else if (k === 'u') { e.preventDefault(); undo(); }
       else if (k === 'h') { e.preventDefault(); pressH(); }
+      else if (k === 't') { e.preventDefault(); if (!spinning) { S.phase = 'title'; quoteUp = false; save(); paintPrize(); } }
       else if (k === 's' && !SCREEN) { e.preventDefault(); showSetup(); }
     });
 
