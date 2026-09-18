@@ -45,6 +45,13 @@ import Mark from '../../components/Mark.astro';
       <p class="setup-note">1. Check the names below, fix any, and tick the teams that won on score. 2. Press Start The Draw: it opens the projector window, and this window becomes your control screen. There is no prize list: regular prizes keep coming until you end the draw. Everything stays on this laptop.</p>
     </div>
 
+    <div class="setup-row top-actions">
+      <button id="btn-start" type="button" class="primary">Start The Draw</button>
+      <button id="btn-export" type="button" disabled>Export Winners CSV</button>
+      <button id="btn-reset" type="button" class="danger">Reset Everything</button>
+    </div>
+    <p id="start-note" class="warn" hidden></p>
+
     <!-- Live control: this window stays on the laptop, the draw shows in the projector window. -->
     <section id="control" hidden>
       <div class="c-head">
@@ -118,13 +125,6 @@ import Mark from '../../components/Mark.astro';
       <ol id="winners-list"></ol>
     </div>
 
-    <div class="setup-row">
-      <button id="btn-start" type="button" class="primary">Start The Draw</button>
-      <button id="btn-export" type="button" disabled>Export Winners CSV</button>
-      <button id="btn-reset" type="button" class="danger">Reset Everything</button>
-      <span class="muted">On the screen: space = draw / next · R = redraw · U = undo · H twice = move to the Hyphos draw · S = back here</span>
-    </div>
-    <p id="start-note" class="warn" hidden></p>
   </div>
 
   <!-- ── Stage: what the room sees ── -->
