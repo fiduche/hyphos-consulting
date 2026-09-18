@@ -20,7 +20,8 @@ import { CONTESTS, CONTEST_BY_ID, CONTEST_BY_CODE, isMeasured } from './data/con
 // page imports, so this is where the attendee list lives.
 import ROSTER from './data/roster.json' with { type: 'json' };
 
-const ROSTER_BY_NAME = new Map(ROSTER.map((r) => [r.name.toLowerCase(), r]));
+// Blank names are open slots (players not yet known), never a match.
+const ROSTER_BY_NAME = new Map(ROSTER.filter((r) => r.name.trim()).map((r) => [r.name.toLowerCase(), r]));
 
 // Haiku for the follow-up: it is one short question on a phone with one bar of
 // signal, so time-to-answer matters far more than depth.

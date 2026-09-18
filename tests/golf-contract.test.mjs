@@ -271,5 +271,9 @@ test('the prize draw roster is served only to a signed-in screen', async () => {
   const { attendees } = await res.json();
   const roster = JSON.parse(await readFile(new URL('../src/data/roster.json', import.meta.url), 'utf8'));
   assert.equal(attendees.length, roster.length);
-  assert.ok(attendees.every((a) => a.name && a.team), 'every golfer has a team or group to strike by');
+  assert.ok(attendees.every((a) => a.team), 'every golfer has a team or group to strike by');
+  // Unknown players are open slots, never a company name standing in for a person.
+  assert.ok(attendees.every((a) => a.name.toLowerCase() !== a.team.toLowerCase() && !a.team.toLowerCase().startsWith(`${a.name.toLowerCase()} `)), 'no team name used as a player');
+  const named = attendees.filter((a) => a.name).map((a) => `${a.name}|${a.team}`.toLowerCase());
+  assert.equal(new Set(named).size, named.length, 'no player listed twice on the same team');
 });

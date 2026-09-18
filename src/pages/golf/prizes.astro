@@ -1053,8 +1053,10 @@ import Mark from '../../components/Mark.astro';
         }
         if (!res.ok) throw new Error('roster');
         const { attendees } = await res.json();
-        el('in-attendees').value = attendees.map((a) => a.team ? `${a.name}, ${a.team}` : a.name).join('\n');
-        S.attendees = parseAttendees(el('in-attendees').value);
+        // Built directly, not through the text box: a blank name is an open
+        // slot on its team and must stay blank.
+        S.attendees = attendees.map((a, i) => ({ id: i + 1, name: a.name || '', team: a.team || '' }));
+        el('in-attendees').value = S.attendees.map((a) => a.team ? `${a.name}, ${a.team}` : a.name).join('\n');
         S.finale = parsePrizes(el('in-prizes').value);
         save(); renderExclude(); updateStart();
       } catch {
@@ -1062,5 +1064,21 @@ import Mark from '../../components/Mark.astro';
       }
     }
     loadRoster();
+
+    // The roster used company names as placeholders where players were not
+    // known ("Kaizen Auto" three times on team Kaizen Auto, "Michael Lynes"
+    // three times). A list saved on this laptop before that was fixed still has
+    // them: turn them into open slots, unless one has already won something.
+    if (!SCREEN && !DEMO && S.attendees.length) {
+      const wonIds = new Set(S.winners.map((w) => w.attendee).filter((id) => id != null));
+      const seen = new Set(); let changed = false;
+      S.attendees.forEach((a) => {
+        const n = norm(a.name), t = norm(a.team), key = `${n}|${t}`;
+        const placeholder = n && t && (n === t || t.startsWith(`${n} `));
+        if (n && (placeholder || seen.has(key)) && !wonIds.has(a.id)) { a.name = ''; changed = true; }
+        if (n) seen.add(key);
+      });
+      if (changed) { save(); renderExclude(); updateStart(); }
+    }
   </script>
 </BaseLayout>
