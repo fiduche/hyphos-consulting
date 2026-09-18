@@ -42,13 +42,14 @@ const sections: { title: string; intro?: string; tools: Tool[] }[] = [
       {
         name: 'Hole Board',
         path: '/golf/board',
-        demo: '/golf/board?demo=1',
-        when: 'Private. It shows what people typed, grouped by AI, so only put it on a public screen once you have looked it over.',
+        demo: '/golf/board',
+        when: 'All day, on the screen at the hole. It explains Hyphos on its own, for whoever is staffing the hole.',
         signIn: true,
         steps: [
-          'If you do use it: open it, go full screen, leave it running. It refreshes itself.',
-          'It shows a large QR code with Scan To Enter, what people have written so far, grouped, and the latest answers.',
-          'Early in the day it is mostly the QR code. That is expected.',
+          'Open it on the hole laptop or TV, click once to go full screen, and leave it. It loops by itself, about three minutes.',
+          'Thirteen scenes: who Hyphos is, how the hole works (shown twice), connected tools, Ask Hyphos, a job that runs over, what we build, Domas, Wander, Cornerstone, AI ideas, and how to reach Daniel.',
+          'A Scan To Enter code stays in the corner the whole time. It shows no entries.',
+          'It keeps the screen awake, needs no internet once loaded, and picks up any update on its own every half hour. Arrow keys step through it if you want to check a scene.',
         ],
       },
       {

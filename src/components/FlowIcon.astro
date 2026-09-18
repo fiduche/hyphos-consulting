@@ -1,5 +1,5 @@
 ---
-interface Props { name: 'records' | 'website' | 'insight' | 'people' | 'document' | 'conversation' | 'check' | 'ai' | 'meeting' | 'scope' | 'regulations' | 'business'; }
+interface Props { name: 'records' | 'website' | 'insight' | 'people' | 'document' | 'conversation' | 'check' | 'ai' | 'meeting' | 'scope' | 'regulations' | 'business' | 'invoice' | 'payroll' | 'ledger' | 'bill' | 'calendar' | 'email' | 'files'; }
 const {name} = Astro.props;
 const paths = {
   records: 'M7 5h14v20H7z M11 10h6 M11 15h6 M11 20h3 M4 9H3v20h14v-1',
@@ -13,7 +13,14 @@ const paths = {
   scope: 'M7 3h18v26H7z M11 10l2 2 4-4 M11 19l2 2 4-4 M20 11h2 M20 20h2',
   regulations: 'M16 3v25 M7 28h18 M5 10h22 M9 10L4 20h10L9 10 M23 10l-5 10h10l-5-10',
   business: 'M4 10h24v18H4z M11 10V5h10v5 M4 17h24 M13 17v4h6v-4',
-  check: 'M6 16l7 7L27 8'
+  check: 'M6 16l7 7L27 8',
+  invoice: 'M7 3h18v26l-3-2-3 2-3-2-3 2-3-2-3 2z M11 9h10 M11 14h10 M11 19h6 M19 23h2',
+  payroll: 'M16 29a12 12 0 1 0 0-24 12 12 0 0 0 0 24z M16 10v7l5 3',
+  ledger: 'M5 5h22v22H5z M5 12h22 M5 19h22 M13 5v22',
+  bill: 'M8 3h16v26H8z M12 9h8 M12 14h8 M12 19h4 M20 24l-3-3',
+  calendar: 'M4 7h24v21H4z M4 13h24 M10 4v6 M22 4v6 M9 18h3 M15 18h3 M21 18h3 M9 23h3 M15 23h3',
+  email: 'M3 7h26v18H3z M3 8l13 10 13-10',
+  files: 'M3 8h9l3 3h14v16H3z M3 14h26'
 };
 ---
 <svg viewBox="0 0 32 32" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={paths[name]} /></svg>

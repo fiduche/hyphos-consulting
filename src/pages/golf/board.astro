@@ -1,313 +1,578 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import GolfQr from '../../components/GolfQr.astro';
+import Icon from '../../components/FlowIcon.astro';
 
 /**
- * The hole screen. Runs all day on a laptop or tablet at the sponsored hole,
- * on a cellular hotspot, unattended between groups.
+ * The hole screen: a looping presentation that explains Hyphos on its own.
  *
- * Built for that: it refreshes on a timer, and a failed refresh changes
- * nothing on screen. If the hotspot drops for twenty minutes the board keeps
- * showing the last good data rather than an error, and quietly catches up when
- * signal returns. The only visible sign is a dot in the corner.
+ * Daniel is not at the hole. The volunteers there do not know the business, so
+ * the board has to answer what a golfer would ask them: who is this, what do
+ * they do, what is this hole about, and how do I talk to someone. Each scene
+ * says one thing in plain words, with some movement to catch the eye, and
+ * "How This Hole Works" comes round twice per loop.
  *
- * The QR sits in its own column and never moves. The first groups through
- * arrive at an empty board, so the screen has to work as a poster before it
- * works as a scoreboard: the invitation is always the largest thing on it, and
- * the results grow into the space beside it.
+ * It shows no entries. What people type is not on this screen.
+ *
+ * Every claim is taken from hyphos.io, whose copy was checked against the
+ * Hyphos, Domas, Cornerstone and Wander code (see INFRASTRUCTURE.md in the
+ * product repo). Sample figures are fictional and say so, as they do on the
+ * site.
+ *
+ * Built to run unattended all day: no network needed after it loads, the QR is
+ * inline, the screen is kept awake where the browser allows, and it reloads
+ * itself every half hour only when it can reach the site, so a fix reaches the
+ * hole without anyone touching the laptop.
  */
+
+const tools = [
+  { label: 'Estimates & Invoices', icon: 'invoice', cx: '14vw', cy: '9vh', turn: '-18deg' },
+  { label: 'Emails', icon: 'email', cx: '22vw', cy: '16vh', turn: '14deg' },
+  { label: 'Payroll & Timesheets', icon: 'payroll', cx: '16vw', cy: '-4vh', turn: '11deg' },
+  { label: 'Files & Documents', icon: 'files', cx: '19vw', cy: '6vh', turn: '-15deg' },
+  { label: 'Accounting', icon: 'ledger', cx: '8vw', cy: '-7vh', turn: '-9deg' },
+  { label: 'Meetings', icon: 'meeting', cx: '24vw', cy: '-12vh', turn: '19deg' },
+  { label: 'Supplier Bills', icon: 'bill', cx: '-12vw', cy: '-10vh', turn: '21deg' },
+  { label: 'Website & Reviews', icon: 'website', cx: '-22vw', cy: '8vh', turn: '-13deg' },
+  { label: 'Customers', icon: 'people', cx: '-17vw', cy: '-14vh', turn: '8deg' },
+  { label: 'AI Conversations', icon: 'ai', cx: '-9vw', cy: '12vh', turn: '-20deg' },
+  { label: 'Calendar & Tasks', icon: 'calendar', cx: '-20vw', cy: '-2vh', turn: '-14deg' },
+  { label: 'Team Know-How', icon: 'conversation', cx: '-14vw', cy: '-18vh', turn: '12deg' },
+] as const;
+
+const answers = [
+  { text: '2 invoices due this week, $6,480 in total', source: 'Invoices' },
+  { text: 'The bathroom renovation is 6 hours over its estimate', source: 'Timesheets' },
+  { text: 'Sarah replied about Thursday’s site visit', source: 'Email' },
+  { text: 'Timesheets for payroll close Friday', source: 'Payroll' },
+] as const;
+
+const ways = [
+  ['01', 'Reading Supplier Invoices', 'Pull the amounts, dates and line items off a PDF and code them to the right account, instead of someone retyping them.'],
+  ['02', 'Turning A Conversation Into A Quote', 'Notes from a site visit become a priced estimate in your own format, ready for you to check rather than write.'],
+  ['05', 'Catching What Does Not Match', 'Invoices against purchase orders, payments against invoices, hours against schedules.'],
+  ['07', 'Timesheets That Fill Themselves In', 'Who was where, on what job, for how long, already exists somewhere else in your business.'],
+  ['09', 'Drafting The Follow-Up You Keep Not Sending', 'The customer who went quiet. The review request. Drafted and waiting for your approval.'],
+  ['10', 'Noticing What Is About To Go Wrong', 'A job trending over budget, a client gone quiet, a renewal nobody picked up.'],
+] as const;
+
+// Each module is on the Cornerstone "What We Built" list on hyphos.io/work.
+const cornerstone = [
+  { label: 'Family Records', icon: 'records' },
+  { label: 'Family Portal', icon: 'people' },
+  { label: 'Public Website', icon: 'website' },
+  { label: 'Estimates & Documents', icon: 'document' },
+  { label: 'AI Invoice Reading', icon: 'ai' },
+  { label: 'Staff Time Tracking', icon: 'payroll' },
+  { label: 'Marketing Reports', icon: 'insight' },
+] as const;
+
+const domas = ['Idea', 'Plan', 'Approve', 'Build', 'Test', 'Review'] as const;
 ---
 
-<BaseLayout title="Live board"
-  noindex minimal>
-  <main id="board">
-    <div class="col-main">
-      <header>
-        <p class="kicker">What this room wishes would do itself</p>
-        <h1><span id="count">0</span> <small>answers so far</small></h1>
-      </header>
+<BaseLayout title="Hyphos hole board" noindex minimal>
+  <div id="glow" aria-hidden="true"></div>
 
-      <ol id="bars"></ol>
+  <main id="stage">
+    <!-- 1. Who we are -->
+    <section class="scene" data-dur="13000">
+      <div class="wrap center">
+        <p class="kicker a" style="--d:.1s">Welcome To The Hyphos Hole</p>
+        <h1 class="a" style="--d:.4s">We Take The Busywork<br /><em>Off Small Businesses</em></h1>
+        <p class="lede a" style="--d:1.2s">Hyphos Inc. is a software company from Okotoks and Calgary, run by Daniel Newton.</p>
+        <p class="lede a" style="--d:2.2s">We connect the tools a business already uses and build the software it is missing, so its people can spend their time on the work that needs them.</p>
+      </div>
+    </section>
 
-      <section id="empty">
-        <p class="empty-q">“What's the one task at work you wish just did itself?”</p>
-        <p class="empty-sub">Answers appear here as they come in.</p>
-      </section>
+    <!-- 2. How this hole works -->
+    <section class="scene" data-dur="14000">
+      <div class="wrap center">
+        <p class="kicker a" style="--d:.1s">How This Hole Works</p>
+        <h1 class="a" style="--d:.3s">Answer One Question.<br /><em>Win At Dinner.</em></h1>
+        <ol class="steps">
+          <li class="a" style="--d:1.1s"><b>1</b><span class="t">Scan The Code</span><span class="s">Bottom right of this screen, or on any Hyphos sticker or card.</span></li>
+          <li class="a" style="--d:1.8s"><b>2</b><span class="t">Answer One Question</span><span class="s">“What’s the one task at work you wish just did itself?”</span></li>
+          <li class="a" style="--d:2.5s"><b>3</b><span class="t">Win At Dinner</span><span class="s">Best answer wins a dozen Pro V1s. Every entry is in the draw for a prize from Tidal.</span></li>
+        </ol>
+        <p class="note a" style="--d:3.4s">Takes about a minute. Be at dinner to win.</p>
+      </div>
+    </section>
 
-      <section id="latest">
-        <p class="kicker">Recently added</p>
-        <p id="latest-line">&nbsp;</p>
-      </section>
-    </div>
+    <!-- 3. The problem -->
+    <section class="scene" data-dur="11000">
+      <div class="wrap center">
+        <p class="kicker a" style="--d:.1s">The Problem We Solve</p>
+        <h1 class="a" style="--d:.3s">Your Best People Have<br /><em>Better Things To Do</em></h1>
+        <ul class="less">
+          <li class="a" style="--d:1.4s"><span>Less chasing information.</span></li>
+          <li class="a" style="--d:2.4s"><span>Less entering it twice.</span></li>
+          <li class="a" style="--d:3.4s"><span>Less explaining it again.</span></li>
+        </ul>
+      </div>
+    </section>
 
-    <aside class="col-qr">
-      <p class="kicker">Scan To Enter</p>
-      <div class="qr-plate"><GolfQr class="qr" /></div>
-      <p class="url">hyphos.io/golf</p>
-      <p class="prizes">A dozen Pro V1s and a prize from Tidal.<br />Both awarded at dinner. Be there to win.</p>
-    </aside>
+    <!-- 4. Different tools, one connected business -->
+    <section class="scene tools" data-dur="13000">
+      <div class="tools-head">
+        <p class="kicker a" style="--d:.1s">What Hyphos Does</p>
+        <h2 class="a" style="--d:.3s">Different Tools. <em>One Connected Business.</em></h2>
+      </div>
+      <div class="tools-stage">
+        <svg class="tools-lines" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
+          {tools.map((_, i) => {
+            const left = i % 2 === 0; const row = Math.floor(i / 2); const y = 60 + row * 96;
+            return <path pathLength="1" style={`--i:${i}`} d={left ? `M200 ${y} C360 ${y} 360 300 500 300` : `M800 ${y} C640 ${y} 640 300 500 300`} />;
+          })}
+        </svg>
+        {tools.map((t, i) => (
+          <div class={`chip ${i % 2 === 0 ? 'l' : 'r'}`} style={`--i:${i};--row:${Math.floor(i / 2)};--cx:${i % 2 === 0 ? t.cx.replace('-', '') : `-${t.cx.replace('-', '')}`};--cy:${t.cy};--turn:${t.turn}`}>
+            <span class="chip-in"><Icon name={t.icon} />{t.label}</span>
+          </div>
+        ))}
+        <div class="hub"><img src="/brand/hyphos-mark.svg" alt="" width="64" height="64" /><i></i><i></i></div>
+      </div>
+      <p class="tools-foot a" style="--d:4.4s">Most businesses run on a dozen tools that don’t talk to each other. Hyphos connects them, so your team can see what needs doing, and why.</p>
+    </section>
 
-    <div id="dot" title="connection"></div>
+    <!-- 5. Ask Hyphos -->
+    <section class="scene chat-scene" data-dur="15000">
+      <div class="wrap two">
+        <div>
+          <p class="kicker a" style="--d:.1s">Then You Can Just Ask</p>
+          <h2 class="a" style="--d:.3s">One Question.<br /><em>Every Tool Answers.</em></h2>
+          <p class="lede a" style="--d:1s">Once the information is connected, you can ask about your business in plain English. Every answer shows where it came from, so you can check it.</p>
+        </div>
+        <div class="chat a" style="--d:.6s">
+          <div class="chat-head"><img src="/brand/hyphos-mark.svg" alt="" width="22" height="22" /> Ask Hyphos <i></i></div>
+          <p class="chat-q"><span data-type="What’s happening in my business today?" data-at="1600"></span><b class="caret"></b></p>
+          <div class="dots" data-show="4200" data-hide="5600"><i></i><i></i><i></i></div>
+          <div class="chat-a" data-show="5600">
+            <p class="chat-intro">Here’s what needs you today:</p>
+            <ul>{answers.map((a, n) => <li style={`--n:${n}`}><span>{a.text}</span><em>{a.source}</em></li>)}</ul>
+          </div>
+          <p class="fine">Illustrated concept · Sample figures are fictional</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. How this hole works, again -->
+    <section class="scene again" data-dur="9000">
+      <div class="wrap center">
+        <p class="kicker a" style="--d:.1s">At This Hole</p>
+        <h1 class="a" style="--d:.3s">What’s The One Task At Work<br /><em>You Wish Just Did Itself?</em></h1>
+        <p class="lede a" style="--d:1.4s">Scan the code, answer in a sentence or two, and you are in the draw.</p>
+        <p class="prizes a" style="--d:2.2s"><span>A Dozen Pro V1s</span><i>Best Answer</i><span>A Prize From Tidal</span><i>Random Draw</i></p>
+      </div>
+    </section>
+
+    <!-- 7. A job runs over -->
+    <section class="scene job" data-dur="14000">
+      <div class="wrap">
+        <div class="center">
+          <p class="kicker a" style="--d:.1s">A Small Business Example</p>
+          <h2 class="a" style="--d:.3s">What Happens When A Job Runs Over?</h2>
+        </div>
+        <div class="cards">
+          <div class="card a" style="--d:1s"><p class="c-label">The Estimate</p><p class="c-big"><span data-count="32" data-at="1300">0</span> hours</p><p class="c-body">Bathroom renovation, quoted and accepted.</p></div>
+          <div class="card a" style="--d:1.8s"><p class="c-label">Timesheets &amp; Supplier Bills</p><p class="c-big"><span data-count="38" data-at="2100">0</span> hours</p><p class="c-body">And the tile bill came in $620 over.</p></div>
+          <div class="card a" style="--d:2.6s"><p class="c-label">The Invoice</p><p class="c-big">32 hours</p><p class="c-body">Started from the estimate. The extras are not on it yet.</p></div>
+        </div>
+        <div class="gap a" style="--d:4.2s">
+          <img src="/brand/hyphos-mark.svg" alt="" width="40" height="40" />
+          <div><p class="g-title">The Job Ran Over. The Invoice Does Not Show It Yet.</p><p class="g-body">Hyphos puts the quote, the hours and the bills side by side, so the difference shows up before the invoice goes out, not after the customer has paid.</p></div>
+        </div>
+        <p class="fine center a" style="--d:4.6s">Illustrative job · Names, hours and amounts are fictional</p>
+      </div>
+    </section>
+
+    <!-- 8. What we do -->
+    <section class="scene" data-dur="13000">
+      <div class="wrap">
+        <div class="center">
+          <p class="kicker a" style="--d:.1s">Where We Can Help</p>
+          <h2 class="a" style="--d:.3s">Start Where The Work Gets Stuck</h2>
+        </div>
+        <div class="help">
+          <div class="h-card a" style="--d:1s"><span class="h-num">01</span><p class="h-title">Connect Your Systems</p><p class="h-body">Accounting, customers, scheduling, websites and documents sharing information, so nobody retypes it.</p></div>
+          <div class="h-card a" style="--d:1.8s"><span class="h-num">02</span><p class="h-title">Build The Missing Piece</p><p class="h-body">Custom software, customer portals and mobile apps, shaped around how your business actually works.</p></div>
+          <div class="h-card a" style="--d:2.6s"><span class="h-num">03</span><p class="h-title">Put Knowledge To Work</p><p class="h-body">Practical AI on your own information, with the parts that can be checked automated.</p></div>
+        </div>
+        <p class="lede center a" style="--d:3.6s">You work directly with Daniel. Bring one thing that takes too much effort, and start from there.</p>
+      </div>
+    </section>
+
+    <!-- 9. Domas -->
+    <section class="scene" data-dur="14000">
+      <div class="wrap center">
+        <p class="kicker a" style="--d:.1s">Domas · How Hyphos Gets Built</p>
+        <h1 class="a" style="--d:.3s">A System That<br /><em>Builds Itself</em></h1>
+        <div class="pipe a" style="--d:1.2s">
+          <span class="pipe-line"><i></i></span>
+          {domas.map((d, n) => <span class={`node${d === 'Approve' ? ' person' : ''}`} style={`--n:${n}`}><b></b><span class="n-label">{d}</span>{d === 'Approve' ? <em>A Person</em> : <em>AI</em>}</span>)}
+        </div>
+        <p class="lede a" style="--d:2.2s">Most software waits on a team of programmers. We built Domas instead: AI plans each change, builds it, tests it and has a second AI check the work.</p>
+        <p class="lede strong a" style="--d:3.2s">It never runs unsupervised. A person approves every plan before any building starts.</p>
+      </div>
+    </section>
+
+    <!-- 10. Wander -->
+    <section class="scene wander" data-dur="14000">
+      <div class="wrap two">
+        <div>
+          <p class="kicker a" style="--d:.1s">Client Work · iPhone &amp; Android</p>
+          <h2 class="a" style="--d:.3s">From An Idea<br /><em>To The App Store</em></h2>
+          <p class="lede a" style="--d:1s">Wander is a consumer app we designed, built and shipped. Maps, real-time messaging, AI-powered search, camera and location. A full production app, not a prototype.</p>
+          <ol class="ticks">
+            {['Designed', 'Built', 'Tested', 'Approved By Apple', 'Live On The App Store'].map((s, n) => <li class="a" style={`--d:${2 + n * .5}s`}><b>{String(n + 1).padStart(2, '0')}</b>{s}</li>)}
+          </ol>
+        </div>
+        <div class="phones">
+          <img class="phone p1 a" style="--d:.6s" src="/golf/board/wander-find.webp" alt="Wander map of nearby places" width="640" height="1388" />
+          <img class="phone p2 a" style="--d:.9s" src="/golf/board/wander-check.webp" alt="Wander place details" width="640" height="1388" />
+          <img class="phone p3 a" style="--d:1.2s" src="/golf/board/wander-go.webp" alt="Wander plan to share" width="640" height="1388" />
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. Cornerstone -->
+    <section class="scene corner" data-dur="14000">
+      <div class="wrap two">
+        <div>
+          <p class="kicker a" style="--d:.1s">Client Work · Cornerstone Funeral Home</p>
+          <h2 class="a" style="--d:.3s">One System<br /><em>Behind The Whole Business</em></h2>
+          <p class="lede a" style="--d:1s">Records, the family portal, the public website, estimates, invoices, payroll hours and marketing reports, all built on one database.</p>
+          <p class="lede a" style="--d:1.8s">Staff enter something once and it shows up everywhere it is needed, so they can be present with families instead of retyping.</p>
+        </div>
+        <div class="orbit a" style="--d:.4s">
+          <svg class="orbit-lines" viewBox="-100 -100 200 200" aria-hidden="true">
+            <circle class="orbit-ring" r="74" />
+            {cornerstone.map((_, n) => { const t = (n / cornerstone.length) * Math.PI * 2 - Math.PI / 2; return <line pathLength="1" style={`--n:${n}`} x1="0" y1="0" x2={(Math.cos(t) * 74).toFixed(1)} y2={(Math.sin(t) * 74).toFixed(1)} />; })}
+          </svg>
+          <div class="core"><span>One</span><b>Database</b></div>
+          {cornerstone.map((m, n) => { const t = (n / cornerstone.length) * Math.PI * 2 - Math.PI / 2; return <div class="mod" style={`--n:${n};left:${(50 + Math.cos(t) * 37).toFixed(1)}%;top:${(50 + Math.sin(t) * 37).toFixed(1)}%`}><Icon name={m.icon} /><span>{m.label}</span></div>; })}
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. Ten ways -->
+    <section class="scene ways" data-dur="16000">
+      <div class="wrap">
+        <div class="center">
+          <p class="kicker a" style="--d:.1s">From Our Field Notes</p>
+          <h2 class="a" style="--d:.3s">How Small Businesses Are<br /><em>Actually Using AI Right Now</em></h2>
+        </div>
+        <div class="way-grid">
+          {ways.map(([num, title, body], n) => <div class="way" style={`--n:${n % 3};--set:${Math.floor(n / 3)}`}><span class="w-num">{num}</span><p class="w-title">{title}</p><p class="w-body">{body}</p></div>)}
+        </div>
+        <p class="note center a" style="--d:1s">All ten at hyphos.io</p>
+      </div>
+    </section>
+
+    <!-- 13. Talk to Daniel -->
+    <section class="scene cta" data-dur="13000">
+      <div class="wrap center">
+        <div class="cta-mark a" style="--d:.1s"><img src="/brand/hyphos-mark.svg" alt="" width="96" height="96" /><i></i><i></i></div>
+        <h1 class="a" style="--d:.4s">Stop Being The Admin.<br /><em>Focus On What Matters.</em></h1>
+        <p class="lede a" style="--d:1.4s">Daniel will spend 45 minutes with you mapping where AI could realistically save your business time. You get a one-page write-up, whether or not we work together.</p>
+        <p class="contact a" style="--d:2.4s"><span>Find Daniel Newton at dinner</span><span>info@hyphos.io</span><span>hyphos.io</span></p>
+      </div>
+    </section>
   </main>
 
+  <footer id="bar">
+    <div class="b-left"><img src="/brand/hyphos-mark.svg" alt="" width="30" height="30" /><span class="b-name">hyphos</span><span class="b-url">hyphos.io</span></div>
+    <div id="progress" aria-hidden="true"></div>
+    <div class="b-right">
+      <div class="b-copy"><span class="b-scan">Scan To Enter</span><span class="b-win">Win a dozen Pro V1s or a prize from Tidal</span></div>
+      <div class="b-qr"><GolfQr class="qr" /></div>
+    </div>
+  </footer>
+
   <style is:global>
-    :root { color-scheme: dark; }
-    body { background: #0b1220; overflow: hidden; }
-    #board {
-      position: fixed; inset: 0; padding: 4vmin 4.5vmin;
-      display: grid; grid-template-columns: 1fr minmax(26vw, 30vw); gap: 5vmin;
-      align-items: stretch;
-    }
-    .col-main { display: flex; flex-direction: column; gap: 3vmin; min-width: 0; }
-    .kicker {
-      font-size: clamp(12px, 1.2vw, 22px); letter-spacing: .24em; text-transform: uppercase;
-      color: #76b4ff; margin: 0 0 1.4vmin; font-weight: 600;
-    }
-    h1 {
-      font-family: 'Source Serif 4', Georgia, serif; font-weight: 500; margin: 0;
-      font-size: min(5.4vw, 10vh); color: #faf8f4; line-height: 1;
-    }
-    h1 small { font-size: .32em; color: #9fb0c9; font-family: 'Inter', system-ui, sans-serif; }
+    :root { color-scheme: dark; --gold: #c9a46a; --gold-2: #e6c58a; --paper: #f6f3ec; --muted: #a3acba; --bg: #0d1013; --panel: #161a1f; --rule: #2a2f36; }
+    html, body { background: var(--bg); color: var(--paper); margin: 0; overflow: hidden; font-family: 'Inter', system-ui, sans-serif; }
+    body.idle { cursor: none; }
+    #glow { position: fixed; inset: -20%; pointer-events: none; background:
+      radial-gradient(40% 40% at 20% 30%, #c9a46a1f, transparent 70%),
+      radial-gradient(35% 35% at 80% 70%, #5b7fa81a, transparent 70%);
+      animation: glow 24s ease-in-out infinite alternate; }
+    @keyframes glow { to { transform: translate(6%, -4%) rotate(8deg); } }
 
-    /* The QR column. Fixed width, so nothing about the data can shrink it. */
-    .col-qr {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      text-align: center; border-left: 1px solid #1d2a3f; padding-left: 4vmin;
-    }
-    .qr-plate {
-      background: #ffffff; border-radius: 1.4vmin; padding: 1.6vmin;
-      line-height: 0; box-shadow: 0 0 6vmin rgba(118, 180, 255, .10);
-    }
-    .qr { display: block; width: min(22vw, 42vh); height: min(22vw, 42vh); }
-    .col-qr .url {
-      font-size: min(1.7vw, 3.2vh); color: #faf8f4; font-weight: 600;
-      margin: 2.4vmin 0 0; letter-spacing: .01em;
-    }
-    .col-qr .prizes {
-      font-size: min(1.15vw, 2.2vh); color: #9fb0c9; margin: 1.6vmin 0 0; line-height: 1.5;
-    }
+    #stage { position: fixed; inset: 0 0 min(15vh, 150px) 0; }
+    .scene { position: absolute; inset: 0; display: grid; place-items: center; padding: 4vh 6vw; opacity: 0; visibility: hidden; transition: opacity .7s ease, visibility 0s linear .7s; }
+    .scene.on { opacity: 1; visibility: visible; transition: opacity .7s ease; }
+    .wrap { width: min(88vw, 1600px); }
+    .center { text-align: center; }
+    .wrap.two { display: grid; grid-template-columns: 1fr 1fr; gap: 5vw; align-items: center; }
 
-    #bars { list-style: none; padding: 0; margin: 0; flex: 1; min-height: 0; overflow: hidden;
-      display: flex; flex-direction: column; justify-content: center; gap: 1.6vh; }
-    #bars li { animation: in .5s ease both; }
-    @keyframes in { from { opacity: 0; transform: translateX(-1.5vmin); } to { opacity: 1; transform: none; } }
-    .row { display: flex; align-items: baseline; gap: 2vmin; line-height: 1; }
-    .n {
-      font-family: 'Source Serif 4', Georgia, serif; font-size: min(3vw, 5.4vh);
-      color: #76b4ff; min-width: 2.2ch; text-align: right; font-variant-numeric: tabular-nums;
-    }
-    .label { font-size: min(2vw, 3.6vh); color: #faf8f4; }
-    .track { height: 0.9vh; background: #1d2a3f; border-radius: 99px; margin-top: .9vmin; overflow: hidden; }
-    .fill { height: 100%; background: #76b4ff; width: 0; transition: width 1s cubic-bezier(.2,.8,.2,1); }
+    /* Everything marked .a rises in when its scene comes on, and replays each loop. */
+    .scene .a { opacity: 0; }
+    .scene.on .a { animation: rise .9s cubic-bezier(.2, .8, .2, 1) var(--d, 0s) both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(3vh); } to { opacity: 1; transform: none; } }
 
-    /* Before anyone has answered. The board should read as an invitation, not
-       as a scoreboard that is broken. */
-    #empty { display: none; flex: 1; flex-direction: column; justify-content: center; }
-    .empty-q {
-      font-family: 'Source Serif 4', Georgia, serif; font-size: min(3.2vw, 6vh);
-      color: #faf8f4; line-height: 1.25; margin: 0; max-width: 20ch;
-    }
-    .empty-sub { font-size: min(1.6vw, 3vh); color: #9fb0c9; margin: 2.4vmin 0 0; }
+    .kicker { font-size: clamp(14px, 1.6vw, 28px); letter-spacing: .26em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin: 0 0 2.4vh; }
+    h1, h2 { font-family: 'Source Serif 4', Georgia, serif; font-weight: 500; line-height: 1.06; margin: 0; letter-spacing: -.01em; }
+    h1 { font-size: clamp(40px, 5.6vw, 110px); }
+    h2 { font-size: clamp(32px, 4.2vw, 82px); }
+    h1 em, h2 em { font-style: normal; color: var(--gold); }
+    .lede { font-size: clamp(18px, 1.9vw, 36px); line-height: 1.45; color: #d5d9e0; max-width: 46ch; margin: 3vh auto 0; }
+    .two .lede { margin-left: 0; }
+    .lede.strong { color: var(--paper); font-weight: 500; }
+    .note { font-size: clamp(16px, 1.5vw, 28px); color: var(--muted); margin: 3.5vh 0 0; }
+    .fine { font-size: clamp(11px, .9vw, 16px); color: #7d8694; margin: 2vh 0 0; letter-spacing: .02em; }
 
-    /* "0 answers so far" in 10vh serif is the wrong first impression for the
-       group that happens to arrive first. Drop the tally until there is one. */
-    #board.is-empty h1 { display: none; }
-    #board.is-empty #bars { display: none; }
-    #board.is-empty #empty { display: flex; }
-    #board.is-empty #latest { visibility: hidden; }
+    /* How this hole works */
+    .steps { list-style: none; padding: 0; margin: 5vh auto 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.4vw; max-width: 1500px; text-align: left; }
+    .steps li { background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; padding: 3vh 2vw; display: grid; gap: 1.2vh; }
+    .steps b { font-family: 'Source Serif 4', Georgia, serif; font-size: clamp(34px, 3.4vw, 64px); color: var(--gold); line-height: 1; }
+    .steps .t { font-size: clamp(20px, 2vw, 38px); font-weight: 600; }
+    .steps .s { font-size: clamp(15px, 1.35vw, 26px); color: var(--muted); line-height: 1.4; }
+    .prizes { display: inline-grid; grid-template-columns: auto auto; gap: 1.2vh 2vw; margin: 4.5vh auto 0; font-size: clamp(20px, 2.1vw, 40px); text-align: left; }
+    .prizes span { font-weight: 600; }
+    .prizes i { font-style: normal; color: var(--gold); }
 
-    #latest { border-top: 1px solid #1d2a3f; padding-top: 2.4vmin; }
-    #latest-line {
-      font-size: min(1.9vw, 3.6vh); color: #c7d3e4; margin: 0; font-style: italic;
-      transition: opacity .38s ease;
-    }
-    #latest-line.fading { opacity: 0; }
-    @media (prefers-reduced-motion: reduce) { #latest-line { transition: none; } }
+    /* The problem */
+    .less { list-style: none; padding: 0; margin: 5vh auto 0; display: grid; gap: 2vh; font-size: clamp(24px, 2.8vw, 54px); font-family: 'Source Serif 4', Georgia, serif; }
+    .less span { position: relative; display: inline-block; }
+    .less span::after { content: ''; position: absolute; left: 0; right: 0; bottom: -.1em; height: .08em; background: var(--gold); transform: scaleX(0); transform-origin: left; }
+    .scene.on .less li:nth-child(1) span::after { animation: sweep .8s ease 2s forwards; }
+    .scene.on .less li:nth-child(2) span::after { animation: sweep .8s ease 3s forwards; }
+    .scene.on .less li:nth-child(3) span::after { animation: sweep .8s ease 4s forwards; }
+    @keyframes sweep { to { transform: scaleX(1); } }
 
-    #dot {
-      position: fixed; right: 1.6vmin; bottom: 1.6vmin; width: 10px; height: 10px;
-      border-radius: 99px; background: #2f6d4a; transition: background .4s;
-    }
-    #dot.stale { background: #7a5a2a; }
+    /* Different tools, one connected business */
+    .tools { display: grid; grid-template-rows: auto 1fr auto; place-items: stretch; padding-top: 4vh; }
+    .tools-head { text-align: center; }
+    .tools-stage { position: relative; margin: 2vh 6vw 0; }
+    .tools-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .tools-lines path { fill: none; stroke: var(--gold); stroke-width: 1.4; opacity: .55; stroke-dasharray: 1; stroke-dashoffset: 1; }
+    .scene.on .tools-lines path { animation: draw 1s ease calc(3.3s + var(--i) * 70ms) forwards; }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    .chip { position: absolute; top: calc(10% + var(--row) * 16%); translate: -50% -50%; }
+    .chip.l { left: 20%; }
+    .chip.r { left: 80%; }
+    .chip-in { display: inline-flex; align-items: center; gap: .6vw; white-space: nowrap; background: var(--panel); border: 1px solid #3a4048; border-radius: 10px; padding: 1.1vh 1.1vw; font-size: clamp(13px, 1.25vw, 24px); box-shadow: 0 1vh 3vh #0006; }
+    .chip-in svg { width: 1.6vw; height: 1.6vw; min-width: 18px; min-height: 18px; color: var(--gold); }
+    /* Scattered and drifting, then each settles into its column. */
+    .scene.on .chip { animation: settle 1.1s cubic-bezier(.2, .8, .2, 1) calc(2.1s + var(--i) * 80ms) both; }
+    .scene.on .chip-in { animation: drift 1.05s ease-in-out 2 alternate; }
+    @keyframes settle { from { transform: translate(var(--cx), var(--cy)) rotate(var(--turn)); } to { transform: none; } }
+    @keyframes drift { to { transform: translate(.6vw, -.8vh) rotate(2deg); } }
+    .hub { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 10vmin; height: 10vmin; border-radius: 50%; background: var(--panel); border: 2px solid var(--gold); display: grid; place-items: center; opacity: 0; }
+    .hub img { width: 58%; height: auto; }
+    .hub i { position: absolute; inset: -2px; border-radius: 50%; border: 2px solid var(--gold); opacity: 0; }
+    .scene.on .hub { animation: pop .7s cubic-bezier(.2, 1.4, .3, 1) 3.1s both; }
+    .scene.on .hub i { animation: ring 2.4s ease-out 3.6s infinite; }
+    .scene.on .hub i + i { animation-delay: 4.8s; }
+    @keyframes pop { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: none; } }
+    @keyframes ring { from { opacity: .7; transform: scale(1); } to { opacity: 0; transform: scale(2.4); } }
+    .tools-foot { text-align: center; font-size: clamp(17px, 1.7vw, 32px); color: #d5d9e0; max-width: 60ch; margin: 1vh auto 0; line-height: 1.4; }
 
-    /* Portrait or a narrow tablet: stack, QR on top. It is still the thing
-       someone walking past needs to see first. */
-    @media (max-aspect-ratio: 1/1) {
-      #board { grid-template-columns: 1fr; grid-template-rows: auto 1fr; gap: 3vmin; }
-      .col-qr { border-left: 0; border-bottom: 1px solid #1d2a3f; padding: 0 0 3vmin; }
-      .qr { width: min(46vw, 30vh); height: min(46vw, 30vh); }
+    /* Ask Hyphos */
+    .chat { background: #12161b; border: 1px solid #3a4048; border-radius: 16px; padding: 2.6vh 1.8vw; box-shadow: 0 3vh 8vh #0008; min-height: 52vh; }
+    .chat-head { display: flex; align-items: center; gap: .7vw; font-weight: 600; font-size: clamp(14px, 1.2vw, 22px); color: var(--muted); border-bottom: 1px solid var(--rule); padding-bottom: 1.6vh; }
+    .chat-head i { margin-left: auto; width: 9px; height: 9px; border-radius: 50%; background: #6fcf8e; box-shadow: 0 0 0 4px #6fcf8e22; }
+    .chat-q { margin: 2.6vh 0 0 auto; width: fit-content; max-width: 90%; background: var(--gold); color: #141414; font-weight: 600; font-size: clamp(16px, 1.5vw, 28px); padding: 1.2vh 1.2vw; border-radius: 12px 12px 2px 12px; min-height: 1.4em; }
+    .chat-q:has(span:empty) { visibility: hidden; }
+    .caret { display: inline-block; width: 2px; height: 1em; background: #141414; margin-left: 2px; vertical-align: -.12em; animation: blink 1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    .dots { display: none; gap: 6px; margin: 2.4vh 0 0; }
+    .dots.show { display: flex; }
+    .dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); animation: bounce 1s ease-in-out infinite; }
+    .dots i:nth-child(2) { animation-delay: .15s; } .dots i:nth-child(3) { animation-delay: .3s; }
+    @keyframes bounce { 50% { transform: translateY(-6px); opacity: .5; } }
+    .chat-a { display: none; margin-top: 2.4vh; }
+    .chat-a.show { display: block; }
+    .chat-intro { margin: 0 0 1.4vh; font-size: clamp(15px, 1.35vw, 26px); }
+    .chat-a ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 1.2vh; }
+    .chat-a li { display: flex; justify-content: space-between; gap: 1vw; align-items: baseline; border-left: 3px solid var(--gold); background: var(--panel); padding: 1.1vh 1vw; border-radius: 4px; font-size: clamp(14px, 1.3vw, 25px); opacity: 0; }
+    .chat-a.show li { animation: rise .6s ease calc(var(--n) * .45s) both; }
+    .chat-a em { font-style: normal; font-size: .72em; color: var(--gold); border: 1px solid #5a4a2d; padding: .2em .6em; border-radius: 99px; white-space: nowrap; }
+
+    /* A job runs over */
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2vw; margin-top: 4vh; }
+    .card { background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; padding: 2.6vh 1.8vw; }
+    .c-label { margin: 0; color: var(--gold); font-size: clamp(13px, 1.15vw, 22px); letter-spacing: .06em; }
+    .c-big { margin: 1.2vh 0 0; font-family: 'Source Serif 4', Georgia, serif; font-size: clamp(32px, 3.6vw, 70px); line-height: 1; }
+    .c-body { margin: 1.4vh 0 0; color: var(--muted); font-size: clamp(14px, 1.3vw, 25px); line-height: 1.4; }
+    .gap { display: flex; gap: 1.6vw; align-items: center; margin: 3.4vh auto 0; max-width: 1300px; border: 1px solid var(--gold); background: #1d1a14; border-radius: 14px; padding: 2.6vh 2vw; }
+    .gap img { width: 3.4vw; min-width: 36px; height: auto; flex: none; }
+    .g-title { margin: 0; font-size: clamp(20px, 2vw, 40px); font-family: 'Source Serif 4', Georgia, serif; }
+    .g-body { margin: 1vh 0 0; color: #d5d9e0; font-size: clamp(14px, 1.35vw, 26px); line-height: 1.4; }
+
+    /* Where we can help */
+    .help { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2vw; margin-top: 4.5vh; }
+    .h-card { background: var(--panel); border: 1px solid var(--rule); border-top: 3px solid var(--gold); border-radius: 14px; padding: 3vh 2vw; }
+    .h-num { font-family: 'Source Serif 4', Georgia, serif; color: var(--gold); font-size: clamp(22px, 2vw, 40px); }
+    .h-title { margin: 1.4vh 0 0; font-size: clamp(20px, 2vw, 38px); font-weight: 600; }
+    .h-body { margin: 1.4vh 0 0; color: var(--muted); font-size: clamp(15px, 1.35vw, 26px); line-height: 1.45; }
+
+    /* Domas */
+    .pipe { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); gap: 1vw; max-width: 1400px; margin: 5vh auto 1vh; }
+    .pipe-line { position: absolute; left: 8%; right: 8%; top: 3.2vh; height: 2px; background: var(--rule); }
+    .pipe-line i { position: absolute; top: 50%; left: 0; width: 1.6vh; height: 1.6vh; border-radius: 50%; background: var(--gold); box-shadow: 0 0 2vh var(--gold); translate: -50% -50%; }
+    .scene.on .pipe-line i { animation: travel 5s ease-in-out 1.6s infinite; }
+    @keyframes travel { 0% { left: 0; } 85%, 100% { left: 100%; } }
+    .node { position: relative; display: grid; justify-items: center; gap: 1vh; }
+    .node { font-size: clamp(15px, 1.4vw, 28px); font-weight: 600; }
+    .node b { display: grid; place-items: center; width: 6.4vh; height: 6.4vh; border-radius: 50%; background: var(--panel); border: 2px solid #3a4048; position: relative; z-index: 1; }
+    .node b::before { content: ''; width: 1.4vh; height: 1.4vh; border-radius: 50%; background: #3a4048; }
+    .scene.on .node b { animation: lit .5s ease calc(1.8s + var(--n) * .75s) forwards; }
+    .scene.on .node b::before { animation: litdot .5s ease calc(1.8s + var(--n) * .75s) forwards; }
+    @keyframes lit { to { border-color: var(--gold); box-shadow: 0 0 2.4vh #c9a46a55; } }
+    @keyframes litdot { to { background: var(--gold); } }
+    .node.person b { border-style: dashed; }
+    .node em { font-style: normal; font-size: .62em; font-weight: 500; color: var(--muted); margin-top: -.6vh; }
+    .node.person em { color: var(--gold); font-weight: 700; }
+
+    /* Wander */
+    .ticks { list-style: none; padding: 0; margin: 3.4vh 0 0; display: grid; gap: 1.1vh; font-size: clamp(16px, 1.55vw, 30px); }
+    .ticks b { color: var(--gold); font-family: 'Source Serif 4', Georgia, serif; margin-right: 1vw; }
+    .phones { position: relative; height: 64vh; }
+    .phone { position: absolute; top: 50%; height: 58vh; width: auto; border-radius: 3.4vh; border: 6px solid #22272e; box-shadow: 0 3vh 8vh #000a; background: #111; }
+    .phone.p1 { left: 4%; translate: 0 -46%; rotate: -7deg; }
+    .phone.p2 { left: 34%; translate: 0 -54%; z-index: 2; }
+    .phone.p3 { left: 64%; translate: 0 -46%; rotate: 7deg; }
+    .scene.on .phone { animation: rise 1s cubic-bezier(.2, .8, .2, 1) var(--d) both, float 5s ease-in-out calc(var(--d) + 1s) infinite alternate; }
+    @keyframes float { to { transform: translateY(-1.6vh); } }
+
+    /* Cornerstone: modules around one database */
+    .orbit { position: relative; width: min(40vw, 64vh); aspect-ratio: 1; margin: 0 auto; }
+    .orbit-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+    .orbit-ring { fill: none; stroke: #3a4048; stroke-width: .6; stroke-dasharray: 2 3; transform-origin: 0 0; }
+    .scene.on .orbit-ring { animation: spin 60s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .orbit-lines line { stroke: var(--gold); stroke-width: .7; opacity: .7; stroke-dasharray: 1; stroke-dashoffset: 1; }
+    .scene.on .orbit-lines line { animation: draw .7s ease calc(1.4s + var(--n) * .45s) forwards; }
+    .core { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 30%; aspect-ratio: 1; border-radius: 50%; background: #1d1a14; border: 2px solid var(--gold); display: grid; place-content: center; text-align: center; box-shadow: 0 0 6vh #c9a46a33; }
+    .core span { font-size: clamp(12px, 1.1vw, 20px); color: var(--muted); letter-spacing: .14em; text-transform: uppercase; }
+    .core b { font-family: 'Source Serif 4', Georgia, serif; font-weight: 500; font-size: clamp(18px, 1.9vw, 36px); color: var(--gold); }
+    .scene.on .core { animation: pop .8s cubic-bezier(.2, 1.4, .3, 1) .8s both, breathe 4s ease-in-out 2s infinite alternate; }
+    @keyframes breathe { to { box-shadow: 0 0 10vh #c9a46a55; } }
+    .mod { position: absolute; translate: -50% -50%; display: grid; justify-items: center; gap: .6vh; width: 11vw; text-align: center; font-size: clamp(12px, 1.1vw, 21px); font-weight: 600; opacity: 0; }
+    .mod svg { width: 3.4vw; height: 3.4vw; min-width: 28px; min-height: 28px; padding: .9vw; box-sizing: content-box; border-radius: 50%; background: var(--panel); border: 1px solid #3a4048; color: var(--gold); }
+    .scene.on .mod { animation: pop .6s cubic-bezier(.2, 1.4, .3, 1) calc(1.6s + var(--n) * .45s) both; }
+
+    /* Ten ways: two sets of three */
+    .way-grid { position: relative; margin-top: 4.5vh; height: 34vh; }
+    .way { position: absolute; top: 0; width: calc((100% - 4vw) / 3); left: calc(var(--n) * ((100% - 4vw) / 3 + 2vw)); background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; padding: 3vh 1.8vw; box-sizing: border-box; opacity: 0; }
+    .w-num { font-family: 'Source Serif 4', Georgia, serif; color: var(--gold); font-size: clamp(26px, 2.6vw, 50px); }
+    .w-title { margin: 1vh 0 0; font-size: clamp(18px, 1.75vw, 34px); font-weight: 600; line-height: 1.2; }
+    .w-body { margin: 1.4vh 0 0; color: var(--muted); font-size: clamp(14px, 1.3vw, 25px); line-height: 1.4; }
+    .scene.on .way { animation: wayin 7.4s ease calc(.8s + var(--set) * 7.4s + var(--n) * .3s) both; }
+    @keyframes wayin { 0% { opacity: 0; transform: translateY(3vh); } 10%, 88% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-2vh); } }
+
+    /* Talk to Daniel */
+    .cta-mark { position: relative; width: 14vmin; height: 14vmin; margin: 0 auto 4vh; display: grid; place-items: center; }
+    .cta-mark img { width: 100%; height: auto; }
+    .cta-mark i { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--gold); opacity: 0; }
+    .scene.on .cta-mark i { animation: ring 3s ease-out 1s infinite; }
+    .scene.on .cta-mark i + i { animation-delay: 2.5s; }
+    .contact { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.2vh 3vw; margin: 4vh 0 0; font-size: clamp(18px, 1.9vw, 36px); font-weight: 600; }
+    .contact span + span::before { content: '·'; color: var(--gold); margin-right: 3vw; }
+
+    /* Footer: always visible */
+    #bar { position: fixed; left: 0; right: 0; bottom: 0; height: min(15vh, 150px); display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 3vw; padding: 0 3vw; border-top: 1px solid var(--rule); background: #0b0e11ee; }
+    .b-left { display: flex; align-items: center; gap: .8vw; }
+    .b-left img { width: clamp(22px, 2vw, 36px); height: auto; }
+    .b-name { font-size: clamp(16px, 1.5vw, 28px); font-weight: 500; }
+    .b-url { color: var(--muted); font-size: clamp(13px, 1.1vw, 20px); margin-left: 1vw; }
+    #progress { display: flex; gap: .6vw; justify-content: center; }
+    #progress span { height: 4px; flex: 0 1 3.6vw; background: var(--rule); border-radius: 99px; overflow: hidden; }
+    #progress span i { display: block; height: 100%; width: 0; background: var(--gold); }
+    #progress span.done i { width: 100%; }
+    #progress span.now i { animation: fill var(--dur) linear forwards; }
+    @keyframes fill { to { width: 100%; } }
+    .b-right { display: flex; align-items: center; gap: 1.4vw; }
+    .b-copy { display: grid; text-align: right; gap: .4vh; }
+    .b-scan { font-size: clamp(16px, 1.6vw, 30px); font-weight: 700; color: var(--gold); letter-spacing: .04em; }
+    .b-win { font-size: clamp(12px, 1vw, 19px); color: #d5d9e0; }
+    .b-qr { background: #fff; padding: .8vh; border-radius: 8px; }
+    .b-qr .qr { display: block; width: min(12vh, 120px); height: min(12vh, 120px); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .scene.on .a, .scene.on .chip, .scene.on .chip-in, .scene.on .phone, .scene.on .mod, .scene.on .core, #glow { animation: none !important; opacity: 1; }
+      .scene .a { opacity: 1; }
     }
-    @media (prefers-reduced-motion: reduce) { #bars li { animation: none; } .fill { transition: none; } }
   </style>
 
   <script>
-    // Rehearsal data. ?demo=1 skips the network entirely, so you can practise
-    // the run as often as you like without putting a single fake name near the
-    // real entries. Add ?demo=1&empty=1 to see the board as the first group
-    // through will find it.
-    const DEMO = {
-      entries: 34, answered: 31,
-      groups: [
-        { label: 'writing quotes and invoices at night', count: 9 },
-        { label: 'things slipping through the cracks', count: 7 },
-        { label: 'chasing money already owed', count: 6 },
-        { label: 'rebuilding the schedule every week', count: 5 },
-        { label: 'a form for every single job', count: 4 },
-      ],
-      recent: [
-        'quoting, every one is a fresh spreadsheet',
-        'chasing the same four guys for payment',
-        'rebuilding the week after one cancellation',
-        'entering the same job into two systems',
-        'the intake form nobody fills in properly',
-        'writing invoices after the kids are down',
-      ],
-      draw: [
-        { name: 'Marc Dube', company: 'Dube Excavating' },
-        { name: 'Jen Kwan', company: 'Foothills Dental' },
-        { name: 'Rob Fenn', company: 'Fenn HVAC' },
-        { name: 'Tara Nolan', company: 'Nolan Bakery' },
-        { name: 'Amrit Singh', company: 'Singh Landscaping' },
-      ],
-      best: [
-        { name: 'Dale Ross', company: 'Ross Electric', wish: 'invoicing', detail: 'Two full evenings a month I will never get back' },
-        { name: 'Sam Doyle', company: 'Doyle Roofing', wish: 'quotes', detail: 'I write them at 10pm after the kids are down' },
-      ],
-      everyone: ['Marc Dube','Jen Kwan','Rob Fenn','Tara Nolan','Amrit Singh','Dale Ross','Sam Doyle','Pat Miller','Chris Bell','Lena Ortiz','Kyle Brenner','Nina Faust','Owen Reid','Maya Grant','Tom Vance'],
-    };
-    const params = new URLSearchParams(location.search);
-    const DEMO_MODE = params.has('demo');
-    const DEMO_EMPTY = params.has('empty');
+    const scenes = [...document.querySelectorAll<HTMLElement>('.scene')];
+    const progress = document.getElementById('progress')!;
+    const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const timers: number[] = [];
+    const later = (ms: number, fn: () => void) => timers.push(window.setTimeout(fn, ms));
 
-    const REFRESH_MS = 45000;
-    let lastGood = 0;
-    let refreshTimer = null;
+    progress.replaceChildren(...scenes.map(() => { const s = document.createElement('span'); s.append(document.createElement('i')); return s; }));
+    const bars = [...progress.children] as HTMLElement[];
 
-    const el = (id) => document.getElementById(id);
-
-    // Built as nodes with textContent, never as an HTML string. Group labels
-    // are model output derived from whatever golfers typed into the form, so
-    // they are untrusted twice over. This screen faces a room.
-    function barRow(group, max) {
-      const li = document.createElement('li');
-
-      const row = document.createElement('div');
-      row.className = 'row';
-
-      const n = document.createElement('span');
-      n.className = 'n';
-      n.textContent = String(group.count);
-
-      const label = document.createElement('span');
-      label.className = 'label';
-      label.textContent = String(group.label);
-
-      row.append(n, label);
-
-      const track = document.createElement('div');
-      track.className = 'track';
-      const fill = document.createElement('div');
-      fill.className = 'fill';
-      fill.dataset.w = String(Math.round((group.count / max) * 100));
-      track.append(fill);
-
-      li.append(row, track);
-      return li;
+    // Per-scene moments that CSS cannot do alone: typing, counting, showing.
+    function play(scene: HTMLElement) {
+      scene.querySelectorAll<HTMLElement>('[data-type]').forEach((el) => {
+        const text = el.dataset.type || ''; el.textContent = '';
+        let i = 0;
+        later(Number(el.dataset.at || 0), function step() {
+          el.textContent = text.slice(0, ++i);
+          if (i < text.length) later(REDUCED ? 0 : 55, step);
+        });
+      });
+      scene.querySelectorAll<HTMLElement>('[data-show]').forEach((el) => {
+        el.classList.remove('show');
+        later(Number(el.dataset.show), () => el.classList.add('show'));
+        if (el.dataset.hide) later(Number(el.dataset.hide), () => el.classList.remove('show'));
+      });
+      scene.querySelectorAll<HTMLElement>('[data-count]').forEach((el) => {
+        const to = Number(el.dataset.count); el.textContent = '0';
+        later(Number(el.dataset.at || 0), () => {
+          const start = performance.now();
+          const tick = () => {
+            const t = Math.min(1, (performance.now() - start) / 1200);
+            el.textContent = String(Math.round(to * (1 - Math.pow(1 - t, 3))));
+            if (t < 1) later(30, tick);
+          };
+          tick();
+        });
+      });
     }
 
-    // The recent-answers line cycles on its own clock, independent of the 45s
-    // data refresh. Entries trickle in over five hours, so a line that only
-    // moves when someone enters is a line that is motionless most of the day.
-    const ROTATE_MS = 7000;
-    let recentLines = [];
-    let recentIdx = 0;
-
-    function showRecent() {
-      const line = el('latest-line');
-      if (!recentLines.length) { line.textContent = ' '; return; }
-      line.classList.add('fading');
-      setTimeout(() => {
-        line.textContent = `“${recentLines[recentIdx % recentLines.length]}”`;
-        line.classList.remove('fading');
-      }, 380);
+    let current = -1;
+    function show(i: number) {
+      timers.splice(0).forEach(clearTimeout);
+      current = (i + scenes.length) % scenes.length;
+      const scene = scenes[current];
+      scenes.forEach((s) => s.classList.toggle('on', s === scene));
+      const dur = Number(scene.dataset.dur || 12000);
+      bars.forEach((b, n) => { b.classList.toggle('done', n < current); b.classList.remove('now'); b.style.setProperty('--dur', `${dur}ms`); });
+      void bars[current].offsetWidth; bars[current].classList.add('now');
+      play(scene);
+      later(dur, next);
     }
-
-    function setRecent(lines) {
-      // Only restart the cycle when the answers actually changed. A refresh
-      // that returns the same list should not yank the line back to the top.
-      const same =
-        lines.length === recentLines.length && lines.every((l, i) => l === recentLines[i]);
-      if (same) return;
-      recentLines = lines;
-      recentIdx = 0;
-      showRecent();
-    }
-
-    setInterval(() => {
-      if (recentLines.length > 1) { recentIdx++; showRecent(); }
-    }, ROTATE_MS);
-
-    function render(data) {
-      el('count').textContent = String(data.answered || 0);
-      setRecent(data.recent || []);
-
-      const top = (data.groups || []).slice(0, 5);
-      // No groups means nothing to rank, whether that is nobody yet or nobody
-      // who wrote an answer. Either way the poster is the better screen.
-      el('board').classList.toggle('is-empty', top.length === 0);
-      if (top.length === 0) return;
-
-      const max = Math.max(1, top[0].count || 1);
-      const bars = el('bars');
-      bars.replaceChildren(...top.map((g) => barRow(g, max)));
-      requestAnimationFrame(() =>
-        bars.querySelectorAll('.fill').forEach((f) => (f.style.width = f.dataset.w + '%'))
-      );
-    }
-
-    async function tick() {
-      if (DEMO_MODE) {
-        if (DEMO_EMPTY) {
-          render({ answered: 0, groups: [] });
-          lastGood = Date.now();
-          return;
-        }
-        // Nudge a count each cycle so the refresh behaviour is visible too.
-        DEMO.answered += 1;
-        DEMO.groups[Math.floor(Math.random() * DEMO.groups.length)].count += 1;
-        DEMO.groups.sort((a, b) => b.count - a.count);
-        render(DEMO);
-        lastGood = Date.now();
-        el('dot').classList.remove('stale');
-        refreshTimer = setTimeout(tick, 4000);
+    function next() {
+      // Pick up a new version of the board between scenes, when the site can
+      // be reached and it has been half an hour.
+      if (current === scenes.length - 1 && Date.now() - loadedAt > 30 * 60 * 1000 && navigator.onLine) {
+        fetch(location.href, { method: 'HEAD', cache: 'no-store' }).then((r) => { if (r.ok) location.reload(); else show(0); }).catch(() => show(0));
         return;
       }
-      try {
-        const res = await fetch('/api/golf/summary?format=board', { cache: 'no-store' });
-        if (!res.ok) throw new Error(String(res.status));
-        render(await res.json());
-        lastGood = Date.now();
-      } catch {
-        // Hold the last good screen. A hotspot blip should be invisible to the
-        // room; only the dot changes.
-        if (!lastGood) location.href = '/golf/enter?next=' + encodeURIComponent(location.pathname + location.search);
-      }
-      el('dot').classList.toggle('stale', Date.now() - lastGood > REFRESH_MS * 3);
-      refreshTimer = setTimeout(tick, REFRESH_MS);
+      show(current + 1);
     }
+    const loadedAt = Date.now();
 
-    // Browsers throttle timers in a background tab, so a board that was tabbed
-    // away from comes back holding whatever it had when it lost focus. Catch
-    // up the moment it is on screen again rather than up to 45s later.
-    addEventListener('visibilitychange', () => {
-      if (document.visibilityState !== 'visible') return;
-      clearTimeout(refreshTimer);
-      tick();
+    // Arrow keys step through, for checking the board before the day.
+    addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); show(current + 1); }
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(current - 1); }
     });
 
-    // Start on the poster. If the fetch is slow or the hotspot is still coming
-    // up, an empty invitation beats an empty scoreboard.
-    el('board').classList.add('is-empty');
-    tick();
+    // Keep the screen awake where the browser allows it, and hide the cursor.
+    let lock: { release(): Promise<void> } | null = null;
+    const wake = async () => { try { lock = await (navigator as any).wakeLock?.request('screen'); } catch {} };
+    wake(); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') wake(); });
+    let idle = 0; const still = () => { document.body.classList.remove('idle'); clearTimeout(idle); idle = window.setTimeout(() => document.body.classList.add('idle'), 3000); };
+    addEventListener('mousemove', still); still();
+    // One click anywhere goes full screen.
+    addEventListener('click', () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(() => {}); });
+
+    show(0);
   </script>
 </BaseLayout>
