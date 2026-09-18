@@ -7,7 +7,7 @@ import PreviewBar from '../components/PreviewBar.astro';
 interface Props {
   title: string;
   description?: string;
-  /** Hide the marketing header/footer chrome (rare — used by form-only pages). */
+  /** Hide the marketing header/footer chrome (rare, used by form-only pages). */
   minimal?: boolean;
   /** Keep the page out of search results. Travels in the HTML, so it survives
    *  edge caching in a way a response header set by the worker does not. */
@@ -21,7 +21,7 @@ const {
   noindex = false,
 } = Astro.props;
 
-const fullTitle = title.startsWith('Hyphos') ? title : `${title} — Hyphos Inc.`;
+const fullTitle = title.startsWith('Hyphos') ? title : `${title} · Hyphos Inc.`;
 const siteUrl = 'https://hyphos.io';
 const canonicalUrl = new URL(Astro.url.pathname, siteUrl).href;
 ---

@@ -1,0 +1,330 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+/**
+ * One page for the day: every tournament link, when to use it and how, in the
+ * order the day runs. Written to be read on a phone at the course.
+ *
+ * Nothing here is secret. Every screen that shows entries or runs the draw
+ * still needs the sign-in, and the password is never written on this page or
+ * anywhere in this repository.
+ */
+
+type Tool = {
+  name: string;
+  path: string;
+  demo?: string;
+  when: string;
+  signIn?: boolean;
+  steps: string[];
+};
+
+const sections: { title: string; intro?: string; tools: Tool[] }[] = [
+  {
+    title: 'Tonight: Set Up Each Device',
+    intro: 'Do this once on every device you will use tomorrow: the dinner laptop, and whatever runs the hole screen.',
+    tools: [
+      {
+        name: 'Sign In',
+        path: '/golf/enter',
+        when: 'Once per device. It stays signed in for 30 days.',
+        steps: [
+          'Type the screen password (it is in your password manager).',
+          'You land on a list of the screens. Any screen that needs the sign-in sends you here and brings you back.',
+          'Judging and the prize draw are saved in the browser, so do both on the dinner laptop, at hyphos.io.',
+        ],
+      },
+    ],
+  },
+  {
+    title: 'At The Hole, From 11:00',
+    tools: [
+      {
+        name: 'Hole Board',
+        path: '/golf/board',
+        demo: '/golf/board?demo=1',
+        when: 'All day, on the screen at the hole.',
+        signIn: true,
+        steps: [
+          'Open it, go full screen, leave it running. It refreshes itself.',
+          'It shows a large QR code with Scan To Enter, what people have written so far, grouped, and the latest answers.',
+          'Early in the day it is mostly the QR code. That is expected.',
+        ],
+      },
+      {
+        name: 'Entry Form',
+        path: '/golf',
+        when: 'What golfers see after scanning the hole board code.',
+        steps: [
+          'They answer one question, then one follow-up the AI writes from their answer.',
+          'Every entry goes into the Rangefinder draw and becomes a candidate for the Pro V1s.',
+          'Do not submit test entries from here tomorrow. They land in the real draw.',
+        ],
+      },
+    ],
+  },
+  {
+    title: 'On The Course',
+    tools: [
+      {
+        name: 'Contest Board',
+        path: '/course',
+        demo: '/course?demo=1',
+        when: 'On the clubhouse TV, and on anyone’s phone.',
+        steps: [
+          'Golfers scan the sign at each contest hole and post their result. The board updates live.',
+          'Closest to the pin, longest drive and longest putt: the latest entry leads, because they move the marker first.',
+          'Hit the square is a list. Everyone on it goes into the $500 gift card draw.',
+        ],
+      },
+      {
+        name: 'Contest Board, Admin',
+        path: '/course?admin=1',
+        when: 'Only if someone posts a joke or a mistake.',
+        signIn: true,
+        steps: ['Adds a remove button beside each entry. Tap it to delete that one entry.'],
+      },
+      {
+        name: 'Scan Counts',
+        path: '/golf/scans',
+        demo: '/golf/scans?demo=1',
+        when: 'Any time you are curious.',
+        signIn: true,
+        steps: [
+          'One row per printed code and screen, with the total and the last hour.',
+          'It counts scans, not entries. Someone can scan and not fill anything in.',
+        ],
+      },
+    ],
+  },
+  {
+    title: 'Before Dinner, Around 5:30',
+    intro: 'On the dinner laptop, before it goes on the projector.',
+    tools: [
+      {
+        name: 'Choose The Best Answer',
+        path: '/golf/judge',
+        demo: '/golf/judge?demo=1',
+        when: 'Before the draw starts. This picks the Pro V1s winner.',
+        signIn: true,
+        steps: [
+          'Every answer is listed, longest first. Length does not decide it; read them.',
+          'Tap the one you want. It shows Selected. Then tap Open Prize Draw.',
+          'You can change your mind until that prize is drawn.',
+        ],
+      },
+      {
+        name: 'Prize Draw: Setup',
+        path: '/golf/prizes',
+        demo: '/golf/prizes?demo=1',
+        when: 'Right after judging, still before the projector.',
+        signIn: true,
+        steps: [
+          'Attendees box: paste the roster, one person per line as Name, Team. The file is Hyphos Golf/roster-for-prize-draw.txt on your Mac.',
+          'Prizes box: one prize per line, in the order you will draw them, as Prize | Sponsor.',
+          'Tag the three contest prizes on the end of their line: | best answer for the Pro V1s, | entry draw for the Rangefinder, | square for the $500 gift card.',
+          'Press Load Lists. Check the count under it (names, prizes, contest prizes).',
+          'Press Load Contest Entries. Do this last thing before dinner so late entries are included. After this the draw runs without internet.',
+          'Under Already Won On Score, tick anyone who already won a score prize. Tick a team name to strike the whole team.',
+          'Press Start The Draw. Now plug into the projector.',
+        ],
+      },
+    ],
+  },
+  {
+    title: 'The Prize Draw, 6:00',
+    intro: 'Everything is one key. A presentation clicker works too.',
+    tools: [],
+  },
+];
+
+const keys = [
+  ['Space, Enter or →', 'Draw the current prize, then move to the next one'],
+  ['R', 'The winner is not in the room. Marks them out for the night and redraws this prize'],
+  ['U', 'Undo this prize’s winner, back to Ready. They stay in the hat'],
+  ['←', 'Go back a screen'],
+  ['S or Esc', 'Back to setup: winners so far, export, strikes'],
+];
+
+const flow = [
+  'The title slide shows first. Space starts the prizes.',
+  'Each prize shows Ready. Space spins through the names for about five seconds and lands on a winner.',
+  'The Pro V1s are different: the first Space reads the winning answer out, the second reveals who wrote it.',
+  'Nobody wins twice, anyone struck or marked not here never comes up, and each contest prize only draws from its own list.',
+  'If the laptop closes or the page reloads, open the same address again. It resumes on the same prize with every winner kept.',
+  'After the last prize, a thank-you slide. Press S, then Export Winners CSV for the organisers.',
+];
+
+const qr = [
+  ['Hole board screen', '/GO/BOARD', 'Entry form'],
+  ['Hole sticker', '/GO/HOLE', 'hyphos.io homepage'],
+  ['Gift bag sticker', '/GO/BAG', 'hyphos.io homepage'],
+  ['Card sticker', '/GO/CARD', 'hyphos.io homepage'],
+  ['Handout sticker', '/GO/HAND', 'hyphos.io homepage'],
+  ['Sponsor table sticker', '/GO/TABLE', 'hyphos.io homepage'],
+  ['Half page flyer', '/GO/FLYER', 'hyphos.io homepage'],
+  ['Dinner screen', '/GO/SCREEN', 'hyphos.io homepage'],
+  ['Sign: closest to the pin', '/C/CTP', 'Contest entry'],
+  ['Sign: longest drive', '/C/LD', 'Contest entry'],
+  ['Sign: longest putt', '/C/LP', 'Contest entry'],
+  ['Sign: hit the square', '/C/SQ', 'Contest entry'],
+];
+
+const trouble = [
+  ['A screen asks for the password again', 'Sign in at hyphos.io/golf/enter. It sends you straight back.'],
+  ['The internet drops during the draw', 'Keep going. After Load Contest Entries the draw needs no connection.'],
+  ['The browser closed mid-draw', 'Reopen hyphos.io/golf/prizes on the same laptop. It picks up where it stopped.'],
+  ['The wrong person was drawn', 'Press U, then Space to draw again.'],
+  ['The winner has gone home', 'Press R. It redraws and they stay out for the rest of the night.'],
+  ['Someone posted a joke on the contest board', 'Open hyphos.io/course?admin=1 and remove it.'],
+  ['Nothing works at all', 'Open the Text Readout below. It has every group, both draws and the answers as plain text.'],
+];
+
+const after = [
+  { name: 'Text Readout', path: '/api/golf/summary', note: 'Groups, both draws and the verbatim answers, as plain text. The backup for everything.' },
+  { name: 'All Entries, CSV', path: '/api/golf/entries', note: 'Every entry with contact details, for the follow-up. Downloads a file.' },
+  { name: '10 Ways Article', path: '/field-notes/ten-ways-small-businesses-use-ai/', note: 'The piece the entry form promises. Link it in the follow-up email.' },
+];
+---
+
+<BaseLayout title="Tournament Day Guide" noindex minimal>
+  <section class="guide mx-auto max-w-3xl px-4 sm:px-6 pt-12 pb-24">
+    <div class="eyebrow mb-3">Hyphos Inc. · Springs Men's Golf Classic</div>
+    <h1 class="display text-3xl sm:text-4xl text-ink-900">Tournament Day Guide</h1>
+    <p class="mt-3 text-ink-600 leading-relaxed">
+      Friday 18 September, D'Arcy Ranch. Every link for the day, in the order you will need them.
+      Registration 11:00, shotgun 1:00, dinner and prizes 6:00.
+    </p>
+    <p id="session" class="mt-4 text-sm text-ink-600">Checking sign-in…</p>
+
+    <nav class="quick mt-8" aria-label="Main screens">
+      <a href="/golf/board">Hole Board</a>
+      <a href="/course">Contest Board</a>
+      <a href="/golf/judge">Choose Best Answer</a>
+      <a href="/golf/prizes">Prize Draw</a>
+      <a href="/golf/scans">Scan Counts</a>
+      <a href="/golf/enter">Sign In</a>
+    </nav>
+
+    <div class="rehearse mt-8">
+      <h2>Rehearse Anything</h2>
+      <p>
+        Every Rehearse button opens the same screen with sample data. Rehearsals are stored separately and never touch
+        the real entries, judging or draw. In the prize draw rehearsal, press Reset Everything first for a clean run.
+      </p>
+    </div>
+
+    {sections.map((s) => (
+      <section class="block">
+        <h2>{s.title}</h2>
+        {s.intro && <p class="intro">{s.intro}</p>}
+        {s.tools.map((t) => (
+          <article class="tool">
+            <div class="tool-head">
+              <h3>{t.name}</h3>
+              {t.signIn && <span class="badge">Needs sign-in</span>}
+            </div>
+            <p class="url">{`hyphos.io${t.path}`}</p>
+            <p class="when">{t.when}</p>
+            <ol>{t.steps.map((step) => <li>{step}</li>)}</ol>
+            <div class="actions">
+              <a class="btn-primary" href={t.path}>Open</a>
+              {t.demo && <a class="btn-secondary" href={t.demo}>Rehearse</a>}
+            </div>
+          </article>
+        ))}
+      </section>
+    ))}
+
+    <section class="block" style="margin-top: 0">
+      <table class="keys">
+        <thead><tr><th>Key</th><th>What it does</th></tr></thead>
+        <tbody>{keys.map(([k, what]) => <tr><td><kbd>{k}</kbd></td><td>{what}</td></tr>)}</tbody>
+      </table>
+      <h3 class="sub">How It Runs</h3>
+      <ol class="flow">{flow.map((f) => <li>{f}</li>)}</ol>
+      <div class="actions">
+        <a class="btn-primary" href="/golf/prizes">Open Prize Draw</a>
+        <a class="btn-secondary" href="/golf/prizes?demo=1">Rehearse</a>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>After</h2>
+      {after.map((a) => (
+        <article class="tool">
+          <div class="tool-head"><h3>{a.name}</h3><span class="badge">Needs sign-in</span></div>
+          <p class="url">{`hyphos.io${a.path}`}</p>
+          <p class="when">{a.note}</p>
+          <div class="actions"><a class="btn-secondary" href={a.path}>Open</a></div>
+        </article>
+      ))}
+    </section>
+
+    <section class="block">
+      <h2>If Something Goes Wrong</h2>
+      <dl class="trouble">{trouble.map(([problem, fix]) => <div><dt>{problem}</dt><dd>{fix}</dd></div>)}</dl>
+    </section>
+
+    <section class="block">
+      <h2>Where Every QR Code Goes</h2>
+      <p class="intro">Every code is counted on Scan Counts before it opens its page.</p>
+      <table class="qr">
+        <thead><tr><th>Printed on</th><th>Code</th><th>Opens</th></tr></thead>
+        <tbody>{qr.map(([where, code, opens]) => <tr><td>{where}</td><td><code>{`hyphos.io${code}`}</code></td><td>{opens}</td></tr>)}</tbody>
+      </table>
+    </section>
+  </section>
+
+  <style is:global>
+    .guide h2 { font-size: 1.35rem; font-weight: 600; color: #111827; letter-spacing: -.01em; margin: 0 0 6px; }
+    .guide .block { margin-top: 44px; }
+    .guide .intro { color: #4b5563; line-height: 1.6; margin: 0 0 14px; }
+    .guide .quick { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+    .guide .quick a { display: block; padding: 14px 16px; border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; color: #111827; font-weight: 600; text-decoration: none; }
+    .guide .quick a:hover { border-color: #9ca3af; }
+    .guide .rehearse { padding: 18px 20px; border-radius: 12px; background: #f5f1e8; border: 1px solid #e7dcc4; }
+    .guide .rehearse p { color: #4b5563; line-height: 1.6; margin: 0; }
+    .guide .tool { margin-top: 14px; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; }
+    .guide .tool-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+    .guide .tool h3 { font-size: 1.1rem; font-weight: 600; color: #111827; margin: 0; }
+    .guide .badge { font-size: .75rem; font-weight: 600; color: #7a5b27; background: #f5ecd9; border-radius: 99px; padding: 3px 9px; }
+    .guide .url { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85rem; color: #6b7280; margin: 6px 0 0; overflow-wrap: anywhere; }
+    .guide .when { color: #374151; font-weight: 500; margin: 10px 0 0; line-height: 1.55; }
+    .guide ol { margin: 10px 0 0; padding-left: 1.25rem; color: #4b5563; line-height: 1.6; list-style: decimal; }
+    .guide ol li + li { margin-top: 6px; }
+    .guide .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .guide .actions a { min-height: 44px; }
+    .guide .sub { font-size: 1.05rem; font-weight: 600; color: #111827; margin: 26px 0 0; }
+    .guide table { width: 100%; border-collapse: collapse; font-size: .95rem; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
+    .guide th { text-align: left; font-size: .8rem; font-weight: 600; color: #6b7280; padding: 10px 14px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
+    .guide td { padding: 10px 14px; border-top: 1px solid #f0f0f0; color: #374151; vertical-align: top; line-height: 1.5; }
+    .guide kbd { display: inline-block; white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85rem; padding: 2px 8px; border: 1px solid #d1d5db; border-bottom-width: 2px; border-radius: 6px; background: #f9fafb; color: #111827; }
+    .guide code { font-size: .8rem; color: #4b5563; overflow-wrap: anywhere; }
+    .guide .trouble div { padding: 14px 0; border-top: 1px solid #e5e7eb; }
+    .guide .trouble dt { font-weight: 600; color: #111827; }
+    .guide .trouble dd { margin: 4px 0 0; color: #4b5563; line-height: 1.55; }
+    @media (max-width: 560px) {
+      .guide .quick { grid-template-columns: 1fr 1fr; }
+      .guide .qr th:nth-child(2), .guide .qr td:nth-child(2) { display: none; }
+    }
+  </style>
+
+  <script>
+    const note = document.getElementById('session')!;
+    fetch('/api/golf/session', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((s) => {
+        if (s.signedIn) {
+          const until = s.expiresAt ? new Date(s.expiresAt).toLocaleDateString('en-CA', { month: 'long', day: 'numeric' }) : '';
+          note.textContent = until ? `Signed in on this device until ${until}.` : 'Signed in on this device.';
+        } else {
+          note.replaceChildren(document.createTextNode('Not signed in on this device. '));
+          const a = document.createElement('a');
+          a.href = '/golf/enter?next=/golf/guide'; a.className = 'link'; a.textContent = 'Sign in';
+          note.append(a);
+        }
+      })
+      .catch(() => { note.textContent = ''; });
+  </script>
+</BaseLayout>
