@@ -744,7 +744,10 @@ const GO_CAMPAIGN = 'springs-golf-2026';
 // Where each code lands after its scan is counted. Printed stickers introduce
 // Hyphos, so they go to the homepage; codes shown beside the contest go
 // straight to the entry form.
-const GO_DEST = { board: '/golf/', sign: '/golf/', enter: '/golf/' };
+// Per-tag landing pages. The sponsor-table card promises the AI field note, so
+// its code has to land on the note rather than the homepage.
+const GO_DEST = { board: '/golf/', sign: '/golf/', enter: '/golf/', poster: '/golf/',
+  table: '/field-notes/ten-ways-small-businesses-use-ai/' };
 
 // hyphos.io is the one Hyphos site, and the tournament is served there too:
 // the hyphos.io worker passes /golf, /course, /c/, /go/ and their APIs to this

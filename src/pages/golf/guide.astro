@@ -57,7 +57,7 @@ const sections: { title: string; intro?: string; tools: Tool[] }[] = [
         when: 'What golfers see after scanning the hole board code.',
         steps: [
           'They answer one question, then one follow-up the AI writes from their answer.',
-          'Every entry goes into the Rangefinder draw and becomes a candidate for the Pro V1s.',
+          'Every entry goes into the Tidal prize draw and becomes a candidate for the Pro V1s.',
           'Do not submit test entries from here tomorrow. They land in the real draw.',
         ],
       },
@@ -122,7 +122,7 @@ const sections: { title: string; intro?: string; tools: Tool[] }[] = [
         steps: [
           'Attendees box: paste the roster, one person per line as Name, Team. The file is Hyphos Golf/roster-for-prize-draw.txt on your Mac.',
           'Prizes box: one prize per line, in the order you will draw them, as Prize | Sponsor.',
-          'Tag the three contest prizes on the end of their line: | best answer for the Pro V1s, | entry draw for the Rangefinder, | square for the $500 gift card.',
+          'Tag the three contest prizes on the end of their line: | best answer for the Pro V1s, | entry draw for the Tidal prize, | square for the $500 gift card.',
           'Press Load Lists. Check the count under it (names, prizes, contest prizes).',
           'Press Load Contest Entries. Do this last thing before dinner so late entries are included. After this the draw runs without internet.',
           'Under Already Won On Score, tick anyone who already won a score prize. Tick a team name to strike the whole team.',
@@ -157,11 +157,12 @@ const flow = [
 
 const qr = [
   ['Hole board screen', '/GO/BOARD', 'Entry form'],
+  ['Poster', '/GO/POSTER', 'Entry form'],
   ['Hole sticker', '/GO/HOLE', 'hyphos.io homepage'],
   ['Gift bag sticker', '/GO/BAG', 'hyphos.io homepage'],
   ['Card sticker', '/GO/CARD', 'hyphos.io homepage'],
   ['Handout sticker', '/GO/HAND', 'hyphos.io homepage'],
-  ['Sponsor table sticker', '/GO/TABLE', 'hyphos.io homepage'],
+  ['Sponsor table sticker', '/GO/TABLE', 'The 10 Ways AI article'],
   ['Half page flyer', '/GO/FLYER', 'hyphos.io homepage'],
   ['Dinner screen', '/GO/SCREEN', 'hyphos.io homepage'],
   ['Sign: closest to the pin', '/C/CTP', 'Contest entry'],
