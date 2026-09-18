@@ -59,6 +59,11 @@ import Mark from '../../components/Mark.astro';
         <p id="c-sub" class="c-sub"></p>
         <p id="c-count" class="muted"></p>
       </div>
+      <div id="c-pick" class="c-pick" hidden>
+        <p class="c-pick-head">Choose the Pro V1s winner. Read them; length does not decide it.</p>
+        <ol id="c-pick-list"></ol>
+        <p class="muted" id="c-pick-empty" hidden>No answers yet. Nobody has entered on the form.</p>
+      </div>
       <div class="setup-row c-buttons">
         <button id="c-next" type="button" class="primary">Next</button>
         <button id="c-redraw" type="button">They Have Left, Redraw</button>
@@ -218,6 +223,15 @@ import Mark from '../../components/Mark.astro';
     .c-buttons button { padding: 12px 18px; font-size: 15px; }
     #c-next { min-width: 140px; }
     #c-specials { display: inline-flex; flex-wrap: wrap; gap: 12px; }
+    .c-pick { border-top: 1px solid var(--rule); margin-top: 14px; padding-top: 12px; }
+    .c-pick-head { font-size: 14px; color: var(--paper); margin: 0 0 8px; }
+    #c-pick-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; max-height: 360px; overflow: auto; }
+    #c-pick-list li { display: flex; gap: 14px; align-items: flex-start; justify-content: space-between; border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px; }
+    #c-pick-list li.chosen { border-color: var(--gold); background: #2a2419; }
+    #c-pick-list .a-wish { font-weight: 600; }
+    #c-pick-list .a-detail { color: var(--muted); font-size: 14px; margin-top: 2px; }
+    #c-pick-list .a-who { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    #c-pick-list button { flex: none; }
     .screen-mode #p-sub { visibility: hidden; }
     .replaced { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: var(--bg); color: var(--muted); font-size: 22px; padding: 24px; text-align: center; }
     #winners-list { padding-left: 20px; margin: 8px 0 0; font-size: 14px; line-height: 1.6; }
@@ -658,7 +672,38 @@ import Mark from '../../components/Mark.astro';
       }
     }
     let lastSeen = 0;
+    // The Pro V1s picker, right on the control screen. The choice is stored
+    // where the projector reads it, so Next works straight after.
+    function renderPicker(st) {
+      const show = st.kind === 'judged' && !st.landed && !st.quote;
+      el('c-pick').hidden = !show;
+      if (!show) return;
+      const best = S.contest?.best || [];
+      let pickId = NaN; try { pickId = Number(localStorage.getItem(PICK_KEY)); } catch {}
+      const key = JSON.stringify([best.map((b) => b.id), pickId]);
+      if (el('c-pick').dataset.key === key) return;
+      el('c-pick').dataset.key = key;
+      el('c-pick-empty').hidden = best.length > 0;
+      el('c-pick-list').replaceChildren(...best.map((b) => {
+        const li = document.createElement('li'); if (b.id === pickId) li.className = 'chosen';
+        const text = document.createElement('div');
+        const wish = document.createElement('div'); wish.className = 'a-wish'; wish.textContent = `“${b.wish}”`;
+        const detail = document.createElement('div'); detail.className = 'a-detail'; detail.textContent = b.detail || '';
+        const who = document.createElement('div'); who.className = 'a-who'; who.textContent = [b.name, b.company].filter(Boolean).join(' · ');
+        text.append(wish, detail, who);
+        const btn = document.createElement('button'); btn.type = 'button';
+        btn.textContent = b.id === pickId ? 'Chosen' : 'Choose';
+        if (b.id === pickId) btn.className = 'primary';
+        btn.addEventListener('click', () => {
+          try { localStorage.setItem(PICK_KEY, String(b.id)); } catch {}
+          el('c-pick').dataset.key = ''; renderPicker(st); send('reload');
+        });
+        li.append(text, btn); return li;
+      }));
+    }
     function renderControl(st) {
+      el('c-next').textContent = st.nextLabel || 'Next';
+      renderPicker(st);
       el('c-kicker').textContent = st.kicker;
       el('c-prize').textContent = st.prize;
       el('c-quote').hidden = !st.quote; el('c-quote').textContent = st.quote || '';
@@ -751,6 +796,10 @@ import Mark from '../../components/Mark.astro';
           reel: S.phase === 'prize' ? el('reel').innerText.replace(/\n+/g, ' · ') : '',
           spinning,
           canRedraw: S.phase === 'prize' && landed && !spinning && S.winners.some((w) => w.prizeIndex === S.index),
+          kind: S.phase === 'prize' ? S.prizes[S.index]?.kind : '',
+          landed,
+          nextLabel: S.phase === 'title' ? 'Start The Prizes' : S.phase === 'done' ? 'Next' : spinning ? 'Drawing…'
+            : landed ? 'Next Prize' : S.prizes[S.index]?.kind === 'judged' ? (quoteUp ? 'Reveal The Winner' : 'Read The Answer') : 'Draw',
           sub: S.phase === 'title' ? 'Next: start the prizes' : S.phase === 'done' ? 'All done. Export the winners below.' : el('p-sub').textContent,
           counter: el('counter').textContent,
         } });
@@ -846,7 +895,9 @@ import Mark from '../../components/Mark.astro';
       }
       if (!candidates.length) { reel.textContent = p.kind === 'hat' ? 'Nobody left in the hat.' : 'Nobody left for this prize.'; el('p-sub').textContent = 'Next: move on'; landed = true; return; }
       if (p.kind === 'judged' && !quoteUp && !judgedOrder().chosen) {
-        el('p-sub').textContent = 'The best answer has not been chosen yet. Press S, choose it, then come back.';
+        el('p-sub').textContent = SCREEN
+          ? 'Choose the best answer on the control screen, then press Next.'
+          : 'The best answer has not been chosen yet. Press S, choose it, then come back.';
         return;
       }
 
@@ -872,9 +923,11 @@ import Mark from '../../components/Mark.astro';
       // Only people still eligible for this prize flash past.
       const names = candidates.map((c) => c.name);
       el('p-sub').textContent = '';
-      spinning = true; let delay = 38;
+      // Ends on the clock, not on a count of ticks: a projector window behind
+      // another window has its timers slowed, and must still land on time.
+      spinning = true; let delay = 38; const started = Date.now();
       const tick = () => {
-        if (delay > 620 || REDUCED) return land(w);
+        if (delay > 620 || REDUCED || Date.now() - started > 5200) return land(w);
         reel.classList.add('spinning'); reel.classList.remove('landed');
         reel.textContent = names[Math.floor(Math.random() * names.length)];
         delay *= 1.152; setTimeout(tick, delay);
