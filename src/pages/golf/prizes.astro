@@ -93,8 +93,15 @@ import Mark from '../../components/Mark.astro';
     <div id="exclude-wrap" hidden>
       <h2>Golfers And Teams</h2>
       <p class="muted">Tick a team to take the whole team out of the draw (won on score). Tick a single name to take out one person. Removed names never come up.
-        Click any name to fix it. Add a player to a team, or a whole new team, if someone turns up who is not on the list. Blank slots are ignored.</p>
+        Click any name to fix it. Add a player to a team, or a whole new team, if someone turns up who is not on the list. Blank slots are ignored.
+        Press Check In as each golfer arrives.</p>
+      <div class="list-tools">
+        <input id="golfer-search" type="search" placeholder="Search a name or team" autocomplete="off" spellcheck="false" />
+        <span id="checkin-count" class="muted"></span>
+        <label class="only-checked"><input id="only-checked" type="checkbox" /> Only draw golfers who are checked in</label>
+      </div>
       <div id="exclude-list"></div>
+      <p id="search-empty" class="muted" hidden>No golfer or team matches that.</p>
       <div class="setup-row"><button id="btn-add-team" type="button">Add A Team</button></div>
     </div>
 
@@ -203,6 +210,13 @@ import Mark from '../../components/Mark.astro';
     .team-head input[type=text] { font-weight: 600; }
     .person.won input[type=text] { color: var(--gold); }
     .person .tag { flex: none; font-size: 11px; font-weight: 600; letter-spacing: .04em; color: #141414; background: var(--gold); border-radius: 99px; padding: 2px 8px; white-space: nowrap; }
+    .list-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin: 14px 0 4px; }
+    #golfer-search { flex: 1 1 280px; max-width: 420px; background: var(--panel); color: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; font: 15px 'Inter', system-ui, sans-serif; }
+    #golfer-search:focus { border-color: var(--gold); outline: none; }
+    .only-checked { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+    .person .in { flex: none; font-size: 12px; padding: 3px 9px; border-radius: 99px; background: none; border: 1px solid var(--rule); color: var(--muted); }
+    .person .in:hover { border-color: #8fc79a; color: #8fc79a; }
+    .person .in.on { background: #1f3325; border-color: #3f6b4a; color: #8fc79a; }
     .person .tag.gone { background: var(--rule); color: var(--muted); border: 0; cursor: pointer; font-family: inherit; }
     .person .tag.gone:hover { background: #3a4048; color: var(--paper); }
     .person .x { background: none; border: 0; color: var(--muted); padding: 2px 6px; font-size: 16px; line-height: 1; }
@@ -301,7 +315,9 @@ import Mark from '../../components/Mark.astro';
     //            Hyphos prize dropped in wherever you choose ({ special: i }).
     // finale:    the Hyphos prizes, from the setup box. Each can be drawn once,
     //            at any point, and the draw goes back to regular prizes after.
-    let S = { attendees: [], prizes: [], finale: [], excluded: [], absent: [], winners: [], contest: null, index: 0, phase: 'title', started: false };
+    // checkedIn: golfer ids checked in on arrival. onlyCheckedIn: when on, the
+    //            regular draws only pick from checked-in golfers.
+    let S = { attendees: [], prizes: [], finale: [], excluded: [], absent: [], winners: [], checkedIn: [], onlyCheckedIn: false, contest: null, index: 0, phase: 'title', started: false };
     const DEFAULT_FINALE = ['A prize from Tidal | Tidal Insurance | entry draw', 'Dozen Pro V1s | Hyphos Inc. | best answer'].join('\n');
     const specialDone = (i) => S.winners.some((w) => S.prizes[w.prizeIndex]?.special === i);
     const nextSpecial = () => S.finale.findIndex((_, i) => !specialDone(i));
@@ -392,7 +408,9 @@ import Mark from '../../components/Mark.astro';
         ...others().filter((w) => w.attendee == null).map((w) => norm(w.name)),
         ...S.absent.filter((a) => a.startsWith('n:')).map((a) => a.slice(2)),
       ]);
-      return S.attendees.filter((a) => a.name.trim() && !ids.has(a.id) && !(loose.has(norm(a.name)) && attendeeId(a.name) === a.id));
+      const here = new Set(S.checkedIn || []);
+      return S.attendees.filter((a) => a.name.trim() && !ids.has(a.id) && (!S.onlyCheckedIn || here.has(a.id))
+        && !(loose.has(norm(a.name)) && attendeeId(a.name) === a.id));
     }
     const teamFor = (name, fallback = '') => {
       const id = attendeeId(name);
@@ -475,9 +493,22 @@ import Mark from '../../components/Mark.astro';
             if (m.name.trim() && !confirm(`Delete ${m.name} from the list?`)) return;
             S.attendees = S.attendees.filter((a) => a.id !== m.id);
             S.excluded = S.excluded.filter((id) => id !== m.id);
+            S.checkedIn = (S.checkedIn || []).filter((id) => id !== m.id);
             save(); renderExclude(); updateStart();
           });
+          row.dataset.id = String(m.id);
           row.append(cb, name);
+          if (m.name.trim()) {
+            const inBtn = document.createElement('button'); inBtn.type = 'button';
+            const paint = () => { const on = (S.checkedIn || []).includes(m.id); inBtn.className = on ? 'in on' : 'in'; inBtn.textContent = on ? 'Here ✓' : 'Check In'; };
+            paint();
+            inBtn.addEventListener('click', () => {
+              const set = new Set(S.checkedIn || []);
+              set.has(m.id) ? set.delete(m.id) : set.add(m.id);
+              S.checkedIn = [...set]; save(); paint(); updateStart();
+            });
+            row.append(inBtn);
+          }
           if (won.has(m.id)) {
             row.classList.add('won');
             const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = `Won ${won.get(m.id).join(', ')}`;
@@ -507,6 +538,24 @@ import Mark from '../../components/Mark.astro';
         wrap.append(box);
       });
       el('exclude-wrap').hidden = !S.attendees.length;
+      applySearch();
+    }
+    // Filters what is shown, never what is saved. A team name match shows the
+    // whole team; otherwise only the matching golfers.
+    function applySearch() {
+      const q = norm(el('golfer-search').value);
+      let any = false;
+      el('exclude-list').querySelectorAll('.team').forEach((box) => {
+        const teamHit = !q || norm(box.querySelector('.team-head input[type=text]').value).includes(q);
+        let rowHit = false;
+        box.querySelectorAll('.person').forEach((row) => {
+          const hit = teamHit || norm(row.querySelector('input[type=text]').value).includes(q);
+          row.hidden = !hit; if (hit) rowHit = true;
+        });
+        box.hidden = !(teamHit || rowHit);
+        if (!box.hidden) any = true;
+      });
+      el('search-empty').hidden = any || !q;
     }
     function renderWinners() {
       const ol = el('winners-list'); ol.replaceChildren();
@@ -540,8 +589,10 @@ import Mark from '../../components/Mark.astro';
       const n = pool().length;
       const contestReady = !hasContestPrizes() || !!S.contest;
       el('parse-note').textContent = S.attendees.length
-        ? `${S.attendees.filter((a) => a.name.trim()).length} golfers, ${S.excluded.length} removed, ${n} in the hat · Hyphos draw: ${S.finale.length} prize${S.finale.length === 1 ? '' : 's'}${contestReady ? '' : ' · contest entries load when you press Start'}`
+        ? `${S.attendees.filter((a) => a.name.trim()).length} golfers, ${S.excluded.length} removed, ${(S.checkedIn || []).length} checked in, ${n} in the hat · Hyphos draw: ${S.finale.length} prize${S.finale.length === 1 ? '' : 's'}${contestReady ? '' : ' · contest entries load when you press Start'}`
         : '';
+      el('only-checked').checked = !!S.onlyCheckedIn;
+      el('checkin-count').textContent = `${(S.checkedIn || []).length} of ${S.attendees.filter((a) => a.name.trim()).length} checked in`;
       el('control').hidden = !S.started;
       el('btn-start').hidden = !!S.started;
       renderSpecials();
@@ -602,6 +653,9 @@ import Mark from '../../components/Mark.astro';
       save(); renderExclude(); renderWinners(); updateStart();
     });
     el('btn-contest').addEventListener('click', loadContest);
+    el('golfer-search').addEventListener('input', applySearch);
+    el('golfer-search').addEventListener('keydown', (e) => { if (e.key === 'Escape') { el('golfer-search').value = ''; applySearch(); } });
+    el('only-checked').addEventListener('change', () => { S.onlyCheckedIn = el('only-checked').checked; save(); updateStart(); });
     // A new team with four blank slots, for anyone who turns up unlisted.
     el('btn-add-team').addEventListener('click', () => {
       const used = new Set(S.attendees.map((a) => a.team));
@@ -626,7 +680,7 @@ import Mark from '../../components/Mark.astro';
         if (!S.attendees.length && el('in-attendees').value.trim()) { S.attendees = parseAttendees(el('in-attendees').value); save(); renderExclude(); }
       }
       if (!S.attendees.length) return say('No golfers loaded yet. Sign in on this laptop, then reload this page.');
-      if (!pool().length) return say('Everyone has been removed. Untick some teams.');
+      if (!pool().length) return say(S.onlyCheckedIn ? 'Nobody in the hat: no one is checked in yet, or everyone checked in was removed. Check people in, or untick Only draw golfers who are checked in.' : 'Everyone has been removed. Untick some teams.');
       // Opened before anything is awaited, so the browser treats it as a click.
       openProjector();
       // The Hyphos draw never holds up the start. Its entries are fetched now
