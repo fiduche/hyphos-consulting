@@ -819,9 +819,19 @@ import Mark from '../../components/Mark.astro';
       document.activeElement?.blur?.();   // keep space away from the Start button
       paintPrize();
     }
+    // Under the winner's name: their golf team, labelled so it does not read as
+    // their employer. Tee-sheet groups ("Group 1A") read fine as they are, and a
+    // Hyphos prize winner not matched to the roster shows the company they
+    // typed on the form, which is where they work.
+    function teamLabel(person) {
+      if (!person.team) return '';
+      if (person.teamIsCompany || /^group\s/i.test(person.team)) return person.team;
+      return `Team: ${person.team}`;
+    }
     function nameNode(node, person) {
       node.replaceChildren(document.createTextNode(person.name));
-      if (person.team) { const co = document.createElement('span'); co.className = 'co'; co.textContent = person.team; node.append(co); }
+      const label = teamLabel(person);
+      if (label) { const co = document.createElement('span'); co.className = 'co'; co.textContent = label; node.append(co); }
     }
     const counterText = () => {
       const p = S.prizes[S.index];
@@ -864,7 +874,8 @@ import Mark from '../../components/Mark.astro';
       // their typed name matches exactly one.
       const attendee = p.kind === 'hat' ? person.id : attendeeId(person.name);
       const team = p.kind === 'hat' ? person.team : teamFor(person.name, person.team || person.company || '');
-      const w = { prizeIndex: S.index, attendee, name: person.name, team, prize: p.prize, sponsor: p.sponsor, kind: p.kind, at: new Date().toISOString(), ...extra };
+      const teamIsCompany = p.kind !== 'hat' && attendee == null && !person.team && !!person.company;
+      const w = { prizeIndex: S.index, attendee, name: person.name, team, teamIsCompany, prize: p.prize, sponsor: p.sponsor, kind: p.kind, at: new Date().toISOString(), ...extra };
       S.winners.push(w); save();
       return w;
     }
