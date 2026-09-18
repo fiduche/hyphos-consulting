@@ -487,7 +487,14 @@ import Mark from '../../components/Mark.astro';
             const set = new Set(S.excluded); cb.checked ? set.add(m.id) : set.delete(m.id);
             S.excluded = [...set]; save(); renderExclude(); updateStart();
           });
-          const name = textField(m.name, 'Add a name', (v) => { const cur = S.attendees.find((a) => a.id === m.id); if (cur) cur.name = v; });
+          // Every row gets a Check In button; it shows once the row has a name,
+          // including a name typed into an open slot.
+          const inBtn = document.createElement('button'); inBtn.type = 'button';
+          const name = textField(m.name, 'Add a name', (v) => {
+            const cur = S.attendees.find((a) => a.id === m.id); if (cur) cur.name = v;
+            inBtn.hidden = !v;
+            if (!v) S.checkedIn = (S.checkedIn || []).filter((id) => id !== m.id);
+          });
           const x = document.createElement('button'); x.type = 'button'; x.className = 'x'; x.textContent = '×'; x.title = 'Delete this player';
           x.addEventListener('click', () => {
             if (m.name.trim() && !confirm(`Delete ${m.name} from the list?`)) return;
@@ -498,8 +505,8 @@ import Mark from '../../components/Mark.astro';
           });
           row.dataset.id = String(m.id);
           row.append(cb, name);
-          if (m.name.trim()) {
-            const inBtn = document.createElement('button'); inBtn.type = 'button';
+          {
+            inBtn.hidden = !m.name.trim();
             const paint = () => { const on = (S.checkedIn || []).includes(m.id); inBtn.className = on ? 'in on' : 'in'; inBtn.textContent = on ? 'Here ✓' : 'Check In'; };
             paint();
             inBtn.addEventListener('click', () => {
