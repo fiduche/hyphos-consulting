@@ -198,12 +198,12 @@ import Mark from '../../components/Mark.astro';
     button.danger { color: #e08a7a; }
     button:disabled { opacity: .45; cursor: default; }
     #setup h2 { font-size: 15px; letter-spacing: .16em; text-transform: uppercase; color: var(--gold); margin: 26px 0 6px; font-weight: 600; }
-    #exclude-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px 22px; margin-top: 12px; }
+    #exclude-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px 22px; margin-top: 12px; }
     .team { border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; }
     .team-head { display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 6px; }
-    .person { display: flex; align-items: center; gap: 8px; font-size: 14px; padding: 3px 0; }
+    .person { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 14px; padding: 3px 0; }
     .person.out, .team.out .person { color: var(--muted); text-decoration: line-through; }
-    .team input[type=text] { flex: 1; min-width: 0; background: transparent; color: inherit; border: 1px solid transparent; border-radius: 4px; padding: 3px 6px; font: inherit; text-decoration: inherit; }
+    .team input[type=text] { flex: 1 1 150px; min-width: 150px; background: transparent; color: inherit; border: 1px solid transparent; border-radius: 4px; padding: 3px 6px; font: inherit; text-decoration: inherit; }
     .team input[type=text]:hover { border-color: var(--rule); }
     .team input[type=text]:focus { border-color: var(--gold); outline: none; background: var(--bg); }
     .team input[type=text]::placeholder { color: #5b616b; text-decoration: none; }
