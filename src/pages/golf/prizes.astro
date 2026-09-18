@@ -304,6 +304,9 @@ import Mark from '../../components/Mark.astro';
     const DEFAULT_FINALE = ['A prize from Tidal | Tidal Insurance | entry draw', 'Dozen Pro V1s | Hyphos Inc. | best answer'].join('\n');
     const specialDone = (i) => S.winners.some((w) => S.prizes[w.prizeIndex]?.special === i);
     const nextSpecial = () => S.finale.findIndex((_, i) => !specialDone(i));
+    // Short names for the buttons and directions. The projector still shows
+    // the full prize name from the setup box.
+    const shortName = (p) => p.kind === 'entries' ? 'Tidal Prize' : p.kind === 'judged' ? 'Hyphos Prize' : p.prize;
     let landed = false;      // the current prize has a winner on screen
     let quoteUp = false;     // judged prize: the answer is showing, name not yet
 
@@ -656,7 +659,7 @@ import Mark from '../../components/Mark.astro';
       box.replaceChildren(...S.finale.map((p, i) => {
         const b = document.createElement('button'); b.type = 'button';
         const done = specialDone(i);
-        b.textContent = done ? `${p.prize} (awarded)` : p.prize;
+        b.textContent = done ? `${shortName(p)} (awarded)` : shortName(p);
         b.disabled = done;
         b.addEventListener('click', () => send({ cmd: 'special', i }));
         return b;
@@ -827,7 +830,7 @@ import Mark from '../../components/Mark.astro';
     };
     const subLanded = () => 'Next: next regular prize · Back twice: they have left, redraw';
     const subReady = (p) => p.kind === 'judged' ? 'Next: read the best answer'
-      : p.special == null && nextSpecial() >= 0 ? `Next: draw · Back twice: switch to ${S.finale[nextSpecial()].prize}`
+      : p.special == null && nextSpecial() >= 0 ? `Next: draw · Back twice: switch to ${shortName(S.finale[nextSpecial()])}`
       : 'Next: draw';
     const hatPrize = () => ({ prize: `Prize ${S.prizes.filter((x) => x.kind === 'hat').length + 1}`, sponsor: '', kind: 'hat' });
     function paintPrize() {
@@ -999,7 +1002,7 @@ import Mark from '../../components/Mark.astro';
       const i = nextSpecial();
       if (!landed && S.prizes[S.index]?.special == null && i >= 0) {
         if (armed) { backArmed = 0; insertSpecial(i); paintPrize(); return; }
-        backArmed = Date.now(); el('p-sub').textContent = `Press back again to switch to ${S.finale[i].prize}.`;
+        backArmed = Date.now(); el('p-sub').textContent = `Press back again to switch to ${shortName(S.finale[i])}.`;
       }
     }
     let hArmed = 0;
@@ -1009,7 +1012,7 @@ import Mark from '../../components/Mark.astro';
       if (i < 0 || S.prizes[S.index]?.special != null) return;
       if (Date.now() - hArmed < 3000) { hArmed = 0; insertSpecial(i); paintPrize(); return; }
       hArmed = Date.now();
-      el('p-sub').textContent = `Press H again to switch to ${S.finale[i].prize}.`;
+      el('p-sub').textContent = `Press H again to switch to ${shortName(S.finale[i])}.`;
     }
     function back() {
       if (spinning) return;
