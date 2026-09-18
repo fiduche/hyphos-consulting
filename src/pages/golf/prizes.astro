@@ -322,7 +322,14 @@ import Mark from '../../components/Mark.astro';
     // Candidates for the current prize, in the order they would be chosen.
     function candidatesFor(prize) {
       const b = blockedNames();
-      if (prize.kind === 'judged') return judgedOrder().list.filter((x) => !b.has(norm(x.name)));
+      // The Pro V1s are judged, not drawn: they go to the chosen answer even if
+      // that person already won something tonight. Only someone who has left
+      // (R) is skipped.
+      if (prize.kind === 'judged') {
+        const gone = new Set(S.absent.filter((x) => x.startsWith('n:')).map((x) => x.slice(2)));
+        S.absent.filter((x) => x.startsWith('a:')).forEach((x) => { const a = S.attendees.find((r) => r.id === Number(x.slice(2))); if (a) gone.add(norm(a.name)); });
+        return judgedOrder().list.filter((x) => !gone.has(norm(x.name)));
+      }
       if (prize.kind === 'entries') return (S.contest?.draw || []).filter((x) => !b.has(norm(x.name)));
       if (prize.kind === 'square') return (S.contest?.square || []).filter((x) => !b.has(norm(x.name)));
       return pool();
@@ -468,15 +475,9 @@ import Mark from '../../components/Mark.astro';
       }
       if (!S.attendees.length) return say('No golfers loaded yet. Sign in on this laptop, then reload this page.');
       if (!pool().length) return say('Everyone has been removed. Untick some teams.');
-      if (hasContestPrizes() && !S.contest) {
-        say('Loading contest entries…');
-        await loadContest();
-        if (!S.contest) return say('Could not load the contest entries. Check you are signed in and online, then press Start again.');
-        say('');
-      }
-      if (S.finale.some((p) => p.kind === 'judged') && S.contest?.best.length && !judgedOrder().chosen) {
-        return say('Choose the best answer for the Pro V1s first (link above), then press Start again.');
-      }
+      // The Hyphos draw never holds up the start. Its entries are fetched now
+      // if possible, and again when you reach it if not.
+      if (hasContestPrizes() && !S.contest) { try { await loadContest(); } catch {} }
       updateStart();
       S.started = true; save(); showStage();
     });
@@ -570,8 +571,24 @@ import Mark from '../../components/Mark.astro';
       const p = S.prizes[S.index];
       const reel = el('reel');
       const candidates = candidatesFor(p);
-      if (p.kind !== 'hat' && !S.contest) { reel.textContent = 'Contest entries not loaded.'; el('p-sub').textContent = 'Press S, then Load contest entries.'; return; }
+      if (p.kind !== 'hat' && refreshing) {
+        reel.textContent = 'Loading entries…'; el('p-sub').textContent = '';
+        refreshing.then(() => { reel.textContent = 'Ready'; el('p-sub').textContent = p.kind === 'judged' ? 'Press space to read the best answer.' : 'Press space to draw.'; });
+        return;
+      }
+      if (p.kind !== 'hat' && !S.contest) {
+        reel.textContent = 'Loading entries…'; el('p-sub').textContent = '';
+        loadContest().catch(() => {}).then(() => {
+          if (S.contest) { reel.textContent = 'Ready'; el('p-sub').textContent = 'Press space to draw.'; }
+          else { reel.textContent = 'Ready'; el('p-sub').textContent = 'Could not load the entries. Check the connection, then press space again.'; }
+        });
+        return;
+      }
       if (!candidates.length) { reel.textContent = p.kind === 'hat' ? 'Nobody left in the hat.' : 'Nobody left for this prize.'; el('p-sub').textContent = 'Space to move on.'; landed = true; return; }
+      if (p.kind === 'judged' && !quoteUp && !judgedOrder().chosen) {
+        el('p-sub').textContent = 'The best answer has not been chosen yet. Press S, choose it, then come back.';
+        return;
+      }
 
       // Judged: first space reads the answer out, second reveals who wrote it.
       if (p.kind === 'judged') {
@@ -625,7 +642,11 @@ import Mark from '../../components/Mark.astro';
       S.phase = S.finale.length ? 'prize' : 'done';
       landed = false; quoteUp = false;
       save();
+      // Fetch the entries again so anyone who entered after Start is in. If
+      // it fails, the copy taken at Start is used.
+      if (hasContestPrizes()) refreshing = loadContest().catch(() => {}).finally(() => { refreshing = null; });
     }
+    let refreshing = null;
     let hArmed = 0;
     function pressH() {
       if (inFinale() || spinning || el('stage').hidden) return;
