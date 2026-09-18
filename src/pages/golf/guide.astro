@@ -43,10 +43,10 @@ const sections: { title: string; intro?: string; tools: Tool[] }[] = [
         name: 'Hole Board',
         path: '/golf/board',
         demo: '/golf/board?demo=1',
-        when: 'All day, on the screen at the hole.',
+        when: 'Private. It shows what people typed, grouped by AI, so only put it on a public screen once you have looked it over.',
         signIn: true,
         steps: [
-          'Open it, go full screen, leave it running. It refreshes itself.',
+          'If you do use it: open it, go full screen, leave it running. It refreshes itself.',
           'It shows a large QR code with Scan To Enter, what people have written so far, grouped, and the latest answers.',
           'Early in the day it is mostly the QR code. That is expected.',
         ],
@@ -54,7 +54,7 @@ const sections: { title: string; intro?: string; tools: Tool[] }[] = [
       {
         name: 'Entry Form',
         path: '/golf',
-        when: 'What golfers see after scanning the hole board code.',
+        when: 'Public. This and the contest sign entry are the only tournament pages anyone can open without the password.',
         steps: [
           'They answer one question, then one follow-up the AI writes from their answer.',
           'Every entry goes into the Tidal prize draw and becomes a candidate for the Pro V1s.',
@@ -70,9 +70,11 @@ const sections: { title: string; intro?: string; tools: Tool[] }[] = [
         name: 'Contest Board',
         path: '/course',
         demo: '/course?demo=1',
-        when: 'On the clubhouse TV, and on anyone’s phone.',
+        when: 'Private. Only on a signed-in device, such as your phone or a screen you control.',
+        signIn: true,
         steps: [
-          'Golfers scan the sign at each contest hole and post their result. The board updates live.',
+          'Golfers scan the sign at each contest hole and post their result. They see a confirmation, not the board.',
+          'The board updates live for you. Nobody else can open it.',
           'Closest to the pin, longest drive and longest putt: the latest entry leads, because they move the marker first.',
           'Hit the square is a list. Everyone on it goes into the $500 gift card draw.',
         ],
@@ -210,7 +212,7 @@ const after = [
     <div class="rehearse mt-8">
       <h2>Rehearse Anything</h2>
       <p>
-        Every Rehearse button opens the same screen with sample data. Rehearsals are stored separately and never touch
+        Every Rehearse button opens the same screen with sample data, and needs the sign-in like the real one. Rehearsals are stored separately and never touch
         the real entries, judging or draw. In the prize draw rehearsal, press Reset Everything first for a clean run.
       </p>
     </div>

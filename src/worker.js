@@ -779,6 +779,20 @@ function redirectToMainSite(request) {
   });
 }
 
+// Only the two entry forms and the sign-in are public. Every other tournament
+// page (the boards, judging, the draw, scan counts, the guide, and their
+// ?demo=1 rehearsals) needs the screen sign-in, checked here on the server so
+// nothing renders first. Files such as images stay public: the entry forms use
+// them.
+const PUBLIC_PAGES = new Set(['/golf', '/golf/enter', '/course/enter']);
+function isPrivatePage(pathname) {
+  if (!/^\/(?:golf|course)(?:\/|$)/i.test(pathname)) return false;
+  const last = pathname.split('/').filter(Boolean).pop() || '';
+  if (last.includes('.')) return false;
+  const page = pathname.replace(/\/+$/, '').toLowerCase();
+  return !PUBLIC_PAGES.has(page);
+}
+
 function redirectTournament(request) {
   const url = new URL(request.url);
   const target = new URL(url.pathname + url.search, MAIN_SITE);
@@ -858,7 +872,7 @@ const COURSE_CODE_PATH = /^\/c\/([a-z0-9]{1,8})\/?$/i;
 
 async function handleCourseCode(request, env, ctx, code) {
   const contest = CONTEST_BY_CODE[code.toLowerCase()];
-  const target = new URL(contest ? `/course/enter/?c=${contest.id}` : '/course/', MAIN_SITE);
+  const target = new URL(contest ? `/course/enter/?c=${contest.id}` : '/course/enter/', MAIN_SITE);
   if (contest && env.DB) {
     const write = env.DB.prepare(
       'INSERT INTO scan_log (created_at, tag, user_agent, country) VALUES (?1, ?2, ?3, ?4)'
@@ -984,9 +998,9 @@ export default {
     }
 
     if (pathname === '/api/course/board') {
-      return request.method === 'GET'
-        ? handleCourseBoard(request, env)
-        : json({ error: 'Method not allowed.' }, 405);
+      if (request.method !== 'GET') return json({ error: 'Method not allowed.' }, 405);
+      if (!(await hasSession(request, env))) return json({ error: 'Not authorized.' }, 401);
+      return handleCourseBoard(request, env);
     }
 
     if (pathname === '/api/golf/scans') {
@@ -1046,6 +1060,13 @@ export default {
       return /^\/(?:golf|course|_astro)(?:\/|$)/i.test(pathname)
         ? redirectTournament(request)
         : redirectToMainSite(request);
+    }
+
+    if (readOnly && isPrivatePage(pathname) && !(await hasSession(request, env))) {
+      const url = new URL(request.url);
+      const target = new URL('/golf/enter/', url);
+      target.searchParams.set('next', url.pathname + url.search);
+      return new Response(null, { status: 302, headers: { location: target.toString(), 'cache-control': 'no-store' } });
     }
 
     const response = await env.ASSETS.fetch(request);

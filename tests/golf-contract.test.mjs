@@ -196,8 +196,20 @@ test('hyphos.io serves the tournament; hyphosconsulting.com only redirects there
   }
 
   // Reached through the hyphos.io service binding, the same pages are served.
-  assert.equal((await main('/golf/', { ASSETS: asset })).status, 200);
-  assert.equal((await main('/course/', { ASSETS: asset })).status, 200);
+  // Only the two entry forms, the sign-in and plain files are public.
+  for (const path of ['/golf/', '/golf', '/golf/enter/', '/course/enter/?c=ctp', '/golf/knot.png']) {
+    assert.equal((await main(path, { ASSETS: asset })).status, 200, path);
+  }
+  // Every other tournament page, rehearsals included, sends you to sign in first.
+  for (const path of ['/course/', '/course/?demo=1', '/golf/board/', '/golf/guide/', '/golf/prizes?demo=1', '/golf/judge/', '/golf/scans/']) {
+    const res = await main(path, { ASSETS: asset, GOLF_EXPORT_KEY: 'k' });
+    assert.equal(res.status, 302, path);
+    const to = new URL(res.headers.get('location'));
+    assert.equal(to.pathname, '/golf/enter/', path);
+    assert.equal(to.searchParams.get('next'), path, path);
+  }
+  // And the live contest board's data is private too.
+  assert.equal((await main('/api/course/board', { ASSETS: asset, GOLF_EXPORT_KEY: 'k', DB: {} })).status, 401);
 
   // Printed codes on either domain are counted, then land on hyphos.io.
   for (const client of [old, main]) {

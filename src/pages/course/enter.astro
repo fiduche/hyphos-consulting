@@ -17,8 +17,7 @@ import './_theme.css';
 
 <BaseLayout title="Post a result" noindex minimal>
   <header class="bar">
-    <a class="brand" href="/course/"><img src="/golf/knot.png" alt="" /> hyphos</a>
-    <a class="pill" href="/course/"><span class="dot"></span> Live board</a>
+    <span class="brand"><img src="/golf/knot.png" alt="" /> hyphos</span>
   </header>
 
   <main class="wrap">
@@ -60,7 +59,6 @@ import './_theme.css';
       <p class="kicker">Posted</p>
       <h1 id="done-title">You're on the board.</h1>
       <p class="muted" id="done-sub"></p>
-      <a class="go link" href="/course/"><span class="dot"></span> See the live board</a>
       <button id="again" type="button" class="ghost">Fix my entry</button>
     </section>
   </main>
@@ -137,7 +135,7 @@ import './_theme.css';
           // later contests post under one consistent name.
           if (out.player) payload.player = out.player;
           try { localStorage.setItem(NAME_KEY, payload.player); } catch {}
-          await showDone(payload);
+          showDone();
         } catch (err) {
           $('err').textContent = err.message || 'No signal? Try again in a moment, or write it on the sheet.';
         } finally { btn.disabled = false; }
@@ -146,25 +144,12 @@ import './_theme.css';
       $('again').addEventListener('click', () => { $('done').hidden = true; form.hidden = false; });
     }
 
-    async function showDone(payload) {
+    // The live board is private now, so the confirmation is written from the
+    // contest itself rather than read back from the board.
+    function showDone() {
       $('form').hidden = true; $('done').hidden = false;
-      $('done-title').textContent = "You're on the board.";
-      $('done-sub').textContent = '';
-      try {
-        const res = await fetch('/api/course/board', { cache: 'no-store' });
-        const board = await res.json();
-        const c = board.contests.find((x) => x.id === contest.id);
-        const i = c.entries.findIndex((x) => x.player.toLowerCase() === payload.player.toLowerCase());
-        if (i < 0) return;
-        const me = c.entries[i];
-        if (contest.mode === 'list') { $('done-title').textContent = "You're in the draw."; $('done-sub').textContent = `${c.count} in so far.`; }
-        else if (contest.mode === 'latest') { $('done-title').textContent = "You're the new leader."; $('done-sub').textContent = 'Until someone passes you.'; }
-        else {
-          $('done-title').textContent = i === 0 ? "You're leading." : `You're ${ordinal(i + 1)}.`;
-          $('done-sub').textContent = i === 0 ? `${formatInches(me.value)}. Hold on to it.` : `${formatInches(me.value)}. The leader is at ${formatInches(c.entries[0].value)}.`;
-        }
-      } catch {}
+      $('done-title').textContent = contest.mode === 'list' ? "You're in the draw." : "You're posted.";
+      $('done-sub').textContent = contest.mode === 'list' ? 'Drawn at dinner. Be there to win.' : 'Until someone passes you.';
     }
-    function ordinal(n) { const s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
   </script>
 </BaseLayout>
