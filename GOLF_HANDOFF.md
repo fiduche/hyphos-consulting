@@ -105,7 +105,7 @@ Add `?demo=1` to either screen to rehearse with sample data and no API call.
 2. **Confirm outside food and beverage** with D'Arcy Ranch directly.
 3. **Book two people** to staff the hole. Most likely item to fail late.
 4. **Write the "10 ways" piece** or approve the draft, now at `hyphos.io/field-notes/ten-ways-small-businesses-use-ai/`; four open questions
-   on it (naming the funeral group, the "Okotoks & Calgary" line, the 45-minute
+   on it (naming the funeral group, the location line (settled: Calgary, never Okotoks), the 45-minute
    offer wording, and the CTA target).
 5. **Headshot** for the hole sign, currently a placeholder.
 6. **Confirm the Hyphos prize** is the Pro V1s.
