@@ -99,21 +99,22 @@ const sections: { title: string; intro?: string; tools: Tool[] }[] = [
         name: 'Prize Draw: Setup',
         path: '/golf/prizes',
         demo: '/golf/prizes?demo=1',
-        when: 'Right after judging, still before the projector.',
+        when: 'Right after judging, on the dinner laptop with the projector plugged in.',
         signIn: true,
         steps: [
           'The golfer list loads by itself from the tournament roster. Nothing to paste.',
           'Under Remove Teams That Won On Score, tick each team that won on score. Tick a single name to remove one person.',
-          'There is no prize list. You read out each prize as it comes; the screen just draws the next winner.',
-          'The Hyphos draw box is already filled in: the Tidal prize from the entry form, then the Pro V1s for the best answer. Leave it unless something changes.',
-          'Press Start The Draw. It loads the entries for the Hyphos draw itself, and tells you in plain words if anything is missing. Then plug into the projector.',
+          'There is no prize list and no limit. Regular prizes keep coming until you run out of prizes and press End The Draw.',
+          'Press Start The Draw. It opens a second window: the projector window. Drag it onto the projector and click it once to go full screen.',
+          'Keep this window on the laptop screen. It is your control screen: it shows what the room sees, the directions, and the buttons.',
+          'If the browser blocks the second window, allow pop-ups for hyphos.io and press Open Projector Window.',
         ],
       },
     ],
   },
   {
     title: 'The Prize Draw, 6:00',
-    intro: 'Run it from a presentation clicker: Next and Back are all you need. The laptop keys still work too.',
+    intro: 'Two windows: the projector shows only the draw, the laptop shows your controls. Use the clicker or the buttons on the laptop, whichever window is in front.',
     tools: [],
   },
 ];
@@ -121,7 +122,8 @@ const sections: { title: string; intro?: string; tools: Tool[] }[] = [
 const keys = [
   ['Clicker Next (or Space)', 'Draw the next winner, then move on'],
   ['Clicker Back, twice, with a winner showing', 'They have left. Redraws that prize and keeps them out for the night (same as R)'],
-  ['Clicker Back, twice, at Ready', 'Finish the regular draws and move on to the Hyphos draw (same as H twice)'],
+  ['Clicker Back, twice, at Ready', 'Switch to the next Hyphos prize that has not been given yet (same as H twice)'],
+  ['Laptop buttons', 'Next, They Have Left Redraw, Undo, End The Draw, and Switch To: Regular Prize, A prize from Tidal, Dozen Pro V1s'],
   ['R', 'The winner is not in the room. Marks them out for the night and redraws this prize'],
   ['U', 'Undo this prize’s winner, back to Ready. They stay in the hat'],
   ['S (laptop)', 'Back to setup: winners so far, export, removed teams. The clicker’s start and blank buttons are ignored'],
@@ -130,11 +132,11 @@ const keys = [
 const flow = [
   'The title slide shows first. Space starts the prizes.',
   'Each draw shows Ready. Next spins through the names for about five seconds and lands on a winner. Keep going for as many prizes as the table has.',
-  'When the regular prizes are done, press Back twice at Ready. The Hyphos draw follows: the Tidal prize, then the Pro V1s.',
+  'Give the Tidal prize and the Pro V1s whenever you like: press its button under Switch To on the laptop. Each can be given once, and the next Next goes back to regular prizes.',
   'The Pro V1s are different: the first Next reads the winning answer out, the second reveals who wrote it.',
   'Nobody wins twice, removed teams and anyone marked not here never come up, and the two Hyphos prizes only draw from entries.',
   'If the laptop closes or the page reloads, open the same address again. It resumes on the same prize with every winner kept.',
-  'After the Pro V1s, a thank-you slide. Press S, then Export Winners CSV for the organisers. Also on the setup page: Move To The Hyphos Draw, if you would rather click than press H.',
+  'When the prizes run out, press End The Draw for the thank-you slide. Found one more prize? Press Regular Prize to carry on. Then Export Winners CSV for the organisers.',
 ];
 
 const qr = [

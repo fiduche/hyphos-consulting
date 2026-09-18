@@ -42,8 +42,37 @@ import Mark from '../../components/Mark.astro';
   <div id="setup">
     <div class="setup-head">
       <div class="brand"><Mark size={28} color="#c9a46a" /> <span>hyphos · prize draw</span></div>
-      <p class="setup-note">1. Remove the teams that won on score. 2. Start the draw. The golfer list loads by itself, and there is no prize list: each press of space draws the next winner until you move on to the Hyphos draw. Everything stays on this laptop.</p>
+      <p class="setup-note">1. Remove the teams that won on score. 2. Start the draw: it opens the projector window. The golfer list loads by itself, and there is no prize list: each Next draws the next winner until you move on to the Hyphos draw. Everything stays on this laptop.</p>
     </div>
+
+    <!-- Live control: this window stays on the laptop, the draw shows in the projector window. -->
+    <section id="control" hidden>
+      <div class="c-head">
+        <h2>Live Draw</h2>
+        <span id="c-conn" class="c-conn">Projector window not open</span>
+      </div>
+      <div class="c-now">
+        <p id="c-kicker" class="c-kicker"></p>
+        <p id="c-prize" class="c-prize"></p>
+        <p id="c-quote" class="c-quote" hidden></p>
+        <p id="c-reel" class="c-reel"></p>
+        <p id="c-sub" class="c-sub"></p>
+        <p id="c-count" class="muted"></p>
+      </div>
+      <div class="setup-row c-buttons">
+        <button id="c-next" type="button" class="primary">Next</button>
+        <button id="c-redraw" type="button">They Have Left, Redraw</button>
+        <button id="c-undo" type="button">Undo</button>
+        <button id="c-end" type="button">End The Draw</button>
+        <button id="c-open" type="button">Open Projector Window</button>
+      </div>
+      <div class="setup-row c-buttons">
+        <span class="muted">Switch to:</span>
+        <button id="c-regular" type="button">Regular Prize</button>
+        <span id="c-specials"></span>
+      </div>
+      <p class="muted">Drag the projector window onto the projector and click it once to go full screen. The clicker works in either window: Next draws, Back twice redraws someone who has left, or at Ready switches to the next Hyphos prize. After a Hyphos prize, Next goes back to regular prizes. Regular prizes never run out until everyone has won. <a id="c-here" href="#">Show the draw in this window instead</a>.</p>
+    </section>
     <div class="setup-grid">
       <label>
         <span>Golfers, loaded from the tournament roster. One per line: <em>Name, Team</em></span>
@@ -82,7 +111,6 @@ import Mark from '../../components/Mark.astro';
 
     <div class="setup-row">
       <button id="btn-start" type="button" class="primary">Start The Draw</button>
-      <button id="btn-finale" type="button" hidden>Move To The Hyphos Draw</button>
       <button id="btn-export" type="button" disabled>Export Winners CSV</button>
       <button id="btn-reset" type="button" class="danger">Reset Everything</button>
       <span class="muted">On the screen: space = draw / next · R = redraw · U = undo · H twice = move to the Hyphos draw · S = back here</span>
@@ -156,6 +184,24 @@ import Mark from '../../components/Mark.astro';
     .team-head { display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 6px; }
     .person { display: flex; align-items: center; gap: 8px; font-size: 14px; padding: 3px 0; }
     .person.out, .team.out .person { color: var(--muted); text-decoration: line-through; }
+    #control { border: 1px solid var(--gold); border-radius: 10px; padding: 18px 20px; margin: 0 0 26px; background: var(--panel); }
+    #control h2 { margin: 0 !important; }
+    .c-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+    .c-conn { font-size: 13px; color: #e08a7a; }
+    .c-conn.on { color: #8fc79a; }
+    .c-now { margin: 14px 0 4px; min-height: 120px; }
+    .c-now p { margin: 0; }
+    .c-kicker { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--gold); }
+    .c-prize { font-size: 22px; margin-top: 4px !important; }
+    .c-quote { font-size: 15px; color: var(--muted); font-style: italic; margin-top: 6px !important; }
+    .c-reel { font-size: 34px; color: var(--gold); font-family: 'Source Serif 4', Georgia, serif; margin-top: 8px !important; }
+    .c-reel.spinning { color: #6b7280; }
+    .c-sub { font-size: 14px; color: var(--paper); margin-top: 8px !important; }
+    .c-buttons button { padding: 12px 18px; font-size: 15px; }
+    #c-next { min-width: 140px; }
+    #c-specials { display: inline-flex; flex-wrap: wrap; gap: 12px; }
+    .screen-mode #p-sub { visibility: hidden; }
+    .replaced { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: var(--bg); color: var(--muted); font-size: 22px; padding: 24px; text-align: center; }
     #winners-list { padding-left: 20px; margin: 8px 0 0; font-size: 14px; line-height: 1.6; }
     #winners-list span { color: var(--muted); }
 
@@ -202,7 +248,7 @@ import Mark from '../../components/Mark.astro';
     // presentation laptop resumed, and recorded winners into, the real draw.
     // v2: open-ended draw with the Hyphos prizes at the end. Saves from the old
     // fixed prize list are ignored rather than half-read.
-    const KEY = DEMO ? 'hyphos-golf-prizes-demo-v2' : 'hyphos-golf-prizes-v2';
+    const KEY = DEMO ? 'hyphos-golf-prizes-demo-v3' : 'hyphos-golf-prizes-v3';
     const PICK_KEY = DEMO ? 'hyphos-golf-best-pick-demo' : 'hyphos-golf-best-pick';
     const el = (id) => document.getElementById(id);
     const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -215,13 +261,14 @@ import Mark from '../../components/Mark.astro';
     // absent:    normalised names called but not in the room, out for the night
     // winners:   [{prizeIndex, name, team, prize, sponsor, kind, at}]
     // contest:   snapshot of the contest data, so the draw runs offline
-    // prizes:    grows as the night goes: one "Prize N" per hat draw, then the
-    //            Hyphos draw appended when you move on to it.
-    // finale:    the Hyphos draw, from the setup box. finaleStart is where it
-    //            begins in prizes once you have moved on (null before that).
-    let S = { attendees: [], prizes: [], finale: [], finaleStart: null, excluded: [], absent: [], winners: [], contest: null, index: 0, phase: 'title', started: false };
+    // prizes:    grows as the night goes: one "Prize N" per regular draw, with a
+    //            Hyphos prize dropped in wherever you choose ({ special: i }).
+    // finale:    the Hyphos prizes, from the setup box. Each can be drawn once,
+    //            at any point, and the draw goes back to regular prizes after.
+    let S = { attendees: [], prizes: [], finale: [], excluded: [], absent: [], winners: [], contest: null, index: 0, phase: 'title', started: false };
     const DEFAULT_FINALE = ['A prize from Tidal | Tidal Insurance | entry draw', 'Dozen Pro V1s | Hyphos Inc. | best answer'].join('\n');
-    const inFinale = () => S.finaleStart != null;
+    const specialDone = (i) => S.winners.some((w) => S.prizes[w.prizeIndex]?.special === i);
+    const nextSpecial = () => S.finale.findIndex((_, i) => !specialDone(i));
     let landed = false;      // the current prize has a winner on screen
     let quoteUp = false;     // judged prize: the answer is showing, name not yet
 
@@ -403,8 +450,9 @@ import Mark from '../../components/Mark.astro';
       el('parse-note').textContent = S.attendees.length
         ? `${S.attendees.length} names, ${S.excluded.length} removed, ${n} in the hat · Hyphos draw: ${S.finale.length} prize${S.finale.length === 1 ? '' : 's'}${contestReady ? '' : ' · contest entries load when you press Start'}`
         : '';
-      el('btn-finale').hidden = !(S.started && !inFinale());
-      el('btn-start').textContent = S.started ? 'Back To The Draw' : 'Start The Draw';
+      el('control').hidden = !S.started;
+      el('btn-start').hidden = !!S.started;
+      renderSpecials();
       renderContest();
     }
 
@@ -457,7 +505,7 @@ import Mark from '../../components/Mark.astro';
     el('btn-parse').addEventListener('click', () => {
       if ((S.excluded.length || S.winners.length) && !confirm('Reloading clears the removed teams and any winners drawn. Continue?')) return;
       S.attendees = parseAttendees(el('in-attendees').value);
-      S.finale = parsePrizes(el('in-prizes').value); S.prizes = []; S.finaleStart = null;
+      S.finale = parsePrizes(el('in-prizes').value); S.prizes = [];
       S.excluded = []; S.absent = []; S.winners = []; S.index = 0; S.phase = 'title'; S.started = false;
       save(); renderExclude(); renderWinners(); updateStart();
     });
@@ -476,17 +524,17 @@ import Mark from '../../components/Mark.astro';
       }
       if (!S.attendees.length) return say('No golfers loaded yet. Sign in on this laptop, then reload this page.');
       if (!pool().length) return say('Everyone has been removed. Untick some teams.');
+      // Opened before anything is awaited, so the browser treats it as a click.
+      openProjector();
       // The Hyphos draw never holds up the start. Its entries are fetched now
       // if possible, and again when you reach it if not.
       if (hasContestPrizes() && !S.contest) { try { await loadContest(); } catch {} }
-      updateStart();
-      S.started = true; save(); showStage();
+      S.started = true; save(); updateStart(); send('reload');
     });
     el('in-prizes').addEventListener('input', () => {
-      if (inFinale()) return;
+      if (S.prizes.some((x) => x.special != null)) return;
       S.finale = parsePrizes(el('in-prizes').value); save(); updateStart();
     });
-    el('btn-finale').addEventListener('click', () => { moveToFinale(); S.started = true; save(); showStage(); });
     el('btn-reset').addEventListener('click', () => {
       if (!confirm('Clear the lists and every winner drawn so far?')) return;
       try { localStorage.removeItem(KEY); } catch {}
@@ -502,6 +550,116 @@ import Mark from '../../components/Mark.astro';
       a.download = `springs-golf-prize-winners-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
     });
 
+    // two windows --------------------------------------------------------------
+    // The control window (this page) stays on the laptop. The projector window
+    // (?screen=1) shows only the draw and owns it: it runs the spin and records
+    // winners. Control sends commands over a BroadcastChannel; the projector
+    // reports what is on screen a few times a second. Both share the saved
+    // state through localStorage, so either can be reloaded mid-draw.
+    const SCREEN = new URLSearchParams(location.search).has('screen');
+    const chan = 'BroadcastChannel' in window ? new BroadcastChannel(`hyphos-prize-draw:${KEY}`) : null;
+    const send = (cmd) => chan?.postMessage(typeof cmd === 'string' ? { cmd } : cmd);
+    function renderSpecials() {
+      const box = el('c-specials'); if (!box) return;
+      box.replaceChildren(...S.finale.map((p, i) => {
+        const b = document.createElement('button'); b.type = 'button';
+        const done = specialDone(i);
+        b.textContent = done ? `${p.prize} (awarded)` : p.prize;
+        b.disabled = done;
+        b.addEventListener('click', () => send({ cmd: 'special', i }));
+        return b;
+      }));
+    }
+    function openProjector() {
+      const url = `${location.pathname}?screen=1${DEMO ? '&demo=1' : ''}`;
+      const w = window.open(url, 'hyphos-projector', 'popup,width=1280,height=720');
+      if (!w) {
+        const note = el('start-note');
+        note.textContent = 'The browser blocked the projector window. Allow pop-ups for hyphos.io, then press Open Projector Window.';
+        note.hidden = false;
+      }
+    }
+    let lastSeen = 0;
+    function renderControl(st) {
+      el('c-kicker').textContent = st.kicker;
+      el('c-prize').textContent = st.prize;
+      el('c-quote').hidden = !st.quote; el('c-quote').textContent = st.quote || '';
+      el('c-reel').textContent = st.reel;
+      el('c-reel').classList.toggle('spinning', st.spinning);
+      el('c-sub').textContent = st.sub;
+      el('c-count').textContent = st.counter;
+      el('c-redraw').disabled = !st.canRedraw;
+      el('c-specials').querySelectorAll('button').forEach((b, i) => { b.disabled = specialDone(i) || st.spinning; });
+      el('c-regular').disabled = st.spinning;
+    }
+    if (!SCREEN) {
+      chan?.addEventListener('message', ({ data }) => {
+        if (!data.status) return;
+        lastSeen = Date.now(); renderControl(data.status);
+      });
+      setInterval(() => {
+        const on = Date.now() - lastSeen < 2000;
+        el('c-conn').textContent = on ? 'Projector window connected' : 'Projector window not open';
+        el('c-conn').classList.toggle('on', on);
+      }, 700);
+      el('c-next').addEventListener('click', () => send('next'));
+      el('c-redraw').addEventListener('click', () => send('redraw'));
+      el('c-undo').addEventListener('click', () => send('undo'));
+      el('c-regular').addEventListener('click', () => send('regular'));
+      el('c-end').addEventListener('click', () => { if (confirm('End the draw and show the thank-you slide? You can still switch back to a prize after.')) send('end'); });
+      el('c-open').addEventListener('click', openProjector);
+      el('c-here').addEventListener('click', (e) => { e.preventDefault(); location.href = `${location.pathname}?screen=1${DEMO ? '&demo=1' : ''}`; });
+      // The projector records winners; keep this window's copy and list current.
+      addEventListener('storage', (e) => { if (e.key === KEY) { loadState(); renderWinners(); updateStart(); } });
+    } else {
+      document.body.classList.add('screen-mode');
+      // Only one projector window may run the draw, or two would record
+      // different winners. The newest one takes over; older ones stand aside.
+      const me = `${Date.now()}-${Math.random()}`;
+      let active = true;
+      chan?.postMessage({ hello: me });
+      chan?.addEventListener('message', ({ data }) => {
+        if (data.hello && data.hello !== me && active) {
+          active = false;
+          const cover = document.createElement('div');
+          cover.className = 'replaced';
+          cover.textContent = 'Another projector window took over. You can close this one.';
+          document.body.append(cover);
+        }
+      });
+      chan?.addEventListener('message', ({ data }) => {
+        if (!active) return;
+        const c = data.cmd;
+        if (c === 'next') advance();
+        else if (c === 'back') backPress();
+        else if (c === 'redraw') { if (S.phase === 'prize' && landed && !spinning) absent(); }
+        else if (c === 'undo') undo();
+        else if (c === 'h') pressH();
+        else if (c === 'special') { insertSpecial(data.i); paintPrize(); }
+        else if (c === 'regular') { insertRegular(); paintPrize(); }
+        else if (c === 'end') { if (!spinning) { S.phase = 'done'; save(); paintPrize(); } }
+        else if (c === 'reload') { if (!spinning) { loadState(); paintPrize(); } }
+      });
+      // Changes made in the control window (removed teams, entries, Start).
+      addEventListener('storage', (e) => { if (e.key === KEY && !spinning) { const q = quoteUp; loadState(); if (!q) paintPrize(); } });
+      setInterval(() => {
+        if (!active) return;
+        const quoteShown = !el('quote').hidden;
+        chan?.postMessage({ status: {
+          kicker: S.phase === 'prize' ? el('p-sponsor').textContent : S.phase === 'done' ? "That's every prize" : 'Title slide',
+          prize: S.phase === 'prize' ? el('p-name').textContent : S.phase === 'done' ? 'Thanks for a great day.' : 'The prize draw.',
+          quote: quoteShown ? `${el('q-wish').textContent} ${el('q-detail').textContent}`.trim() : '',
+          reel: S.phase === 'prize' ? el('reel').innerText.replace(/\n+/g, ' · ') : '',
+          spinning,
+          canRedraw: S.phase === 'prize' && landed && !spinning && S.winners.some((w) => w.prizeIndex === S.index),
+          sub: S.phase === 'title' ? 'Next: start the prizes' : S.phase === 'done' ? 'All done. Export the winners below.' : el('p-sub').textContent,
+          counter: el('counter').textContent,
+        } });
+      }, 350);
+      // One click on the projector window takes it full screen.
+      addEventListener('click', () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(() => {}); });
+    }
+
     // stage -----------------------------------------------------------------
     const show = (id) => { document.querySelectorAll('.screen').forEach((s) => s.classList.remove('on')); el(id).classList.add('on'); };
     function showSetup() { el('stage').hidden = true; el('setup').hidden = false; renderExclude(); renderWinners(); updateStart(); }
@@ -514,21 +672,21 @@ import Mark from '../../components/Mark.astro';
       node.replaceChildren(document.createTextNode(person.name));
       if (person.team) { const co = document.createElement('span'); co.className = 'co'; co.textContent = person.team; node.append(co); }
     }
-    const counterText = () => inFinale()
-      ? `Hyphos draw · ${Math.min(S.index - S.finaleStart + 1, S.finale.length)} of ${S.finale.length}`
-      : `Draw ${S.index + 1}`;
-    const subLanded = () => inFinale()
-      ? 'Next: next prize · Back twice: they have left, redraw'
-      : 'Next: next winner · Back twice: they have left, redraw';
-    const subReady = (p) => p.kind === 'judged'
-      ? 'Next: read the best answer'
-      : inFinale() ? 'Next: draw' : 'Next: draw · Back twice: move on to the Hyphos draw';
-    const hatPrize = () => ({ prize: `Prize ${S.prizes.length + 1}`, sponsor: '', kind: 'hat' });
+    const counterText = () => {
+      const p = S.prizes[S.index];
+      if (!p) return '';
+      return p.special != null ? 'Hyphos prize' : `Draw ${S.prizes.slice(0, S.index + 1).filter((x) => x.kind === 'hat').length}`;
+    };
+    const subLanded = () => 'Next: next regular prize · Back twice: they have left, redraw';
+    const subReady = (p) => p.kind === 'judged' ? 'Next: read the best answer'
+      : p.special == null && nextSpecial() >= 0 ? `Next: draw · Back twice: switch to ${S.finale[nextSpecial()].prize}`
+      : 'Next: draw';
+    const hatPrize = () => ({ prize: `Prize ${S.prizes.filter((x) => x.kind === 'hat').length + 1}`, sponsor: '', kind: 'hat' });
     function paintPrize() {
+      if (S.phase === 'prize' && S.index >= S.prizes.length) S.prizes.push(hatPrize());
       el('counter').textContent = S.phase === 'prize' ? counterText() : '';
       if (S.phase === 'title') { show('s-title'); return; }
-      if (S.phase === 'done' || (S.index >= S.prizes.length && inFinale())) { S.phase = 'done'; show('s-done'); return; }
-      if (S.index >= S.prizes.length) S.prizes.push(hatPrize());
+      if (S.phase === 'done') { show('s-done'); return; }
       const p = S.prizes[S.index];
       el('p-sponsor').textContent = p.sponsor ? `Donated by ${p.sponsor}` : 'Springs Men\'s Golf Classic';
       el('p-name').textContent = p.prize;
@@ -625,34 +783,48 @@ import Mark from '../../components/Mark.astro';
       tick();
     }
     function advance() {
-      if (S.phase === 'title') { S.phase = 'prize'; S.index = inFinale() ? S.finaleStart : 0; save(); paintPrize(); return; }
+      if (S.phase === 'title') { S.phase = 'prize'; S.index = Math.max(0, S.prizes.length - 1); save(); paintPrize(); return; }
       if (S.phase === 'prize') {
         if (!landed) return spin();
+        const won = S.winners.some((w) => w.prizeIndex === S.index);
+        // Everyone has a prize: the regular draw is finished.
+        if (!won && S.prizes[S.index]?.kind === 'hat') { S.phase = 'done'; save(); paintPrize(); return; }
         S.index += 1;
-        if (S.index >= S.prizes.length) { if (inFinale()) S.phase = 'done'; else S.prizes.push(hatPrize()); }
+        if (S.index >= S.prizes.length) S.prizes.push(hatPrize());
         save(); paintPrize();
       }
     }
-    // Hat draws end here. Any trailing draw that has no winner yet is dropped,
-    // then the Hyphos prizes follow in the order set up.
-    function moveToFinale() {
-      if (inFinale() || spinning) return;
+    // Drop any trailing prizes nobody has won yet (a Ready screen you are
+    // switching away from), so the list only ever holds what was awarded.
+    function trimUnawarded() {
       const won = new Set(S.winners.map((w) => w.prizeIndex));
       while (S.prizes.length && !won.has(S.prizes.length - 1)) S.prizes.pop();
-      S.finaleStart = S.prizes.length;
-      S.prizes.push(...S.finale.map((p) => ({ ...p })));
-      S.index = S.finaleStart;
-      S.phase = S.finale.length ? 'prize' : 'done';
+    }
+    // A Hyphos prize, next, wherever you are in the night. Each is drawn once;
+    // Next after it goes back to regular prizes.
+    function insertSpecial(i) {
+      if (spinning || !(i >= 0 && i < S.finale.length) || specialDone(i)) return;
+      trimUnawarded();
+      S.prizes.push({ ...S.finale[i], special: i });
+      S.index = S.prizes.length - 1; S.phase = 'prize';
       landed = false; quoteUp = false;
       save();
-      // Fetch the entries again so anyone who entered after Start is in. If
-      // it fails, the copy taken at Start is used.
+      // Fetch the entries again so anyone who entered since is in. If it
+      // fails, the last copy is used.
       if (hasContestPrizes()) refreshing = loadContest().catch(() => {}).finally(() => { refreshing = null; });
+    }
+    function insertRegular() {
+      if (spinning) return;
+      trimUnawarded();
+      S.prizes.push(hatPrize());
+      S.index = S.prizes.length - 1; S.phase = 'prize';
+      landed = false; quoteUp = false;
+      save();
     }
     let refreshing = null;
     // Back on the clicker. Pressed twice within three seconds:
     //   with a winner on screen  -> they have left, redraw (same as R)
-    //   at Ready, regular draws  -> move on to the Hyphos draw (same as H twice)
+    //   at Ready, regular prize  -> switch to the next Hyphos prize (same as H twice)
     // One press only shows what a second press would do, so a slip does nothing.
     let backArmed = 0;
     function backPress() {
@@ -664,22 +836,24 @@ import Mark from '../../components/Mark.astro';
         backArmed = Date.now(); el('p-sub').textContent = 'Press back again if they have left. The prize is redrawn.';
         return;
       }
-      if (!landed && !inFinale()) {
-        if (armed) { backArmed = 0; moveToFinale(); paintPrize(); return; }
-        backArmed = Date.now(); el('p-sub').textContent = 'Press back again to move on to the Hyphos draw.';
+      const i = nextSpecial();
+      if (!landed && S.prizes[S.index]?.special == null && i >= 0) {
+        if (armed) { backArmed = 0; insertSpecial(i); paintPrize(); return; }
+        backArmed = Date.now(); el('p-sub').textContent = `Press back again to switch to ${S.finale[i].prize}.`;
       }
     }
     let hArmed = 0;
     function pressH() {
-      if (inFinale() || spinning || el('stage').hidden) return;
-      if (Date.now() - hArmed < 3000) { hArmed = 0; moveToFinale(); paintPrize(); return; }
+      if (spinning || el('stage').hidden || S.phase !== 'prize' || landed) return;
+      const i = nextSpecial();
+      if (i < 0 || S.prizes[S.index]?.special != null) return;
+      if (Date.now() - hArmed < 3000) { hArmed = 0; insertSpecial(i); paintPrize(); return; }
       hArmed = Date.now();
-      el('p-sub').textContent = 'Press H again to move on to the Hyphos draw.';
+      el('p-sub').textContent = `Press H again to switch to ${S.finale[i].prize}.`;
     }
     function back() {
       if (spinning) return;
       if (S.phase === 'done') { S.phase = 'prize'; S.index = S.prizes.length - 1; }
-      else if (S.phase === 'prize' && inFinale() && S.index <= S.finaleStart) return;
       else if (S.phase === 'prize' && S.index > 0) S.index -= 1;
       else if (S.phase === 'prize') S.phase = 'title';
       save(); paintPrize();
@@ -701,8 +875,20 @@ import Mark from '../../components/Mark.astro';
     }
 
     addEventListener('keydown', (e) => {
-      if (el('stage').hidden) return;
       const k = e.key.toLowerCase();
+      // Control window: forward the clicker to the projector window. Typing in
+      // the lists is left alone.
+      if (!SCREEN && el('stage').hidden) {
+        if (!S.started || /^(TEXTAREA|INPUT|SELECT)$/.test(e.target?.tagName || '')) return;
+        const next = [' ', 'Enter', 'Return', 'ArrowRight', 'Right', 'ArrowDown', 'Down', 'PageDown'].includes(e.key);
+        const back = ['ArrowLeft', 'Left', 'ArrowUp', 'Up', 'PageUp'].includes(e.key);
+        if (next || back || k === 'r' || k === 'u' || k === 'h') {
+          e.preventDefault();
+          send(next ? 'next' : back ? 'back' : k === 'r' ? 'redraw' : k);
+        } else if (e.key === 'F5' || e.key === 'Escape' || k === 'b' || e.key === '.') e.preventDefault();
+        return;
+      }
+      if (el('stage').hidden || document.querySelector('.replaced')) return;
       // Older key names (Return, Right, Left) come from some remotes and clickers.
       // A presentation clicker sends Next as PageDown or an arrow and Back as
       // PageUp or an arrow, so the whole night runs on those two buttons.
@@ -714,7 +900,7 @@ import Mark from '../../components/Mark.astro';
       else if (k === 'r' && S.phase === 'prize' && landed && !spinning) { e.preventDefault(); absent(); }
       else if (k === 'u') { e.preventDefault(); undo(); }
       else if (k === 'h') { e.preventDefault(); pressH(); }
-      else if (k === 's') { e.preventDefault(); showSetup(); }
+      else if (k === 's' && !SCREEN) { e.preventDefault(); showSetup(); }
     });
 
     // fireworks (same recipe as the live deck) ------------------------------
@@ -746,19 +932,20 @@ import Mark from '../../components/Mark.astro';
     el('in-prizes').value = S.finale.length
       ? S.finale.map((p) => [p.prize, p.sponsor, TAG_LABEL[p.kind]].filter(Boolean).join(' | ')).join('\n')
       : DEFAULT_FINALE;
-    if (!S.finale.length) { S.finale = parsePrizes(el('in-prizes').value); save(); }
-    if (DEMO && !S.attendees.length) {
+    const IS_SCREEN = new URLSearchParams(location.search).has('screen');
+    if (!S.finale.length && !IS_SCREEN) { S.finale = parsePrizes(el('in-prizes').value); save(); }
+    if (DEMO && !S.attendees.length && !IS_SCREEN) {
       el('in-attendees').value = ['Marc Dube, Dube Excavating', 'Jen Kwan, Foothills Dental', 'Rob Fenn, Fenn HVAC', 'Tara Nolan, Nolan Bakery', 'Amrit Singh, Singh Landscaping', 'Dale Ross, Ross Electric', 'Sam Doyle, Doyle Roofing', 'Pat Miller, Miller Plumbing', 'Chris Bell, Bell Auto Glass', 'Lena Ortiz, Ortiz Physio', 'Kyle Brenner, Brenner Concrete', 'Nina Faust, Faust Realty'].join('\n');
       S.attendees = parseAttendees(el('in-attendees').value); save();
     } else if (S.attendees.length) {
       el('in-attendees').value = S.attendees.map((a) => a.team ? `${a.name}, ${a.team}` : a.name).join('\n');
     }
-    if (S.started && S.attendees.length) showStage(); else showSetup();
+    if (SCREEN) showStage(); else showSetup();
 
     // First visit on this laptop: load the tournament roster from the server
     // (signed in only), so nobody has to paste 116 names.
     async function loadRoster() {
-      if (DEMO || S.attendees.length || el('in-attendees').value.trim()) return;
+      if (SCREEN || DEMO || S.attendees.length || el('in-attendees').value.trim()) return;
       el('parse-note').textContent = 'Loading the golfer list…';
       try {
         const res = await fetch('/api/golf/roster', { cache: 'no-store' });

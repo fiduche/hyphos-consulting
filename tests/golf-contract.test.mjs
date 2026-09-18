@@ -51,9 +51,14 @@ test('one dinner screen awards the contest prizes from the judged pick and the e
   assert.match(prizes, /\/api\/golf\/summary\?format=json/);
   assert.match(prizes, /\/api\/course\/board/);
   // Rehearsal never shares storage with the real draw.
-  assert.match(prizes, /DEMO \? 'hyphos-golf-prizes-demo-v2' : 'hyphos-golf-prizes-v2'/);
-  // No prize list up front: the draw runs open-ended, then the Hyphos draw.
-  assert.match(prizes, /function moveToFinale\(\)/);
+  assert.match(prizes, /DEMO \? 'hyphos-golf-prizes-demo-v3' : 'hyphos-golf-prizes-v3'/);
+  // No prize list up front: regular prizes run until you end it, and each
+  // Hyphos prize can be switched to at any point.
+  assert.match(prizes, /function insertSpecial\(i\)/);
+  assert.match(prizes, /function insertRegular\(\)/);
+  // Two windows: the projector runs the draw, the laptop controls it.
+  assert.match(prizes, /new BroadcastChannel\(/);
+  assert.match(prizes, /\?screen=1/);
   assert.match(prizes, /entry draw/);
   assert.match(prizes, /\/api\/golf\/roster/);
   // The retired deck only forwards.
