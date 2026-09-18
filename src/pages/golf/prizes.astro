@@ -42,7 +42,7 @@ import Mark from '../../components/Mark.astro';
   <div id="setup">
     <div class="setup-head">
       <div class="brand"><Mark size={28} color="#c9a46a" /> <span>hyphos · prize draw</span></div>
-      <p class="setup-note">1. Remove the teams that won on score. 2. Start the draw: it opens the projector window. The golfer list loads by itself, and there is no prize list: each Next draws the next winner until you move on to the Hyphos draw. Everything stays on this laptop.</p>
+      <p class="setup-note">1. Check the names below, fix any, and tick the teams that won on score. 2. Press Start The Draw: it opens the projector window, and this window becomes your control screen. There is no prize list: regular prizes keep coming until you end the draw. Everything stays on this laptop.</p>
     </div>
 
     <!-- Live control: this window stays on the laptop, the draw shows in the projector window. -->
@@ -71,37 +71,40 @@ import Mark from '../../components/Mark.astro';
         <button id="c-regular" type="button">Regular Prize</button>
         <span id="c-specials"></span>
       </div>
-      <p class="muted">Drag the projector window onto the projector and click it once to go full screen. The clicker works in either window: Next draws, Back twice redraws someone who has left, or at Ready switches to the next Hyphos prize. After a Hyphos prize, Next goes back to regular prizes. Regular prizes never run out until everyone has won. <a id="c-here" href="#">Show the draw in this window instead</a>.</p>
+      <p class="muted">Drag the projector window onto the projector and click it once to go full screen. The clicker works in either window: Next draws, Back twice redraws someone who has left, or at Ready switches to the next Hyphos prize. After a Hyphos prize, Next goes back to regular prizes. Regular prizes keep coming until you press End The Draw. <a id="c-here" href="#">Show the draw in this window instead</a>.</p>
     </section>
-    <div class="setup-grid">
-      <label>
-        <span>Golfers, loaded from the tournament roster. One per line: <em>Name, Team</em></span>
-        <textarea id="in-attendees" rows="14" spellcheck="false" placeholder="Marc Dube, Dube Excavating&#10;Jen Kwan, Foothills Dental"></textarea>
-      </label>
-      <label>
-        <span>The Hyphos draw, at the end, in order: <em>Prize | Sponsor | how</em>. <em>entry draw</em> draws from the entry form, <em>best answer</em> is the judged pick. Leave it as is unless something changes.</span>
-        <textarea id="in-prizes" rows="14" spellcheck="false"></textarea>
-      </label>
-    </div>
     <div class="setup-row">
-      <button id="btn-parse" type="button">Reload Lists</button>
+      <button id="btn-parse" type="button" hidden>Reload Lists</button>
       <span id="parse-note" class="muted"></span>
     </div>
-
     <div id="exclude-wrap" hidden>
-      <h2>Remove Teams That Won On Score</h2>
-      <p class="muted">Tick a team name to take the whole team out of the draw. Tick a single name to take out one person. Removed names never come up.</p>
+      <h2>Golfers And Teams</h2>
+      <p class="muted">Tick a team to take the whole team out of the draw (won on score). Tick a single name to take out one person. Removed names never come up.
+        Click any name to fix it. Add a player to a team, or a whole new team, if someone turns up who is not on the list. Blank slots are ignored.</p>
       <div id="exclude-list"></div>
+      <div class="setup-row"><button id="btn-add-team" type="button">Add A Team</button></div>
     </div>
 
     <div id="contest-wrap" hidden>
-      <h2>Contest Prizes</h2>
-      <p class="muted">These draw from the contests, not the hat. Load once on this laptop, signed in, close to dinner so late entries are included.</p>
+      <h2>Hyphos Prize Entries</h2>
+      <p class="muted">The Tidal prize draws from the entry form and the Pro V1s from the judged answer. Entries load when you press Start and again each time you switch to a Hyphos prize, so late entries are in.</p>
       <div class="setup-row">
         <button id="btn-contest" type="button">Load Contest Entries</button>
         <span id="contest-note" class="muted"></span>
       </div>
       <p id="judge-note" class="warn" hidden></p>
+    </div>
+
+    <h2 class="sub-h">Hyphos Prizes</h2>
+    <div class="setup-grid">
+      <label hidden>
+        <span>Golfers, loaded from the tournament roster. One per line: <em>Name, Team</em></span>
+        <textarea id="in-attendees" rows="14" spellcheck="false" placeholder="Marc Dube, Dube Excavating&#10;Jen Kwan, Foothills Dental"></textarea>
+      </label>
+      <label>
+        <span>The Hyphos prizes, each switched to from the control screen whenever you choose: <em>Prize | Sponsor | how</em>. <em>entry draw</em> draws from the entry form, <em>best answer</em> is the judged pick. Leave it as is unless something changes.</span>
+        <textarea id="in-prizes" rows="3" spellcheck="false"></textarea>
+      </label>
     </div>
 
     <div id="winners-wrap" hidden>
@@ -169,7 +172,7 @@ import Mark from '../../components/Mark.astro';
     .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 500; letter-spacing: .02em; }
     .brand span { font-size: 18px; }
     .setup-note, .muted { color: var(--muted); font-size: 14px; margin: 0; }
-    .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .setup-grid { display: grid; grid-template-columns: 1fr; gap: 16px; max-width: 760px; }
     .setup-grid label { display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--muted); }
     .setup-grid em { color: var(--gold); font-style: normal; }
     textarea { width: 100%; box-sizing: border-box; background: var(--panel); color: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 10px 12px; font: 14px/1.45 ui-monospace, Menlo, monospace; }
@@ -184,6 +187,14 @@ import Mark from '../../components/Mark.astro';
     .team-head { display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 6px; }
     .person { display: flex; align-items: center; gap: 8px; font-size: 14px; padding: 3px 0; }
     .person.out, .team.out .person { color: var(--muted); text-decoration: line-through; }
+    .team input[type=text] { flex: 1; min-width: 0; background: transparent; color: inherit; border: 1px solid transparent; border-radius: 4px; padding: 3px 6px; font: inherit; text-decoration: inherit; }
+    .team input[type=text]:hover { border-color: var(--rule); }
+    .team input[type=text]:focus { border-color: var(--gold); outline: none; background: var(--bg); }
+    .team input[type=text]::placeholder { color: #5b616b; text-decoration: none; }
+    .team-head input[type=text] { font-weight: 600; }
+    .person .x { background: none; border: 0; color: var(--muted); padding: 2px 6px; font-size: 16px; line-height: 1; }
+    .person .x:hover { color: #e08a7a; }
+    .team .add { margin-top: 6px; padding: 4px 10px; font-size: 13px; color: var(--muted); }
     #control { border: 1px solid var(--gold); border-radius: 10px; padding: 18px 20px; margin: 0 0 26px; background: var(--panel); }
     #control h2 { margin: 0 !important; }
     .c-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
@@ -353,7 +364,7 @@ import Mark from '../../components/Mark.astro';
         ...others().filter((w) => w.attendee == null).map((w) => norm(w.name)),
         ...S.absent.filter((a) => a.startsWith('n:')).map((a) => a.slice(2)),
       ]);
-      return S.attendees.filter((a) => !ids.has(a.id) && !(loose.has(norm(a.name)) && attendeeId(a.name) === a.id));
+      return S.attendees.filter((a) => a.name.trim() && !ids.has(a.id) && !(loose.has(norm(a.name)) && attendeeId(a.name) === a.id));
     }
     const teamFor = (name, fallback = '') => {
       const id = attendeeId(name);
@@ -384,34 +395,64 @@ import Mark from '../../components/Mark.astro';
     }
 
     // setup UI --------------------------------------------------------------
+    // Golfers and teams, editable in place. Every golfer keeps their id through
+    // an edit, so removals and winners stay attached to the right person. Edits
+    // save on change (leaving the field or Enter), not per keystroke, so the
+    // projector window is not repainted while you type.
+    const nextId = () => S.attendees.reduce((m, a) => Math.max(m, a.id), 0) + 1;
+    function textField(value, placeholder, onSave) {
+      const f = document.createElement('input'); f.type = 'text'; f.value = value; f.placeholder = placeholder; f.spellcheck = false;
+      f.addEventListener('change', () => { onSave(f.value.trim().replace(/\s+/g, ' ')); save(); updateStart(); });
+      f.addEventListener('keydown', (e) => { if (e.key === 'Enter') f.blur(); });
+      return f;
+    }
     function renderExclude() {
       const wrap = el('exclude-list'); wrap.replaceChildren();
       const ex = new Set(S.excluded);
       const teams = new Map();
-      S.attendees.forEach((a) => { const k = a.team || '(no team)'; if (!teams.has(k)) teams.set(k, []); teams.get(k).push(a); });
+      S.attendees.forEach((a) => { const k = a.team || ''; if (!teams.has(k)) teams.set(k, []); teams.get(k).push(a); });
       teams.forEach((members, team) => {
         const box = document.createElement('div'); box.className = 'team';
-        const allOut = members.every((m) => ex.has(m.id));
+        const named = members.filter((m) => m.name.trim());
+        const allOut = named.length > 0 && named.every((m) => ex.has(m.id));
         if (allOut) box.classList.add('out');
-        const head = document.createElement('label'); head.className = 'team-head';
-        const tcb = document.createElement('input'); tcb.type = 'checkbox'; tcb.checked = allOut;
+        const head = document.createElement('div'); head.className = 'team-head';
+        const tcb = document.createElement('input'); tcb.type = 'checkbox'; tcb.checked = allOut; tcb.title = 'Won on score: remove the whole team';
         tcb.addEventListener('change', () => {
           const set = new Set(S.excluded);
           members.forEach((m) => tcb.checked ? set.add(m.id) : set.delete(m.id));
           S.excluded = [...set]; save(); renderExclude(); updateStart();
         });
-        head.append(tcb, document.createTextNode(team));
+        // Renaming a team renames it for everyone on it.
+        const tname = textField(team, 'Team name', (v) => { members.forEach((m) => { m.team = v; }); });
+        head.append(tcb, tname);
         box.append(head);
         members.forEach((m) => {
-          const row = document.createElement('label'); row.className = 'person' + (ex.has(m.id) ? ' out' : '');
-          const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = ex.has(m.id);
+          const row = document.createElement('div'); row.className = 'person' + (ex.has(m.id) ? ' out' : '');
+          const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = ex.has(m.id); cb.title = 'Remove from the draw';
           cb.addEventListener('change', () => {
             const set = new Set(S.excluded); cb.checked ? set.add(m.id) : set.delete(m.id);
             S.excluded = [...set]; save(); renderExclude(); updateStart();
           });
-          row.append(cb, document.createTextNode(m.name));
+          const name = textField(m.name, 'Add a name', (v) => { m.name = v; });
+          const x = document.createElement('button'); x.type = 'button'; x.className = 'x'; x.textContent = '×'; x.title = 'Delete this player';
+          x.addEventListener('click', () => {
+            if (m.name.trim() && !confirm(`Delete ${m.name} from the list?`)) return;
+            S.attendees = S.attendees.filter((a) => a.id !== m.id);
+            S.excluded = S.excluded.filter((id) => id !== m.id);
+            save(); renderExclude(); updateStart();
+          });
+          row.append(cb, name, x);
           box.append(row);
         });
+        const add = document.createElement('button'); add.type = 'button'; add.className = 'add'; add.textContent = '+ Add Player';
+        add.addEventListener('click', () => {
+          const id = nextId();
+          S.attendees.push({ id, name: '', team: members[0]?.team ?? team });
+          save(); renderExclude(); updateStart();
+          [...el('exclude-list').querySelectorAll('.person input[type=text]')].pop()?.focus();
+        });
+        box.append(add);
         wrap.append(box);
       });
       el('exclude-wrap').hidden = !S.attendees.length;
@@ -448,7 +489,7 @@ import Mark from '../../components/Mark.astro';
       const n = pool().length;
       const contestReady = !hasContestPrizes() || !!S.contest;
       el('parse-note').textContent = S.attendees.length
-        ? `${S.attendees.length} names, ${S.excluded.length} removed, ${n} in the hat · Hyphos draw: ${S.finale.length} prize${S.finale.length === 1 ? '' : 's'}${contestReady ? '' : ' · contest entries load when you press Start'}`
+        ? `${S.attendees.filter((a) => a.name.trim()).length} golfers, ${S.excluded.length} removed, ${n} in the hat · Hyphos draw: ${S.finale.length} prize${S.finale.length === 1 ? '' : 's'}${contestReady ? '' : ' · contest entries load when you press Start'}`
         : '';
       el('control').hidden = !S.started;
       el('btn-start').hidden = !!S.started;
@@ -510,6 +551,17 @@ import Mark from '../../components/Mark.astro';
       save(); renderExclude(); renderWinners(); updateStart();
     });
     el('btn-contest').addEventListener('click', loadContest);
+    // A new team with four blank slots, for anyone who turns up unlisted.
+    el('btn-add-team').addEventListener('click', () => {
+      const used = new Set(S.attendees.map((a) => a.team));
+      let n = 1; while (used.has(`Extra Team ${n}`)) n += 1;
+      const first = nextId();
+      for (let i = 0; i < 4; i++) S.attendees.push({ id: first + i, name: '', team: `Extra Team ${n}` });
+      save(); renderExclude(); updateStart();
+      const boxes = el('exclude-list').querySelectorAll('.team');
+      boxes[boxes.length - 1]?.scrollIntoView({ block: 'center' });
+      boxes[boxes.length - 1]?.querySelector('.person input[type=text]')?.focus();
+    });
     // Start never sits greyed out. It picks up anything typed since the last
     // load, fetches the contest entries if they are needed, and otherwise says
     // exactly what is missing.
@@ -641,7 +693,15 @@ import Mark from '../../components/Mark.astro';
         else if (c === 'reload') { if (!spinning) { loadState(); paintPrize(); } }
       });
       // Changes made in the control window (removed teams, entries, Start).
-      addEventListener('storage', (e) => { if (e.key === KEY && !spinning) { const q = quoteUp; loadState(); if (!q) paintPrize(); } });
+      // Only repaint when what the room sees changed: a name edit or a removed
+      // team on the laptop should not flash the screen.
+      const onScreen = () => { const w = S.winners.find((x) => x.prizeIndex === S.index); return JSON.stringify([S.started, S.phase, S.index, S.prizes[S.index]?.prize, w?.name, w?.team]); };
+      addEventListener('storage', (e) => {
+        if (e.key !== KEY || spinning) return;
+        const before = onScreen(); const q = quoteUp;
+        loadState();
+        if (!q && onScreen() !== before) paintPrize();
+      });
       setInterval(() => {
         if (!active) return;
         const quoteShown = !el('quote').hidden;
