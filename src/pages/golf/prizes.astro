@@ -1052,8 +1052,26 @@ import Mark from '../../components/Mark.astro';
 
     // First visit on this laptop: load the tournament roster from the server
     // (signed in only), so nobody has to paste 116 names.
+    // A list already saved on this laptop keeps every edit; teams that were
+    // added to the roster since (new groups from the tee sheet) are appended
+    // as open slots.
+    async function mergeRoster() {
+      try {
+        const res = await fetch('/api/golf/roster', { cache: 'no-store' });
+        if (!res.ok) return;
+        const { attendees } = await res.json();
+        const have = new Set(S.attendees.map((a) => norm(a.team)));
+        let id = nextId(); const added = [];
+        attendees.forEach((a) => { if (a.team && !have.has(norm(a.team))) added.push({ id: id++, name: a.name || '', team: a.team }); });
+        if (!added.length) return;
+        S.attendees.push(...added);
+        save(); renderExclude(); updateStart();
+      } catch {}
+    }
     async function loadRoster() {
-      if (SCREEN || DEMO || S.attendees.length || el('in-attendees').value.trim()) return;
+      if (SCREEN || DEMO) return;
+      if (S.attendees.length) return mergeRoster();
+      if (el('in-attendees').value.trim()) return;
       el('parse-note').textContent = 'Loading the golfer list…';
       try {
         const res = await fetch('/api/golf/roster', { cache: 'no-store' });

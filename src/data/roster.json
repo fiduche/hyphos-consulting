@@ -40,6 +40,26 @@
   "group": "1B"
  },
  {
+  "name": "",
+  "team": "",
+  "group": "1C"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "1C"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "1C"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "1C"
+ },
+ {
   "name": "Chris Karam",
   "team": "Rip It",
   "group": "2A"
@@ -280,6 +300,26 @@
   "group": "7B"
  },
  {
+  "name": "",
+  "team": "",
+  "group": "7C"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "7C"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "7C"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "7C"
+ },
+ {
   "name": "Brian Suderman",
   "team": "JWH Concrete Works",
   "group": "8A"
@@ -400,6 +440,26 @@
   "group": "10B"
  },
  {
+  "name": "",
+  "team": "",
+  "group": "10C"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "10C"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "10C"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "10C"
+ },
+ {
   "name": "Dustin Block",
   "team": "",
   "group": "11A"
@@ -485,11 +545,6 @@
   "group": "13A"
  },
  {
-  "name": "Jay  Smith",
-  "team": "",
-  "group": "13B"
- },
- {
   "name": "Josh Comeau",
   "team": "Digby Duffers",
   "group": "13A"
@@ -498,6 +553,11 @@
   "name": "Derek \"Chunk\" Spencer",
   "team": "Digby Duffers",
   "group": "13A"
+ },
+ {
+  "name": "Jay  Smith",
+  "team": "",
+  "group": "13B"
  },
  {
   "name": "Liam Sunstrum",
@@ -518,6 +578,26 @@
   "name": "Brett Edwards",
   "team": "Yard Dawgs",
   "group": "13B"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "13C"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "13C"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "13C"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "13C"
  },
  {
   "name": "Brian Hoffman",
@@ -578,5 +658,145 @@
   "name": "Manna Akpan",
   "team": "",
   "group": "15A"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "15B"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "15B"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "15B"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "15B"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "16A"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "16A"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "16A"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "16A"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "16B"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "16B"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "16B"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "16B"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "17A"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "17A"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "17A"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "17A"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "17B"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "17B"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "17B"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "17B"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "18A"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "18A"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "18A"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "18A"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "18B"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "18B"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "18B"
+ },
+ {
+  "name": "",
+  "team": "",
+  "group": "18B"
  }
 ]
