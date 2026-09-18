@@ -192,6 +192,9 @@ import Mark from '../../components/Mark.astro';
     .team input[type=text]:focus { border-color: var(--gold); outline: none; background: var(--bg); }
     .team input[type=text]::placeholder { color: #5b616b; text-decoration: none; }
     .team-head input[type=text] { font-weight: 600; }
+    .person.won input[type=text] { color: var(--gold); }
+    .person .tag { flex: none; font-size: 11px; font-weight: 600; letter-spacing: .04em; color: #141414; background: var(--gold); border-radius: 99px; padding: 2px 8px; white-space: nowrap; }
+    .person .tag.gone { background: var(--rule); color: var(--muted); }
     .person .x { background: none; border: 0; color: var(--muted); padding: 2px 6px; font-size: 16px; line-height: 1; }
     .person .x:hover { color: #e08a7a; }
     .team .add { margin-top: 6px; padding: 4px 10px; font-size: 13px; color: var(--muted); }
@@ -409,6 +412,10 @@ import Mark from '../../components/Mark.astro';
     function renderExclude() {
       const wrap = el('exclude-list'); wrap.replaceChildren();
       const ex = new Set(S.excluded);
+      // Who has won what, and who was called but had left, by golfer id.
+      const won = new Map();
+      S.winners.forEach((w) => { if (w.attendee != null) won.set(w.attendee, [...(won.get(w.attendee) || []), w.prize]); });
+      const gone = new Set(S.absent.filter((a) => a.startsWith('a:')).map((a) => Number(a.slice(2))));
       const teams = new Map();
       S.attendees.forEach((a) => { const k = a.team || ''; if (!teams.has(k)) teams.set(k, []); teams.get(k).push(a); });
       teams.forEach((members, team) => {
@@ -424,7 +431,10 @@ import Mark from '../../components/Mark.astro';
           S.excluded = [...set]; save(); renderExclude(); updateStart();
         });
         // Renaming a team renames it for everyone on it.
-        const tname = textField(team, 'Team name', (v) => { members.forEach((m) => { m.team = v; }); });
+        // Looked up by id at save time: the list may have been reloaded since
+        // this row was drawn (a winner recorded on the projector).
+        const ids = new Set(members.map((m) => m.id));
+        const tname = textField(team, 'Team name', (v) => { S.attendees.forEach((a) => { if (ids.has(a.id)) a.team = v; }); });
         head.append(tcb, tname);
         box.append(head);
         members.forEach((m) => {
@@ -434,7 +444,7 @@ import Mark from '../../components/Mark.astro';
             const set = new Set(S.excluded); cb.checked ? set.add(m.id) : set.delete(m.id);
             S.excluded = [...set]; save(); renderExclude(); updateStart();
           });
-          const name = textField(m.name, 'Add a name', (v) => { m.name = v; });
+          const name = textField(m.name, 'Add a name', (v) => { const cur = S.attendees.find((a) => a.id === m.id); if (cur) cur.name = v; });
           const x = document.createElement('button'); x.type = 'button'; x.className = 'x'; x.textContent = '×'; x.title = 'Delete this player';
           x.addEventListener('click', () => {
             if (m.name.trim() && !confirm(`Delete ${m.name} from the list?`)) return;
@@ -442,13 +452,22 @@ import Mark from '../../components/Mark.astro';
             S.excluded = S.excluded.filter((id) => id !== m.id);
             save(); renderExclude(); updateStart();
           });
-          row.append(cb, name, x);
+          row.append(cb, name);
+          if (won.has(m.id)) {
+            row.classList.add('won');
+            const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = `Won ${won.get(m.id).join(', ')}`;
+            row.append(tag);
+          } else if (gone.has(m.id)) {
+            const tag = document.createElement('span'); tag.className = 'tag gone'; tag.textContent = 'Not here';
+            row.append(tag);
+          }
+          row.append(x);
           box.append(row);
         });
         const add = document.createElement('button'); add.type = 'button'; add.className = 'add'; add.textContent = '+ Add Player';
         add.addEventListener('click', () => {
           const id = nextId();
-          S.attendees.push({ id, name: '', team: members[0]?.team ?? team });
+          S.attendees.push({ id, name: '', team: S.attendees.find((a) => ids.has(a.id))?.team ?? team });
           save(); renderExclude(); updateStart();
           [...el('exclude-list').querySelectorAll('.person input[type=text]')].pop()?.focus();
         });
@@ -662,7 +681,18 @@ import Mark from '../../components/Mark.astro';
       el('c-open').addEventListener('click', openProjector);
       el('c-here').addEventListener('click', (e) => { e.preventDefault(); location.href = `${location.pathname}?screen=1${DEMO ? '&demo=1' : ''}`; });
       // The projector records winners; keep this window's copy and list current.
-      addEventListener('storage', (e) => { if (e.key === KEY) { loadState(); renderWinners(); updateStart(); } });
+      let listStale = false;
+      const typingInList = () => el('exclude-list').contains(document.activeElement) && document.activeElement.type === 'text';
+      addEventListener('storage', (e) => {
+        if (e.key !== KEY) return;
+        loadState(); renderWinners(); updateStart();
+        if (typingInList()) listStale = true; else renderExclude();
+      });
+      // Catch up as soon as you stop typing. Checked on a timer as well as on
+      // focus changes, which some browsers do not report reliably.
+      const catchUp = () => { if (listStale && !typingInList()) { listStale = false; renderExclude(); } };
+      el('exclude-list').addEventListener('focusout', () => setTimeout(catchUp, 0));
+      setInterval(catchUp, 1000);
     } else {
       document.body.classList.add('screen-mode');
       // Only one projector window may run the draw, or two would record
