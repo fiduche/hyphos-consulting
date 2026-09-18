@@ -779,12 +779,12 @@ function redirectToMainSite(request) {
   });
 }
 
-// Only the two entry forms and the sign-in are public. Every other tournament
-// page (the boards, judging, the draw, scan counts, the guide, and their
-// ?demo=1 rehearsals) needs the screen sign-in, checked here on the server so
-// nothing renders first. Files such as images stay public: the entry forms use
-// them.
-const PUBLIC_PAGES = new Set(['/golf', '/golf/enter', '/course/enter']);
+// Only the draw entry form and the sign-in are public. There are no contest
+// signs on the course this year, so the contest entry page is private along
+// with every other tournament page (the boards, judging, the draw, scan counts,
+// the guide, and their ?demo=1 rehearsals). Checked here on the server so
+// nothing renders first. Files such as images stay public: the form uses them.
+const PUBLIC_PAGES = new Set(['/golf', '/golf/enter']);
 function isPrivatePage(pathname) {
   if (!/^\/(?:golf|course)(?:\/|$)/i.test(pathname)) return false;
   const last = pathname.split('/').filter(Boolean).pop() || '';
@@ -859,9 +859,9 @@ async function handleScans(request, env) {
 // ---------------------------------------------------------------------------
 // On-course contests: replaces the pinned paper sheets.
 //
-//   GET    /c/<CODE>              QR on the sign. Logs a scan, sends to the form.
-//   POST   /api/course/entry      public. { contest, player, feet, inches }
-//   GET    /api/course/board      public. Every contest, ranked, for the live board.
+//   GET    /c/<CODE>              Logs a scan, then opens the draw entry form.
+//   POST   /api/course/entry      screen password. { contest, player, feet, inches }
+//   GET    /api/course/board      screen password. Every contest, ranked.
 //   DELETE /api/course/entry?id=  screen password. The committee's undo button.
 //
 // Honour system, same as paper. Guard rails are only against accidents: one
@@ -872,7 +872,9 @@ const COURSE_CODE_PATH = /^\/c\/([a-z0-9]{1,8})\/?$/i;
 
 async function handleCourseCode(request, env, ctx, code) {
   const contest = CONTEST_BY_CODE[code.toLowerCase()];
-  const target = new URL(contest ? `/course/enter/?c=${contest.id}` : '/course/enter/', MAIN_SITE);
+  // No contest signs went up this year, so a stray contest code opens the draw
+  // entry form, the one public tournament page.
+  const target = new URL('/golf/', MAIN_SITE);
   if (contest && env.DB) {
     const write = env.DB.prepare(
       'INSERT INTO scan_log (created_at, tag, user_agent, country) VALUES (?1, ?2, ?3, ?4)'
@@ -992,7 +994,10 @@ export default {
     if (courseCode) return handleCourseCode(request, env, ctx, courseCode[1]);
 
     if (pathname === '/api/course/entry') {
-      if (request.method === 'POST') return handleCourseEntry(request, env);
+      if (request.method === 'POST') {
+        if (!(await hasSession(request, env))) return json({ error: 'Not authorized.' }, 401);
+        return handleCourseEntry(request, env);
+      }
       if (request.method === 'DELETE') return handleCourseDelete(request, env);
       return json({ error: 'Method not allowed.' }, 405);
     }

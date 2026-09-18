@@ -54,7 +54,7 @@ const sections: { title: string; intro?: string; tools: Tool[] }[] = [
       {
         name: 'Entry Form',
         path: '/golf',
-        when: 'Public. This and the contest sign entry are the only tournament pages anyone can open without the password.',
+        when: 'Public. The only tournament page anyone can open without the password.',
         steps: [
           'They answer one question, then one follow-up the AI writes from their answer.',
           'Every entry goes into the Tidal prize draw and becomes a candidate for the Pro V1s.',
@@ -64,28 +64,8 @@ const sections: { title: string; intro?: string; tools: Tool[] }[] = [
     ],
   },
   {
-    title: 'On The Course',
+    title: 'During The Day',
     tools: [
-      {
-        name: 'Contest Board',
-        path: '/course',
-        demo: '/course?demo=1',
-        when: 'Private. Only on a signed-in device, such as your phone or a screen you control.',
-        signIn: true,
-        steps: [
-          'Golfers scan the sign at each contest hole and post their result. They see a confirmation, not the board.',
-          'The board updates live for you. Nobody else can open it.',
-          'Closest to the pin, longest drive and longest putt: the latest entry leads, because they move the marker first.',
-          'Hit the square is a list. Everyone on it goes into the $500 gift card draw.',
-        ],
-      },
-      {
-        name: 'Contest Board, Admin',
-        path: '/course?admin=1',
-        when: 'Only if someone posts a joke or a mistake.',
-        signIn: true,
-        steps: ['Adds a remove button beside each entry. Tap it to delete that one entry.'],
-      },
       {
         name: 'Scan Counts',
         path: '/golf/scans',
@@ -124,7 +104,7 @@ const sections: { title: string; intro?: string; tools: Tool[] }[] = [
         steps: [
           'Attendees box: paste the roster, one person per line as Name, Team. The file is Hyphos Golf/roster-for-prize-draw.txt on your Mac.',
           'Prizes box: one prize per line, in the order you will draw them, as Prize | Sponsor.',
-          'Tag the three contest prizes on the end of their line: | best answer for the Pro V1s, | entry draw for the Tidal prize, | square for the $500 gift card.',
+          'Tag the two contest prizes on the end of their line: | best answer for the Pro V1s, | entry draw for the Tidal prize. Every other prize is drawn from the whole room.',
           'Press Load Lists. Check the count under it (names, prizes, contest prizes).',
           'Press Load Contest Entries. Do this last thing before dinner so late entries are included. After this the draw runs without internet.',
           'Under Already Won On Score, tick anyone who already won a score prize. Tick a team name to strike the whole team.',
@@ -152,7 +132,7 @@ const flow = [
   'The title slide shows first. Space starts the prizes.',
   'Each prize shows Ready. Space spins through the names for about five seconds and lands on a winner.',
   'The Pro V1s are different: the first Space reads the winning answer out, the second reveals who wrote it.',
-  'Nobody wins twice, anyone struck or marked not here never comes up, and each contest prize only draws from its own list.',
+  'Nobody wins twice, anyone struck or marked not here never comes up, and the two contest prizes only draw from entries.',
   'If the laptop closes or the page reloads, open the same address again. It resumes on the same prize with every winner kept.',
   'After the last prize, a thank-you slide. Press S, then Export Winners CSV for the organisers.',
 ];
@@ -167,10 +147,6 @@ const qr = [
   ['Sponsor table sticker', '/GO/TABLE', 'The 10 Ways AI article'],
   ['Half page flyer', '/GO/FLYER', 'hyphos.io homepage'],
   ['Dinner screen', '/GO/SCREEN', 'hyphos.io homepage'],
-  ['Sign: closest to the pin', '/C/CTP', 'Contest entry'],
-  ['Sign: longest drive', '/C/LD', 'Contest entry'],
-  ['Sign: longest putt', '/C/LP', 'Contest entry'],
-  ['Sign: hit the square', '/C/SQ', 'Contest entry'],
 ];
 
 const trouble = [
@@ -179,7 +155,6 @@ const trouble = [
   ['The browser closed mid-draw', 'Reopen hyphos.io/golf/prizes on the same laptop. It picks up where it stopped.'],
   ['The wrong person was drawn', 'Press U, then Space to draw again.'],
   ['The winner has gone home', 'Press R. It redraws and they stay out for the rest of the night.'],
-  ['Someone posted a joke on the contest board', 'Open hyphos.io/course?admin=1 and remove it.'],
   ['Nothing works at all', 'Open the Text Readout below. It has every group, both draws and the answers as plain text.'],
 ];
 
@@ -202,7 +177,6 @@ const after = [
 
     <nav class="quick mt-8" aria-label="Main screens">
       <a href="/golf/board">Hole Board</a>
-      <a href="/course">Contest Board</a>
       <a href="/golf/judge">Choose Best Answer</a>
       <a href="/golf/prizes">Prize Draw</a>
       <a href="/golf/scans">Scan Counts</a>

@@ -120,10 +120,13 @@ test('course entry: the roster stays on the server and names resolve to it', asy
 
   const db = new DatabaseSync(':memory:');
   db.exec(schema);
-  const env = { DB: d1(db) };
-  const post = (body) => worker.fetch(new Request('https://x.test/api/course/entry', {
-    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
+  const env = { DB: d1(db), GOLF_EXPORT_KEY: 'k' };
+  const post = (body, auth = 'Bearer k') => worker.fetch(new Request('https://x.test/api/course/entry', {
+    method: 'POST', headers: { 'content-type': 'application/json', authorization: auth }, body: JSON.stringify(body),
   }), env, {});
+
+  // No contest signs this year: posting needs the screen sign-in.
+  assert.equal((await post({ contest: 'ctp', player: 'Anyone', website: '' }, '')).status, 401);
 
   // Typed in lower case with extra spaces: stored under the roster spelling and team.
   const typed = known.name.toLowerCase().replace(' ', '  ');
@@ -144,7 +147,7 @@ test('course entry: the roster stays on the server and names resolve to it', asy
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM course_entries').get().n, before);
 
   // Delete needs a session.
-  const del = await worker.fetch(new Request('https://x.test/api/course/entry?id=1', { method: 'DELETE' }), { ...env, GOLF_EXPORT_KEY: 'k' }, {});
+  const del = await worker.fetch(new Request('https://x.test/api/course/entry?id=1', { method: 'DELETE' }), env, {});
   assert.equal(del.status, 401);
 
   // And the public entry page does not carry the roster.
@@ -196,12 +199,12 @@ test('hyphos.io serves the tournament; hyphosconsulting.com only redirects there
   }
 
   // Reached through the hyphos.io service binding, the same pages are served.
-  // Only the two entry forms, the sign-in and plain files are public.
-  for (const path of ['/golf/', '/golf', '/golf/enter/', '/course/enter/?c=ctp', '/golf/knot.png']) {
+  // Only the draw entry form, the sign-in and plain files are public.
+  for (const path of ['/golf/', '/golf', '/golf/enter/', '/golf/knot.png']) {
     assert.equal((await main(path, { ASSETS: asset })).status, 200, path);
   }
   // Every other tournament page, rehearsals included, sends you to sign in first.
-  for (const path of ['/course/', '/course/?demo=1', '/golf/board/', '/golf/guide/', '/golf/prizes?demo=1', '/golf/judge/', '/golf/scans/']) {
+  for (const path of ['/course/', '/course/?demo=1', '/course/enter/?c=ctp', '/golf/board/', '/golf/guide/', '/golf/prizes?demo=1', '/golf/judge/', '/golf/scans/']) {
     const res = await main(path, { ASSETS: asset, GOLF_EXPORT_KEY: 'k' });
     assert.equal(res.status, 302, path);
     const to = new URL(res.headers.get('location'));
@@ -218,7 +221,7 @@ test('hyphos.io serves the tournament; hyphosconsulting.com only redirects there
     assert.match(scan.headers.get('location'), /^https:\/\/hyphos\.io\/\?utm_source=qr&utm_medium=print&utm_campaign=springs-golf-2026&utm_content=bag$/);
     const sign = await client('/C/CTP');
     assert.equal(sign.status, 302);
-    assert.equal(sign.headers.get('location'), 'https://hyphos.io/course/enter/?c=ctp');
+    assert.equal(sign.headers.get('location'), 'https://hyphos.io/golf/');
   }
 
   // Writes are never redirected: an old open page still posts.
