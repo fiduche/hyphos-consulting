@@ -102,13 +102,11 @@ const sections: { title: string; intro?: string; tools: Tool[] }[] = [
         when: 'Right after judging, still before the projector.',
         signIn: true,
         steps: [
-          'Attendees box: paste the roster, one person per line as Name, Team. The file is Hyphos Golf/roster-for-prize-draw.txt on your Mac.',
-          'Prizes box: one prize per line, in the order you will draw them, as Prize | Sponsor.',
-          'Tag the two contest prizes on the end of their line: | best answer for the Pro V1s, | entry draw for the Tidal prize. Every other prize is drawn from the whole room.',
-          'Press Load Lists. Check the count under it (names, prizes, contest prizes).',
-          'Press Load Contest Entries. Do this last thing before dinner so late entries are included. After this the draw runs without internet.',
-          'Under Already Won On Score, tick anyone who already won a score prize. Tick a team name to strike the whole team.',
-          'Press Start The Draw. Now plug into the projector.',
+          'The golfer list loads by itself from the tournament roster. Nothing to paste.',
+          'Under Remove Teams That Won On Score, tick each team that won on score. Tick a single name to remove one person.',
+          'There is no prize list. You read out each prize as it comes; the screen just draws the next winner.',
+          'The Hyphos draw box is already filled in: the Tidal prize from the entry form, then the Pro V1s for the best answer. Leave it unless something changes.',
+          'Press Start The Draw. It loads the entries for the Hyphos draw itself, and tells you in plain words if anything is missing. Then plug into the projector.',
         ],
       },
     ],
@@ -121,7 +119,8 @@ const sections: { title: string; intro?: string; tools: Tool[] }[] = [
 ];
 
 const keys = [
-  ['Space, Enter or →', 'Draw the current prize, then move to the next one'],
+  ['Space, Enter or →', 'Draw the next winner, then move on'],
+  ['H, twice', 'Finish the regular draws and move on to the Hyphos draw'],
   ['R', 'The winner is not in the room. Marks them out for the night and redraws this prize'],
   ['U', 'Undo this prize’s winner, back to Ready. They stay in the hat'],
   ['←', 'Go back a screen'],
@@ -130,11 +129,12 @@ const keys = [
 
 const flow = [
   'The title slide shows first. Space starts the prizes.',
-  'Each prize shows Ready. Space spins through the names for about five seconds and lands on a winner.',
+  'Each draw shows Ready. Space spins through the names for about five seconds and lands on a winner. Keep going for as many prizes as the table has.',
+  'When the regular prizes are done, press H twice. The Hyphos draw follows: the Tidal prize, then the Pro V1s.',
   'The Pro V1s are different: the first Space reads the winning answer out, the second reveals who wrote it.',
-  'Nobody wins twice, anyone struck or marked not here never comes up, and the two contest prizes only draw from entries.',
+  'Nobody wins twice, removed teams and anyone marked not here never come up, and the two Hyphos prizes only draw from entries.',
   'If the laptop closes or the page reloads, open the same address again. It resumes on the same prize with every winner kept.',
-  'After the last prize, a thank-you slide. Press S, then Export Winners CSV for the organisers.',
+  'After the Pro V1s, a thank-you slide. Press S, then Export Winners CSV for the organisers. Also on the setup page: Move To The Hyphos Draw, if you would rather click than press H.',
 ];
 
 const qr = [

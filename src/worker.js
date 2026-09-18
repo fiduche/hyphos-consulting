@@ -1044,6 +1044,17 @@ export default {
         : json({ error: 'Method not allowed.' }, 405);
     }
 
+    // The tournament roster for the prize draw, so the dinner laptop starts
+    // with every golfer loaded. Signed in only: these are real names.
+    if (pathname === '/api/golf/roster') {
+      if (request.method !== 'GET') return json({ error: 'Method not allowed.' }, 405);
+      if (!(await hasSession(request, env))) return json({ error: 'Not authorized.' }, 401);
+      const attendees = ROSTER.map((r) => ({ name: r.name.trim().replace(/\s+/g, ' '), team: r.team || (r.group ? `Group ${r.group}` : '') }));
+      return new Response(JSON.stringify({ attendees }), {
+        headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
+      });
+    }
+
     if (pathname === '/api/golf/summary') {
       return request.method === 'GET'
         ? handleSummary(request, env)

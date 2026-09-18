@@ -51,7 +51,11 @@ test('one dinner screen awards the contest prizes from the judged pick and the e
   assert.match(prizes, /\/api\/golf\/summary\?format=json/);
   assert.match(prizes, /\/api\/course\/board/);
   // Rehearsal never shares storage with the real draw.
-  assert.match(prizes, /DEMO \? 'hyphos-golf-prizes-demo' : 'hyphos-golf-prizes-v1'/);
+  assert.match(prizes, /DEMO \? 'hyphos-golf-prizes-demo-v2' : 'hyphos-golf-prizes-v2'/);
+  // No prize list up front: the draw runs open-ended, then the Hyphos draw.
+  assert.match(prizes, /function moveToFinale\(\)/);
+  assert.match(prizes, /entry draw/);
+  assert.match(prizes, /\/api\/golf\/roster/);
   // The retired deck only forwards.
   assert.match(live, /location\.replace/);
   assert.doesNotMatch(live, /\/api\/golf/);
@@ -250,4 +254,17 @@ test('a signed-in browser stays signed in, and the sign-in page can tell', async
 
   const out = await call('/api/golf/logout', { method: 'POST' });
   assert.match(out.headers.get('set-cookie'), /Max-Age=0/);
+});
+
+test('the prize draw roster is served only to a signed-in screen', async () => {
+  const { default: worker } = await import('../src/worker.js');
+  const get = (auth) => worker.fetch(new Request('https://hyphos.io/api/golf/roster', { headers: auth ? { authorization: auth } : {} }), { GOLF_EXPORT_KEY: 'k' }, {});
+  assert.equal((await get()).status, 401);
+  assert.equal((await get('Bearer wrong')).status, 401);
+  const res = await get('Bearer k');
+  assert.equal(res.status, 200);
+  const { attendees } = await res.json();
+  const roster = JSON.parse(await readFile(new URL('../src/data/roster.json', import.meta.url), 'utf8'));
+  assert.equal(attendees.length, roster.length);
+  assert.ok(attendees.every((a) => a.name && a.team), 'every golfer has a team or group to strike by');
 });
