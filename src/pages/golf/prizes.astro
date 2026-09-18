@@ -1199,8 +1199,17 @@ import Mark from '../../components/Mark.astro';
         const have = new Set(S.attendees.map((a) => norm(a.team)));
         let id = nextId(); const added = [];
         attendees.forEach((a) => { if (a.team && !have.has(norm(a.team))) added.push({ id: id++, name: a.name || '', team: a.team }); });
-        if (!added.length) return;
         S.attendees.push(...added);
+        // Numbered placeholders ("Kaizen Auto Player 1") go into that team's
+        // blank slots, so those golfers can be drawn. A slot you have already
+        // typed a name into is never touched.
+        const names = new Set(S.attendees.map((a) => norm(a.name)));
+        let filled = 0;
+        attendees.filter((a) => / player \d+$/i.test(a.name) && !names.has(norm(a.name))).forEach((a) => {
+          const slot = S.attendees.find((x) => !x.name.trim() && norm(x.team) === norm(a.team));
+          if (slot) { slot.name = a.name; filled += 1; }
+        });
+        if (!added.length && !filled) return;
         save(); renderExclude(); updateStart();
       } catch {}
     }
