@@ -113,25 +113,25 @@ const sections: { title: string; intro?: string; tools: Tool[] }[] = [
   },
   {
     title: 'The Prize Draw, 6:00',
-    intro: 'Everything is one key. A presentation clicker works too.',
+    intro: 'Run it from a presentation clicker: Next and Back are all you need. The laptop keys still work too.',
     tools: [],
   },
 ];
 
 const keys = [
-  ['Space, Enter or →', 'Draw the next winner, then move on'],
-  ['H, twice', 'Finish the regular draws and move on to the Hyphos draw'],
+  ['Clicker Next (or Space)', 'Draw the next winner, then move on'],
+  ['Clicker Back, twice, with a winner showing', 'They have left. Redraws that prize and keeps them out for the night (same as R)'],
+  ['Clicker Back, twice, at Ready', 'Finish the regular draws and move on to the Hyphos draw (same as H twice)'],
   ['R', 'The winner is not in the room. Marks them out for the night and redraws this prize'],
   ['U', 'Undo this prize’s winner, back to Ready. They stay in the hat'],
-  ['←', 'Go back a screen'],
-  ['S or Esc', 'Back to setup: winners so far, export, strikes'],
+  ['S (laptop)', 'Back to setup: winners so far, export, removed teams. The clicker’s start and blank buttons are ignored'],
 ];
 
 const flow = [
   'The title slide shows first. Space starts the prizes.',
-  'Each draw shows Ready. Space spins through the names for about five seconds and lands on a winner. Keep going for as many prizes as the table has.',
-  'When the regular prizes are done, press H twice. The Hyphos draw follows: the Tidal prize, then the Pro V1s.',
-  'The Pro V1s are different: the first Space reads the winning answer out, the second reveals who wrote it.',
+  'Each draw shows Ready. Next spins through the names for about five seconds and lands on a winner. Keep going for as many prizes as the table has.',
+  'When the regular prizes are done, press Back twice at Ready. The Hyphos draw follows: the Tidal prize, then the Pro V1s.',
+  'The Pro V1s are different: the first Next reads the winning answer out, the second reveals who wrote it.',
   'Nobody wins twice, removed teams and anyone marked not here never come up, and the two Hyphos prizes only draw from entries.',
   'If the laptop closes or the page reloads, open the same address again. It resumes on the same prize with every winner kept.',
   'After the Pro V1s, a thank-you slide. Press S, then Export Winners CSV for the organisers. Also on the setup page: Move To The Hyphos Draw, if you would rather click than press H.',
@@ -153,8 +153,8 @@ const trouble = [
   ['A screen asks for the password again', 'Sign in at hyphos.io/golf/enter. It sends you straight back.'],
   ['The internet drops during the draw', 'Keep going. After Load Contest Entries the draw needs no connection.'],
   ['The browser closed mid-draw', 'Reopen hyphos.io/golf/prizes on the same laptop. It picks up where it stopped.'],
-  ['The wrong person was drawn', 'Press U, then Space to draw again.'],
-  ['The winner has gone home', 'Press R. It redraws and they stay out for the rest of the night.'],
+  ['The wrong person was drawn', 'On the laptop, press U, then Next to draw again.'],
+  ['The winner has gone home', 'Press Back twice on the clicker (or R). It redraws and they stay out for the rest of the night.'],
   ['Nothing works at all', 'Open the Text Readout below. It has every group, both draws and the answers as plain text.'],
 ];
 

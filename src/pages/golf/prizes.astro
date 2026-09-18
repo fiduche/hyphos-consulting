@@ -107,7 +107,7 @@ import Mark from '../../components/Mark.astro';
           <p id="q-detail"></p>
         </div>
         <div id="reel">Ready</div>
-        <p class="sub" id="p-sub">Press space to draw.</p>
+        <p class="sub" id="p-sub">Next: draw</p>
       </section>
 
       <section id="s-done" class="screen">
@@ -185,6 +185,8 @@ import Mark from '../../components/Mark.astro';
     .huge { font-family: 'Source Serif 4', Georgia, serif; font-weight: 500; font-size: clamp(40px, 7.5vw, 140px); line-height: 1.02; margin: 0; }
     .prize { font-family: 'Source Serif 4', Georgia, serif; font-weight: 500; font-size: clamp(30px, 5vw, 90px); line-height: 1.08; margin: 0; color: var(--paper); max-width: 24ch; margin-inline: auto; }
     .sub { font-size: clamp(16px, 2vw, 36px); color: var(--muted); margin: 3vmin 0 0; }
+    /* Directions are for whoever holds the clicker, not the room: small and quiet. */
+    #p-sub { font-size: clamp(11px, .95vw, 16px); letter-spacing: .02em; opacity: .6; margin-top: 4vmin; }
     #reel { font-family: 'Source Serif 4', Georgia, serif; font-weight: 500; font-size: clamp(38px, 7.5vw, 132px); line-height: 1.05; min-height: 1.2em; margin: 3vmin 0 0; color: var(--gold); }
     #reel.spinning { color: #6b7280; }
     #reel .co { display: block; font-family: 'Inter', system-ui, sans-serif; font-size: clamp(16px, 2.2vw, 38px); color: var(--muted); margin-top: 1.5vmin; }
@@ -516,8 +518,11 @@ import Mark from '../../components/Mark.astro';
       ? `Hyphos draw · ${Math.min(S.index - S.finaleStart + 1, S.finale.length)} of ${S.finale.length}`
       : `Draw ${S.index + 1}`;
     const subLanded = () => inFinale()
-      ? 'Space for the next prize · R if they have left · U to undo'
-      : 'Space for the next winner · R if they have left · U to undo · H twice for the Hyphos draw';
+      ? 'Next: next prize · Back twice: they have left, redraw'
+      : 'Next: next winner · Back twice: they have left, redraw';
+    const subReady = (p) => p.kind === 'judged'
+      ? 'Next: read the best answer'
+      : inFinale() ? 'Next: draw' : 'Next: draw · Back twice: move on to the Hyphos draw';
     const hatPrize = () => ({ prize: `Prize ${S.prizes.length + 1}`, sponsor: '', kind: 'hat' });
     function paintPrize() {
       el('counter').textContent = S.phase === 'prize' ? counterText() : '';
@@ -535,7 +540,7 @@ import Mark from '../../components/Mark.astro';
         nameNode(reel, existing); reel.classList.add('landed'); landed = true; el('p-sub').textContent = subLanded();
       } else {
         reel.textContent = 'Ready'; landed = false;
-        el('p-sub').textContent = p.kind === 'judged' ? 'Press space to read the best answer.' : 'Press space to draw.';
+        el('p-sub').textContent = subReady(p);
       }
       show('s-prize');
     }
@@ -571,18 +576,18 @@ import Mark from '../../components/Mark.astro';
       const candidates = candidatesFor(p);
       if (p.kind !== 'hat' && refreshing) {
         reel.textContent = 'Loading entries…'; el('p-sub').textContent = '';
-        refreshing.then(() => { reel.textContent = 'Ready'; el('p-sub').textContent = p.kind === 'judged' ? 'Press space to read the best answer.' : 'Press space to draw.'; });
+        refreshing.then(() => { reel.textContent = 'Ready'; el('p-sub').textContent = subReady(p); });
         return;
       }
       if (p.kind !== 'hat' && !S.contest) {
         reel.textContent = 'Loading entries…'; el('p-sub').textContent = '';
         loadContest().catch(() => {}).then(() => {
-          if (S.contest) { reel.textContent = 'Ready'; el('p-sub').textContent = 'Press space to draw.'; }
-          else { reel.textContent = 'Ready'; el('p-sub').textContent = 'Could not load the entries. Check the connection, then press space again.'; }
+          if (S.contest) { reel.textContent = 'Ready'; el('p-sub').textContent = subReady(p); }
+          else { reel.textContent = 'Ready'; el('p-sub').textContent = 'Could not load the entries. Check the connection, then press Next again.'; }
         });
         return;
       }
-      if (!candidates.length) { reel.textContent = p.kind === 'hat' ? 'Nobody left in the hat.' : 'Nobody left for this prize.'; el('p-sub').textContent = 'Space to move on.'; landed = true; return; }
+      if (!candidates.length) { reel.textContent = p.kind === 'hat' ? 'Nobody left in the hat.' : 'Nobody left for this prize.'; el('p-sub').textContent = 'Next: move on'; landed = true; return; }
       if (p.kind === 'judged' && !quoteUp && !judgedOrder().chosen) {
         el('p-sub').textContent = 'The best answer has not been chosen yet. Press S, choose it, then come back.';
         return;
@@ -594,7 +599,7 @@ import Mark from '../../components/Mark.astro';
         if (!quoteUp) {
           showQuote(entry); quoteUp = true;
           reel.textContent = ' ';
-          el('p-sub').textContent = 'Space to reveal who wrote it.';
+          el('p-sub').textContent = 'Next: reveal who wrote it';
           return;
         }
         const w = record(entry, { wish: entry.wish, detail: entry.detail });
@@ -645,6 +650,25 @@ import Mark from '../../components/Mark.astro';
       if (hasContestPrizes()) refreshing = loadContest().catch(() => {}).finally(() => { refreshing = null; });
     }
     let refreshing = null;
+    // Back on the clicker. Pressed twice within three seconds:
+    //   with a winner on screen  -> they have left, redraw (same as R)
+    //   at Ready, regular draws  -> move on to the Hyphos draw (same as H twice)
+    // One press only shows what a second press would do, so a slip does nothing.
+    let backArmed = 0;
+    function backPress() {
+      if (spinning || el('stage').hidden) return;
+      if (S.phase !== 'prize') return back();
+      const armed = Date.now() - backArmed < 3000;
+      if (landed && S.winners.some((w) => w.prizeIndex === S.index)) {
+        if (armed) { backArmed = 0; absent(); return; }
+        backArmed = Date.now(); el('p-sub').textContent = 'Press back again if they have left. The prize is redrawn.';
+        return;
+      }
+      if (!landed && !inFinale()) {
+        if (armed) { backArmed = 0; moveToFinale(); paintPrize(); return; }
+        backArmed = Date.now(); el('p-sub').textContent = 'Press back again to move on to the Hyphos draw.';
+      }
+    }
     let hArmed = 0;
     function pressH() {
       if (inFinale() || spinning || el('stage').hidden) return;
@@ -680,12 +704,17 @@ import Mark from '../../components/Mark.astro';
       if (el('stage').hidden) return;
       const k = e.key.toLowerCase();
       // Older key names (Return, Right, Left) come from some remotes and clickers.
-      if (e.key === ' ' || e.code === 'Space' || e.key === 'Enter' || e.key === 'Return' || e.key === 'ArrowRight' || e.key === 'Right' || e.key === 'PageDown') { e.preventDefault(); advance(); }
-      else if (e.key === 'ArrowLeft' || e.key === 'Left' || e.key === 'PageUp') { e.preventDefault(); back(); }
+      // A presentation clicker sends Next as PageDown or an arrow and Back as
+      // PageUp or an arrow, so the whole night runs on those two buttons.
+      if (e.key === ' ' || e.code === 'Space' || e.key === 'Enter' || e.key === 'Return' || e.key === 'ArrowRight' || e.key === 'Right' || e.key === 'ArrowDown' || e.key === 'Down' || e.key === 'PageDown') { e.preventDefault(); advance(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'Left' || e.key === 'ArrowUp' || e.key === 'Up' || e.key === 'PageUp') { e.preventDefault(); backPress(); }
+      // Clickers also have start and blank-screen buttons (F5, Esc, B, .).
+      // Ignore them so a stray press never reloads or opens setup on the projector.
+      else if (e.key === 'F5' || e.key === 'Escape' || k === 'b' || e.key === '.') { e.preventDefault(); }
       else if (k === 'r' && S.phase === 'prize' && landed && !spinning) { e.preventDefault(); absent(); }
       else if (k === 'u') { e.preventDefault(); undo(); }
       else if (k === 'h') { e.preventDefault(); pressH(); }
-      else if (k === 's' || e.key === 'Escape') { e.preventDefault(); showSetup(); }
+      else if (k === 's') { e.preventDefault(); showSetup(); }
     });
 
     // fireworks (same recipe as the live deck) ------------------------------
